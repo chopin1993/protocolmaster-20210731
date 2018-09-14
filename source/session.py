@@ -2,7 +2,7 @@
 from media.serial_media import SerialMedia
 from protocol.codec import BinaryEncoder, BinaryDecoder
 from protocol.CJT188_protocol import CJT188Protocol, Protocol
-from protocol.DL645_protocol import DL645Protocol
+from protocol.DL645_protocol import DL645_07_Protocol
 from protocol.fifo_buffer import FifoBuffer
 from tools.converter import hexstr2str, str2hexstr
 from PyQt4.QtCore import QObject, pyqtSignal
@@ -23,7 +23,7 @@ class SessionSuit(QObject):
         media = SerialMedia()
         encoder = BinaryEncoder()
         decoder = BinaryDecoder()
-        return SessionSuit(media, encoder, decoder, DL645Protocol)
+        return SessionSuit(media, encoder, decoder, DL645_07_Protocol)
 
     def __init__(self, media, encoder, decoder, protocol_cls):
         media.data_ready.connect(self.handle_receive_data)

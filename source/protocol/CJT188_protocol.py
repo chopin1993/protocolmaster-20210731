@@ -1,8 +1,9 @@
 # encoding:utf-8
 from protocol import Protocol, protocol_register
-from protocol import checksum, find_head
+from protocol import find_head
 from codec import BinaryEncoder
 from tools.converter import hexstr2str, str2hexstr
+from data_fragment import *
 
 CJT188_HEAD = chr(0x68)
 CJT188_TAIL = chr(0x16)
@@ -39,6 +40,7 @@ class CJT188Protocol(Protocol):
         return protocol
 
     def __init__(self, address=None):
+        super(CJT188Protocol, self).__init__()
         if address is None:
             address = chr(0xaa)*7
         self.address = address
@@ -47,6 +49,7 @@ class CJT188Protocol(Protocol):
         self.length = 0x04
         self.did_unit = DIDReadMeter()
         self.serial = 0x90
+        self.name = "CJT188"
 
     def padding_address(self):
         if len(self.address) != 7:

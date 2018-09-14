@@ -41,7 +41,7 @@
        </property>
        <column>
         <property name="text">
-         <string notr="true">1</string>
+         <string>APP名称</string>
         </property>
        </column>
       </widget>
@@ -81,86 +81,6 @@
          <property name="bottomMargin">
           <number>0</number>
          </property>
-         <item row="1" column="0">
-          <layout class="QHBoxLayout" name="horizontalLayout_3">
-           <item>
-            <widget class="QLineEdit" name="convertAddressLineEdit"/>
-           </item>
-           <item>
-            <widget class="QPushButton" name="readConvertPushButton">
-             <property name="text">
-              <string>抄读转换器地址</string>
-             </property>
-            </widget>
-           </item>
-           <item>
-            <widget class="QCheckBox" name="is645checkBox">
-             <property name="text">
-              <string>645</string>
-             </property>
-            </widget>
-           </item>
-           <item>
-            <widget class="QLabel" name="label">
-             <property name="text">
-              <string>抄读时间间隔</string>
-             </property>
-            </widget>
-           </item>
-           <item>
-            <widget class="QLineEdit" name="readMeterSpanLineEdit">
-             <property name="text">
-              <string>7</string>
-             </property>
-            </widget>
-           </item>
-           <item>
-            <spacer name="horizontalSpacer">
-             <property name="orientation">
-              <enum>Qt::Horizontal</enum>
-             </property>
-             <property name="sizeHint" stdset="0">
-              <size>
-               <width>20</width>
-               <height>20</height>
-              </size>
-             </property>
-            </spacer>
-           </item>
-           <item>
-            <widget class="QPushButton" name="stopButton">
-             <property name="text">
-              <string>开始</string>
-             </property>
-            </widget>
-           </item>
-           <item>
-            <widget class="QPushButton" name="startButton">
-             <property name="text">
-              <string>暂停</string>
-             </property>
-            </widget>
-           </item>
-          </layout>
-         </item>
-         <item row="0" column="0">
-          <layout class="QVBoxLayout" name="verticalLayout">
-           <item>
-            <widget class="QTableWidget" name="tableWidget">
-             <column>
-              <property name="text">
-               <string>表地址</string>
-              </property>
-             </column>
-             <column>
-              <property name="text">
-               <string>状态</string>
-              </property>
-             </column>
-            </widget>
-           </item>
-          </layout>
-         </item>
         </layout>
        </widget>
        <widget class="QTabWidget" name="tabWidget">
@@ -328,66 +248,34 @@
  <resources/>
  <connections>
   <connection>
-   <sender>stopButton</sender>
-   <signal>clicked()</signal>
+   <sender>treeWidget</sender>
+   <signal>itemChanged(QTreeWidgetItem*,int)</signal>
    <receiver>MainWindow</receiver>
-   <slot>start()</slot>
+   <slot>item_changed(QTreeWidgetItem*,int)</slot>
    <hints>
     <hint type="sourcelabel">
-     <x>808</x>
-     <y>378</y>
+     <x>75</x>
+     <y>103</y>
     </hint>
     <hint type="destinationlabel">
-     <x>359</x>
-     <y>-18</y>
+     <x>341</x>
+     <y>-15</y>
     </hint>
    </hints>
   </connection>
   <connection>
-   <sender>startButton</sender>
-   <signal>clicked()</signal>
+   <sender>treeWidget</sender>
+   <signal>clicked(QModelIndex)</signal>
    <receiver>MainWindow</receiver>
-   <slot>stop()</slot>
+   <slot>clicked(QModelIndex)</slot>
    <hints>
     <hint type="sourcelabel">
-     <x>907</x>
-     <y>380</y>
+     <x>125</x>
+     <y>153</y>
     </hint>
     <hint type="destinationlabel">
-     <x>814</x>
-     <y>-17</y>
-    </hint>
-   </hints>
-  </connection>
-  <connection>
-   <sender>readConvertPushButton</sender>
-   <signal>clicked()</signal>
-   <receiver>MainWindow</receiver>
-   <slot>read_convert_address()</slot>
-   <hints>
-    <hint type="sourcelabel">
-     <x>446</x>
-     <y>391</y>
-    </hint>
-    <hint type="destinationlabel">
-     <x>648</x>
-     <y>-12</y>
-    </hint>
-   </hints>
-  </connection>
-  <connection>
-   <sender>is645checkBox</sender>
-   <signal>toggled(bool)</signal>
-   <receiver>MainWindow</receiver>
-   <slot>is645Taggle(bool)</slot>
-   <hints>
-    <hint type="sourcelabel">
-     <x>493</x>
-     <y>387</y>
-    </hint>
-    <hint type="destinationlabel">
-     <x>540</x>
-     <y>-24</y>
+     <x>163</x>
+     <y>-22</y>
     </hint>
    </hints>
   </connection>
@@ -396,6 +284,8 @@
   <slot>start()</slot>
   <slot>stop()</slot>
   <slot>read_convert_address()</slot>
-  <slot>is645Taggle(bool)</slot>
+  <slot>protocol_change(int)</slot>
+  <slot>item_changed(QTreeWidgetItem*,int)</slot>
+  <slot>clicked(QModelIndex)</slot>
  </slots>
 </ui>

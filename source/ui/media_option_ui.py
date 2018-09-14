@@ -113,6 +113,7 @@ def get_user_options(media):
         media.close()
 
     dialog = EsUserOptionsDialog()
+    dialog.setModal(True)
     dialog.set_options(media.get_media_options())
     dialog.set_ok_function(ok_button_press)
     dialog.set_close_function(close_button_press())

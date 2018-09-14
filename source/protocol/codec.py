@@ -54,9 +54,10 @@ class BinaryEncoder(Encoder):
     def encode_object(self, object_data):
         object_data.encode(self)
 
-    def object2data(self, object_data):
+    @staticmethod
+    def object2data(a_object):
         encoder = BinaryEncoder()
-        object_data.encode(encoder)
+        a_object.encode(encoder)
         return encoder.get_data()
 
     def get_data(self, size=None):
