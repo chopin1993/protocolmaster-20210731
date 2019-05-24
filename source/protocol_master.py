@@ -13,7 +13,6 @@ from protocol_master_ui import Ui_MainWindow
 reload(sys)
 sys.setdefaultencoding('utf8')
 
-
 class EarthMother(QMainWindow, Ui_MainWindow):
     def __init__(self):
         super(EarthMother, self).__init__()
@@ -25,14 +24,13 @@ class EarthMother(QMainWindow, Ui_MainWindow):
         for plug in self.plugs:
             self.install_plugs(plug)
 
+        self.stackedWidget.setCurrentIndex(0)
+
     def install_plugs(self, a_plug):
         widget = QTreeWidgetItem(self.treeWidget)
         widget.setText(0,a_plug.name)
         self.stackedWidget.addWidget(a_plug)
 
-
-    def item_changed(item , index):
-        print index,"clicked"
 
     def clicked(self, index):
         self.stackedWidget.setCurrentIndex(index.row())

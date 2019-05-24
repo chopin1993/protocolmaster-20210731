@@ -1,9 +1,26 @@
 import os
+from tools.import_helper import import_all_python
+from PyQt4.QtCore import *
+from PyQt4.QtGui import *
 
-class ApplicationPlug(object):
 
-    def get_medias(self):
+class ApplicationPlug(QWidget):
+
+    def __init__(self, name):
+        super(QWidget, self).__init__()
+        self.name = name
+
+    def get_medias_cnt(self):
         raise NotImplementedError
+
+    def get_protocols(self):
+         raise NotImplementedError
+
+    def handle_receive_data(self):
+        pass
+
+    def handle_send_data(self):
+        pass
 
 
 _all_plugs = dict()
@@ -21,6 +38,3 @@ def plugs_get_all():
         plugs.append(value())
     return plugs
 
-
-
-scan_current_dir()

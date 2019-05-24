@@ -1,4 +1,4 @@
 from application_plug import plugs_get_all, ApplicationPlug
 
 import success_radio_plug
-import protocol_test
+import protocol_test_plug

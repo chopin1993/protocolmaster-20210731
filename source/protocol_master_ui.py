@@ -131,7 +131,6 @@ class Ui_MainWindow(object):
 
         self.retranslateUi(MainWindow)
         self.tabWidget.setCurrentIndex(0)
-        QtCore.QObject.connect(self.treeWidget, QtCore.SIGNAL(_fromUtf8("itemChanged(QTreeWidgetItem*,int)")), MainWindow.item_changed)
         QtCore.QObject.connect(self.treeWidget, QtCore.SIGNAL(_fromUtf8("clicked(QModelIndex)")), MainWindow.clicked)
         QtCore.QMetaObject.connectSlotsByName(MainWindow)
 

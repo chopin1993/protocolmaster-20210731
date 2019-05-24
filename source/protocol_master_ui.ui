@@ -249,22 +249,6 @@
  <connections>
   <connection>
    <sender>treeWidget</sender>
-   <signal>itemChanged(QTreeWidgetItem*,int)</signal>
-   <receiver>MainWindow</receiver>
-   <slot>item_changed(QTreeWidgetItem*,int)</slot>
-   <hints>
-    <hint type="sourcelabel">
-     <x>75</x>
-     <y>103</y>
-    </hint>
-    <hint type="destinationlabel">
-     <x>341</x>
-     <y>-15</y>
-    </hint>
-   </hints>
-  </connection>
-  <connection>
-   <sender>treeWidget</sender>
    <signal>clicked(QModelIndex)</signal>
    <receiver>MainWindow</receiver>
    <slot>clicked(QModelIndex)</slot>
