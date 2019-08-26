@@ -14,8 +14,8 @@
    <string>智能硬件测试工具</string>
   </property>
   <widget class="QWidget" name="centralWidget">
-   <layout class="QHBoxLayout" name="horizontalLayout_2">
-    <item>
+   <layout class="QGridLayout" name="gridLayout_2">
+    <item row="0" column="0">
      <widget class="QSplitter" name="splitter_h">
       <property name="orientation">
        <enum>Qt::Horizontal</enum>
@@ -58,31 +58,6 @@
        <property name="orientation">
         <enum>Qt::Vertical</enum>
        </property>
-       <widget class="QGroupBox" name="appGroupBox">
-        <property name="minimumSize">
-         <size>
-          <width>80</width>
-          <height>350</height>
-         </size>
-        </property>
-        <property name="title">
-         <string>工作区</string>
-        </property>
-        <layout class="QGridLayout" name="gridLayout_app">
-         <property name="leftMargin">
-          <number>0</number>
-         </property>
-         <property name="topMargin">
-          <number>0</number>
-         </property>
-         <property name="rightMargin">
-          <number>0</number>
-         </property>
-         <property name="bottomMargin">
-          <number>0</number>
-         </property>
-        </layout>
-       </widget>
        <widget class="QTabWidget" name="tabWidget">
         <property name="currentIndex">
          <number>0</number>

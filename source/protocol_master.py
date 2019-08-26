@@ -1,8 +1,8 @@
 # encoding:utf-8
 import sys
 
-from PyQt4.QtCore import *
-from PyQt4.QtGui import *
+from PyQt5.QtCore import *
+from PyQt5.QtGui import *
 from config import ESConfig
 from session import SessionSuit
 from tools.converter import str2hexstr, hexstr2str
@@ -17,13 +17,13 @@ class EarthMother(QMainWindow, Ui_MainWindow):
     def __init__(self):
         super(EarthMother, self).__init__()
         self.setupUi(self)
-        self.stackedWidget = QStackedWidget(self.appGroupBox)
         self.widgets = list()
         self.plugs = plugs_get_all()
-
+        self.stackedWidget = QStackedWidget()
+        self.stackedWidget.setMinimumHeight(375)
         for plug in self.plugs:
             self.install_plugs(plug)
-
+        self.splitter_v.insertWidget(0, self.stackedWidget)
         self.stackedWidget.setCurrentIndex(0)
 
     def install_plugs(self, a_plug):
@@ -31,10 +31,10 @@ class EarthMother(QMainWindow, Ui_MainWindow):
         widget.setText(0,a_plug.name)
         self.stackedWidget.addWidget(a_plug)
 
-
     def clicked(self, index):
         self.stackedWidget.setCurrentIndex(index.row())
-
+        # print self.appGroupBox.width(), self.stackedWidget.height()
+        # print self.stackedWidget.width() ,self.stackedWidget.height(),
         # self.session.data_ready.connect(self.protocol_handle)
         # self.session.media.error.connect(self.show_media_error)
         # self.show_media_config()
