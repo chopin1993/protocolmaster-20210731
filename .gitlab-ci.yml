@@ -1,0 +1,10 @@
+# 每个项目默认的runner的tag为test，所以再配置任务时，每个任务必须显示指定tag为test,否则持续集成不会运行。
+stages:
+  - buildtest
+
+
+buildtest:
+  stage: buildtest
+  script: cmake . && make && ./esdagger_test
+  tags:
+    - test
