@@ -1,9 +1,9 @@
 # encoding:utf-8
-from media import media_register, Media, MediaOptions
+from .media import media_register, Media, MediaOptions
 import os
 from collections import OrderedDict
 import serial
-from PyQt4.QtCore import QTimer, pyqtSignal
+from PyQt5.QtCore import QTimer, pyqtSignal
 from tools.converter import str2bytearray
 from serial import SerialException
 
@@ -67,7 +67,7 @@ class SerialMedia(Media):
                 data = self.serial.read(100)
                 if len(data) > 0:
                     self.data_ready.emit(str2bytearray(data))
-            except SerialException, e:
+            except SerialException:
                 self.error.emit(u"串口发生错误")
                 self.close()
 
@@ -85,4 +85,4 @@ class SerialMedia(Media):
 if __name__ == "__main__":
     import json
     serial = SerialMedia()
-    print json.dumps(serial.get_media_options(), ensure_ascii=False, encoding='UTF-8')
+    print(json.dumps(serial.get_media_options(), ensure_ascii=False, encoding='UTF-8'))

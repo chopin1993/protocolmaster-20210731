@@ -1,19 +1,10 @@
 # encoding:utf-8
-import sys
 from PyQt4.QtCore import *
 from PyQt4.QtGui import *
 from protocol_master_ui import Ui_MainWindow
-from device.device import get_all_device, find_device_by_address
-from session import SessionSuit
-from tools.converter import str2hexstr, hexstr2str
-from ui.media_option_ui import get_user_options
-from config import ESConfig
-from serial import SerialException
 import sys
 reload(sys)
 sys.setdefaultencoding('utf8')
-from media.serial_media import SerialMedia
-from media.tcp_media import TCPMedia
 from application_plug import plug_register
 
 

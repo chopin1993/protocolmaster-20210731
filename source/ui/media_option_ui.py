@@ -1,9 +1,10 @@
 # -*- coding: utf-8 -*-
 
-from PyQt4.QtCore import *
-from PyQt4.QtGui import *
-from PyQt4 import QtCore, QtGui
+from PyQt5.QtCore import *
+from PyQt5.QtGui import *
+from PyQt5 import QtCore, QtGui
 from media.media import MediaOptions,MediaText
+from PyQt5.QtWidgets import *
 
 class EsUserOptionsDialog(QDialog):
     def __init__(self):

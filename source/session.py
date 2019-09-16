@@ -2,10 +2,9 @@
 from media.serial_media import SerialMedia
 from protocol.codec import BinaryEncoder, BinaryDecoder
 from protocol.CJT188_protocol import CJT188Protocol, Protocol
-from protocol.DL645_protocol import DL645_07_Protocol
 from protocol.fifo_buffer import FifoBuffer
 from tools.converter import hexstr2str, str2hexstr
-from PyQt4.QtCore import QObject, pyqtSignal
+from PyQt5.QtCore import QObject, pyqtSignal
 from tools.converter import bytearray2str
 
 
@@ -43,7 +42,7 @@ class SessionSuit(QObject):
         (found, start, length) = protocol.find_frame_in_buff(data)
         if found:
             self.buffer.read(start + length)
-            print "rcv", str2hexstr(data[0:start + length])
+            print("rcv", str2hexstr(data[0:start + length]))
             frame_data = data[start:start+length]
             self.decoder.set_data(frame_data)
             protocol.decode(self.decoder)
@@ -55,7 +54,7 @@ class SessionSuit(QObject):
         self.encoder.encode_object(protocol)
         data = self.encoder.get_data()
         self.media.send(data)
-        print "snd",str2hexstr(data)
+        print("snd",str2hexstr(data))
         self.encoder.reset()
 
     def close(self):

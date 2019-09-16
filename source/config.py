@@ -1,10 +1,9 @@
 # encoding:utf-8
-import ConfigParser
+import configparser as  ConfigParser
 import os
 import codecs
 import sys
-reload(sys)
-sys.setdefaultencoding('utf8')
+
 
 class ESConfig(object):
     """

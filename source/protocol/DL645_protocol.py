@@ -1,7 +1,7 @@
 # encoding:utf-8
-from protocol import Protocol, protocol_register
-from protocol import find_head
-from codec import BinaryEncoder, BinaryDecoder
+from .protocol import Protocol, protocol_register
+from .protocol import find_head
+from .codec import BinaryEncoder, BinaryDecoder
 from tools.converter import hexstr2str, str2hexstr
 from tools.checker import checksum
 

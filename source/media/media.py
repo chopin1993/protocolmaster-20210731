@@ -1,9 +1,8 @@
 # encoding:utf-8
 import os
-from PyQt4.QtCore import QObject, pyqtSignal
+from PyQt5.QtCore import QObject, pyqtSignal
 import pickle
 from copy import deepcopy
-
 
 class MediaOptions(object):
     def __init__(self, key, options, label_text=None, show_options=None,select_id=0):

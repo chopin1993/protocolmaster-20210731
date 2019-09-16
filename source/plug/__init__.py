@@ -1,4 +1,1 @@
-from application_plug import plugs_get_all, ApplicationPlug
-
-import success_radio_plug
-import thermal_image
+from .application_plug import plugs_get_all, ApplicationPlug

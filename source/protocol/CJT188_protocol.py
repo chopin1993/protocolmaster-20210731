@@ -1,9 +1,9 @@
 # encoding:utf-8
-from protocol import Protocol, protocol_register
-from protocol import find_head
-from codec import BinaryEncoder
+from .protocol import Protocol, protocol_register
+from .protocol import find_head
+from .codec import BinaryEncoder
 from tools.converter import hexstr2str, str2hexstr
-from data_fragment import *
+from .data_fragment import *
 
 CJT188_HEAD = chr(0x68)
 CJT188_TAIL = chr(0x16)

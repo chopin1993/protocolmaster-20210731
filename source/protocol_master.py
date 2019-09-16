@@ -1,17 +1,9 @@
 # encoding:utf-8
 import sys
-
-from PyQt5.QtCore import *
-from PyQt5.QtGui import *
-from config import ESConfig
-from session import SessionSuit
-from tools.converter import str2hexstr, hexstr2str
-from ui.media_option_ui import get_user_options
+from PyQt5.QtWidgets import *
 from plug import plugs_get_all
 from protocol_master_ui import Ui_MainWindow
 
-reload(sys)
-sys.setdefaultencoding('utf8')
 
 class EarthMother(QMainWindow, Ui_MainWindow):
     def __init__(self):

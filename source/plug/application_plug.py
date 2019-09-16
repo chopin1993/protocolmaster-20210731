@@ -1,8 +1,8 @@
 import os
 from tools.import_helper import import_all_python
-from PyQt4.QtCore import *
-from PyQt4.QtGui import *
-
+from PyQt5.QtCore import *
+from PyQt5.QtGui import *
+from PyQt5.QtWidgets import *
 
 class ApplicationPlug(QWidget):
 
@@ -34,7 +34,7 @@ def plug_register(plugs_class):
 
 def plugs_get_all():
     plugs = list()
-    for value in _all_plugs.itervalues():
+    for value in _all_plugs.values():
         plugs.append(value())
     return plugs
 

@@ -1,0 +1,3 @@
+[submodule "thirdparty/daydreaming"]
+	path = thirdparty/daydreaming
+	url = https://github.com/yuantangliang/daydreaming.git
