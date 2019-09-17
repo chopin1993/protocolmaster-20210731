@@ -20,8 +20,10 @@ def hexstr2str(string):
 
 def str2hexstr(string):
     des = ""
+    if isinstance(string, str):
+        string = bytes(string, encoding="ascii")
     for byte in string:
-        des += "%02x" %(ord(byte))
+        des += "%02x" %(byte)
         des += " "
     return des.strip().upper()
 

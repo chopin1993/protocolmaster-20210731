@@ -59,7 +59,11 @@ class SerialMedia(Media):
             self.serial.close()
 
     def send(self, data):
-        self.serial.write(data)
+        if self.serial is not None:
+            self.serial.write(data)
+        else:
+            self.error.emit(u"串口未打开")
+            self.close()
 
     def _receive(self):
         if self.serial is not None and self.serial.is_open:

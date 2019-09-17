@@ -101,7 +101,7 @@ class EsUserOptionsDialog(QDialog):
 dialog = None
 
 
-def get_user_options(media):
+def show_user_media_options(media):
     global dialog
 
     def ok_button_press(options):
@@ -121,4 +121,11 @@ def get_user_options(media):
     dialog.show()
 
 
+def show_user_options(options, ok_func):
+    global dialog
+    dialog = EsUserOptionsDialog()
+    dialog.setModal(True)
+    dialog.set_options(options)
+    dialog.set_ok_function(ok_func)
+    dialog.show()
 

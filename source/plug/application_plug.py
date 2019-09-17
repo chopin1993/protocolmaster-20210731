@@ -9,6 +9,7 @@ class ApplicationPlug(QWidget):
     def __init__(self, name):
         super(QWidget, self).__init__()
         self.name = name
+        self.session = None 
 
     def get_medias_cnt(self):
         raise NotImplementedError

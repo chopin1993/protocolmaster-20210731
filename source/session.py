@@ -1,35 +1,27 @@
 # encoding:utf-8
 from media.serial_media import SerialMedia
 from protocol.codec import BinaryEncoder, BinaryDecoder
-from protocol.CJT188_protocol import CJT188Protocol, Protocol
 from protocol.fifo_buffer import FifoBuffer
 from tools.converter import hexstr2str, str2hexstr
 from PyQt5.QtCore import QObject, pyqtSignal
 from tools.converter import bytearray2str
-
+from protocol import Protocol
 
 class SessionSuit(QObject):
     data_ready = pyqtSignal(Protocol)
 
     @staticmethod
-    def create_188_suit(media):
+    def create_binary_suit(media, protocol):
         encoder = BinaryEncoder()
         decoder = BinaryDecoder()
-        return SessionSuit(media, encoder, decoder, CJT188Protocol)
+        return SessionSuit(media, encoder, decoder, protocol)
 
-    @staticmethod
-    def create_645_suit():
-        media = SerialMedia()
-        encoder = BinaryEncoder()
-        decoder = BinaryDecoder()
-        return SessionSuit(media, encoder, decoder, DL645_07_Protocol)
-
-    def __init__(self, media, encoder, decoder, protocol_cls):
+    def __init__(self, media, encoder, decoder, protocol):
         media.data_ready.connect(self.handle_receive_data)
         self.media = media
         self.encoder = encoder
         self.decoder = decoder
-        self.protocol_cls = protocol_cls
+        self.protocol = protocol
         self.buffer = FifoBuffer()
         super(SessionSuit, self).__init__()
 
@@ -38,7 +30,7 @@ class SessionSuit(QObject):
         assert len(string) > 0
         self.buffer.receive(string)
         data = self.buffer.peek(10000)
-        protocol = self.protocol_cls()
+        protocol = self.protocol
         (found, start, length) = protocol.find_frame_in_buff(data)
         if found:
             self.buffer.read(start + length)
@@ -49,8 +41,8 @@ class SessionSuit(QObject):
             self.data_ready.emit(protocol)
 
 
-    def send_data(self, address, data, **kwargs):
-        protocol = self.protocol_cls.create_frame(address, data, **kwargs)
+    def write(self, data, **kwargs):
+        protocol = self.protocol.create_frame(None,data, **kwargs)
         self.encoder.encode_object(protocol)
         data = self.encoder.get_data()
         self.media.send(data)

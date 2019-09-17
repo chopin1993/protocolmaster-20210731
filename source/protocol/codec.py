@@ -34,7 +34,7 @@ class Decoder(object):
 
 class BinaryEncoder(Encoder):
     def __init__(self):
-        self.data = ""
+        self.data = bytes([])
 
     def encode_str(self, str):
         self.data += str
@@ -67,7 +67,7 @@ class BinaryEncoder(Encoder):
         return self.data
 
     def reset(self):
-        self.data = ""
+        self.data = bytes([])
 
 
 class BinaryDecoder(Decoder):
