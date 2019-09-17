@@ -9,6 +9,7 @@ import media
 import protocol
 import session
 
+
 class ESMainWindow(QMainWindow, Ui_MainWindow):
     """
        管理插件、信道、和协议。
@@ -17,6 +18,7 @@ class ESMainWindow(QMainWindow, Ui_MainWindow):
         super(ESMainWindow, self).__init__()
         self.setupUi(self)
         self.medias = media.get_media_instances()
+        self.get_current_media().error.connect(self.show_error)
         self.init_menu()
         self.protocols = protocol.get_all_protocol_instance()
         self.session = None
@@ -70,6 +72,10 @@ class ESMainWindow(QMainWindow, Ui_MainWindow):
             self.update_session()
         else:
             QMessageBox.information(None, "错误" , u"没有可以用使用的协议")
+
+    @staticmethod
+    def show_error(msg):
+        QMessageBox.information(None, "错误", msg)
 
     def get_current_media(self):
         return self.medias[0]

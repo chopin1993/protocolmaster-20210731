@@ -59,11 +59,14 @@ class SerialMedia(Media):
             self.serial.close()
 
     def send(self, data):
-        if self.serial is not None:
-            self.serial.write(data)
-        else:
-            self.error.emit(u"串口未打开")
-            self.close()
+        try:
+            if self.serial is not None and self.serial.is_open:
+                self.serial.write(data)
+            else:
+                self.error.emit(u"串口未打开")
+                self.close()
+        except SerialException as err:
+             self.error.emit(str(err))
 
     def _receive(self):
         if self.serial is not None and self.serial.is_open:
@@ -71,8 +74,8 @@ class SerialMedia(Media):
                 data = self.serial.read(100)
                 if len(data) > 0:
                     self.data_ready.emit(str2bytearray(data))
-            except SerialException:
-                self.error.emit(u"串口发生错误")
+            except SerialException as err:
+                self.error.emit(str(err))
                 self.close()
 
     def set_media_options(self, options):
