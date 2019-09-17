@@ -1,14 +1,13 @@
 # encoding:utf-8
-from PyQt4.QtCore import *
-from PyQt4.QtGui import *
+from PyQt5.QtCore import *
+from PyQt5.QtGui import *
 from protocol_master_ui import Ui_MainWindow
 import sys
-reload(sys)
-sys.setdefaultencoding('utf8')
-from application_plug import plug_register
+
+from .application_plug import plug_register
 
 
-@plug_register
+#@plug_register
 class SucessrRadioWindow(QMainWindow, Ui_MainWindow):
     TCP  = 0
     UART = 1

@@ -1,9 +1,9 @@
 # encoding:utf-8
 
-from PyQt4.QtCore import *
-from PyQt4.QtGui import *
-from application_plug import plug_register,ApplicationPlug
-from thermal_image_ui import Ui_Form
+from PyQt5.QtCore import *
+from PyQt5.QtGui import *
+from .application_plug import plug_register,ApplicationPlug
+from .thermal_image_ui import Ui_Form
 
 @plug_register
 class ThermalImage(ApplicationPlug, Ui_Form):
@@ -13,7 +13,7 @@ class ThermalImage(ApplicationPlug, Ui_Form):
         self.setupUi(self)
 
     def readImageOnce(self):
-        print "read image once"
+        print("read image once")
 
     def get_medias_cnt(self):
         return 1

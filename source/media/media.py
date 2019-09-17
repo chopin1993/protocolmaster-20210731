@@ -4,6 +4,7 @@ from PyQt5.QtCore import QObject, pyqtSignal
 import pickle
 from copy import deepcopy
 
+
 class MediaOptions(object):
     def __init__(self, key, options, label_text=None, show_options=None,select_id=0):
         self.key = key
@@ -91,8 +92,8 @@ class Media(QObject, object):
     def get_selected_options(self):
         selected_options = {}
         for option in self.media_options:
-           key,value = option.get_selected_key_value()
-           selected_options[key] = value
+            key, value = option.get_selected_key_value()
+            selected_options[key] = value
         return selected_options
 
 
@@ -100,20 +101,30 @@ _all_medias = dict()
 
 
 def media_register(media_class):
-    global _all_protocols
     _all_medias[media_class.__name__] = media_class
     return media_class
 
 
+def get_all_medias():
+    return _all_medias
+
+
+media_instance = []
+
+
+def get_media_instances():
+    if len(media_instance) > 0:
+        return media_instance
+    else:
+        for cls in _all_medias.values():
+            ins = media_create(cls.__name__)
+            media_instance.append(ins)
+    return media_instance
+
+
 def media_create(name):
-    from ..user_exceptions import FoundClassException
-    media_class = _all_protocols(name)
+    from user_exceptions import FoundClassException
+    media_class = _all_medias[name]
     if media_class is None:
         raise FoundClassException(name)
     return media_class()
-
-
-
-
-
-

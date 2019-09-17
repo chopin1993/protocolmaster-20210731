@@ -203,21 +203,6 @@
    <addaction name="separator"/>
   </widget>
   <widget class="QStatusBar" name="statusBar"/>
-  <action name="openDatabaseAction">
-   <property name="text">
-    <string>open</string>
-   </property>
-  </action>
-  <action name="exportDatabaseAction">
-   <property name="text">
-    <string>export</string>
-   </property>
-  </action>
-  <action name="action">
-   <property name="text">
-    <string>串口</string>
-   </property>
-  </action>
  </widget>
  <layoutdefault spacing="6" margin="11"/>
  <resources/>
@@ -226,25 +211,21 @@
    <sender>treeWidget</sender>
    <signal>clicked(QModelIndex)</signal>
    <receiver>MainWindow</receiver>
-   <slot>clicked(QModelIndex)</slot>
+   <slot>plug_index_clicked(QModelIndex)</slot>
    <hints>
     <hint type="sourcelabel">
-     <x>125</x>
-     <y>153</y>
+     <x>40</x>
+     <y>114</y>
     </hint>
     <hint type="destinationlabel">
-     <x>163</x>
-     <y>-22</y>
+     <x>64</x>
+     <y>-12</y>
     </hint>
    </hints>
   </connection>
  </connections>
  <slots>
-  <slot>start()</slot>
-  <slot>stop()</slot>
-  <slot>read_convert_address()</slot>
-  <slot>protocol_change(int)</slot>
-  <slot>item_changed(QTreeWidgetItem*,int)</slot>
   <slot>clicked(QModelIndex)</slot>
+  <slot>plug_index_clicked(QModelIndex)</slot>
  </slots>
 </ui>

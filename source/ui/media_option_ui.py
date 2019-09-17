@@ -21,20 +21,20 @@ class EsUserOptionsDialog(QDialog):
         #self.resize(237, 298)
         self.vlayout = QVBoxLayout()
         self.vlayout.setSpacing(20)
-        self.config_groups = QtGui.QGroupBox(self.group_widget)
-        self.config_layout = QtGui.QGridLayout(self.config_groups)
+        self.config_groups = QGroupBox(self.group_widget)
+        self.config_layout = QGridLayout(self.config_groups)
         self.config_layout.setHorizontalSpacing(20)
         self.config_layout.setVerticalSpacing(10)
 
         for i,option in enumerate(self.options):
             if isinstance(option, MediaOptions):
-                combobox = QtGui.QComboBox(self.config_groups)
+                combobox = QComboBox(self.config_groups)
                 combobox.addItems(option.get_options())
                 combobox.setCurrentIndex(option.select_id)
                 self.widget_list.append(combobox)
                 self.config_layout.addWidget(combobox, i, 1, 1, 1)
-                label = QtGui.QLabel(self.config_groups)
-                size_policy = QtGui.QSizePolicy(QtGui.QSizePolicy.Fixed, QtGui.QSizePolicy.Preferred)
+                label = QLabel(self.config_groups)
+                size_policy = QSizePolicy(QSizePolicy.Fixed, QSizePolicy.Preferred)
                 size_policy.setHorizontalStretch(0)
                 size_policy.setVerticalStretch(0)
                 size_policy.setHeightForWidth(label.sizePolicy().hasHeightForWidth())
@@ -42,12 +42,12 @@ class EsUserOptionsDialog(QDialog):
                 label.setText(option.label_text)
                 self.config_layout.addWidget(label, i, 0, 1, 1)
             elif isinstance(option, MediaText):
-                line_edit = QtGui.QLineEdit(self.config_groups)
+                line_edit = QLineEdit(self.config_groups)
                 line_edit.setText(option.get_options())
                 self.widget_list.append(line_edit)
                 self.config_layout.addWidget(line_edit, i, 1, 1, 1)
-                label = QtGui.QLabel(self.config_groups)
-                size_policy = QtGui.QSizePolicy(QtGui.QSizePolicy.Fixed, QtGui.QSizePolicy.Preferred)
+                label = QLabel(self.config_groups)
+                size_policy = QSizePolicy(QSizePolicy.Fixed, QSizePolicy.Preferred)
                 size_policy.setHorizontalStretch(0)
                 size_policy.setVerticalStretch(0)
                 size_policy.setHeightForWidth(label.sizePolicy().hasHeightForWidth())
@@ -58,9 +58,9 @@ class EsUserOptionsDialog(QDialog):
                 assert False,"unhandle class"
 
         self.vlayout.addWidget(self.config_groups)
-        self.buttonBox = QtGui.QDialogButtonBox(self)
+        self.buttonBox = QDialogButtonBox(self)
         self.buttonBox.setOrientation(QtCore.Qt.Horizontal)
-        self.buttonBox.setStandardButtons(QtGui.QDialogButtonBox.Cancel|QtGui.QDialogButtonBox.Open|QtGui.QDialogButtonBox.Close)
+        self.buttonBox.setStandardButtons(QDialogButtonBox.Cancel|QDialogButtonBox.Open|QDialogButtonBox.Close)
         self.vlayout.addWidget(self.buttonBox)
         self.setLayout(self.vlayout)
 

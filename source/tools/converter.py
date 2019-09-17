@@ -27,9 +27,7 @@ def str2hexstr(string):
 
 
 def str2bytearray(string):
-    array = bytearray()
-    for x in string:
-        array += x
+    array = bytearray(string)
     return array
 
 

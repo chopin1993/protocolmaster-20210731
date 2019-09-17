@@ -99,12 +99,6 @@ class Ui_MainWindow(object):
         self.statusBar = QtWidgets.QStatusBar(MainWindow)
         self.statusBar.setObjectName("statusBar")
         MainWindow.setStatusBar(self.statusBar)
-        self.openDatabaseAction = QtWidgets.QAction(MainWindow)
-        self.openDatabaseAction.setObjectName("openDatabaseAction")
-        self.exportDatabaseAction = QtWidgets.QAction(MainWindow)
-        self.exportDatabaseAction.setObjectName("exportDatabaseAction")
-        self.action = QtWidgets.QAction(MainWindow)
-        self.action.setObjectName("action")
         self.menuBar.addAction(self.menuSet.menuAction())
         self.menuBar.addAction(self.menuDevice.menuAction())
         self.menuBar.addAction(self.menuHelp.menuAction())
@@ -112,7 +106,7 @@ class Ui_MainWindow(object):
 
         self.retranslateUi(MainWindow)
         self.tabWidget.setCurrentIndex(0)
-        self.treeWidget.clicked['QModelIndex'].connect(MainWindow.clicked)
+        self.treeWidget.clicked['QModelIndex'].connect(MainWindow.plug_index_clicked)
         QtCore.QMetaObject.connectSlotsByName(MainWindow)
 
     def retranslateUi(self, MainWindow):
@@ -130,6 +124,3 @@ class Ui_MainWindow(object):
         self.menuSet.setTitle(_translate("MainWindow", "设置"))
         self.menuHelp.setTitle(_translate("MainWindow", "帮助"))
         self.menuDevice.setTitle(_translate("MainWindow", "设备"))
-        self.openDatabaseAction.setText(_translate("MainWindow", "open"))
-        self.exportDatabaseAction.setText(_translate("MainWindow", "export"))
-        self.action.setText(_translate("MainWindow", "串口"))
