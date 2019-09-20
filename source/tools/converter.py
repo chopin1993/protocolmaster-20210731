@@ -2,14 +2,14 @@
 import struct
 
 
-def hexstr2str(string):
+def hexstr2bytes(string):
     """
     >>> data = " 0x31  0x32  0x33 "
-    >>> hexstr2str(data)
+    >>> hexstr2bytes(data)
     '123'
     """
     string = string.strip()
-    hex_data = ""
+    hex_data = bytes([])
     for byte in string.split(" "):
         if byte is '':
             continue
@@ -21,7 +21,7 @@ def hexstr2str(string):
 def str2hexstr(string):
     des = ""
     if isinstance(string, str):
-        string = bytes(string, encoding="ascii")
+        string = bytes(string, encoding="utf-8")
     for byte in string:
         des += "%02x" %(byte)
         des += " "
@@ -29,8 +29,10 @@ def str2hexstr(string):
 
 
 def str2bytearray(string):
-    array = bytearray(string)
-    return array
+    out = bytes()
+    for x in string:
+        out += ord(x)
+    return out
 
 
 def bytearray2str(bytes):

@@ -1,10 +1,9 @@
 import struct
 import numpy as np
 
-
 class Encoder(object):
     def __init__(self):
-        self.data = ""
+        self.data = bytes([])
 
     def encode_str(self, str):
         pass
@@ -25,7 +24,7 @@ class Encoder(object):
         pass
 
     def get_data(self):
-        pass
+        return bytes([1,2,3])
 
 
 class Decoder(object):
@@ -80,14 +79,28 @@ class BinaryDecoder(Decoder):
         protocol.decode(self)
         return protocol
 
-    def decode_str(self, length):
+    def decode_bytes(self, length):
         data = self.data[0:length]
         self.data = self.data[length:]
         return data
 
+    def decode_numpy_float(self, w, h):
+        data = self.decode_bytes(w*h*4)
+        data = np.frombuffer(data, dtype=np.float32)
+        data = data.reshape(h,w)
+        return data
+
+    def decode_uint(self):
+        data = self.decode_bytes(4)
+        return struct.unpack("I",data)[0]
+
+    def decode_u16(self):
+        data = self.decode_bytes(2)
+        return struct.unpack("H",data)[0]
+
     def decode_byte(self):
-        data = self.decode_str(1)
-        return ord(data)
+        data = self.decode_bytes(1)
+        return data
 
     def set_data(self, data):
         self.data = data

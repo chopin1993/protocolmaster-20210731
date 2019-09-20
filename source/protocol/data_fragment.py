@@ -17,7 +17,7 @@ class DataFragment(object):
         encoder.encode_str(self.default_value)
 
     def decode(self, decoder):
-        return decoder.decode_str(self.length())
+        return decoder.decode_bytes(self.length())
 
     def length(self):
         return len(self.default_value);
@@ -63,7 +63,7 @@ class FixedLengthDataFragment(DataFragment):
             self.default_value = self.encoder_hook(self.default_value)
 
     def decode(self, decoder):
-        return decoder.decode_str(self.length())
+        return decoder.decode_bytes(self.length())
 
     def length(self):
         return self.length;
@@ -99,7 +99,7 @@ class StatisticsDataFragment(DataFragment):
         encoder.encode_byte(value)
 
     def decode(self, decoder):
-        return decoder.decode_str(self.length())
+        return decoder.decode_bytes(self.length())
 
     def length(self):
         return len(self.default_value);

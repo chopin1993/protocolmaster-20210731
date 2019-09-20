@@ -49,7 +49,7 @@ class MediaText(object):
 
 
 class Media(QObject, object):
-    data_ready = pyqtSignal(bytearray)
+    data_ready = pyqtSignal(bytes)
     error = pyqtSignal(str)
 
     def __init__(self, media_options):

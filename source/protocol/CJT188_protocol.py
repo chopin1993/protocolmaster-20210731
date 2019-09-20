@@ -2,7 +2,7 @@
 from .protocol import Protocol, protocol_register
 from .protocol import find_head
 from .codec import BinaryEncoder
-from tools.converter import hexstr2str, str2hexstr
+from tools.converter import hexstr2bytes, str2hexstr
 from .data_fragment import *
 
 CJT188_HEAD = bytes(0x68)
@@ -70,19 +70,19 @@ class CJT188Protocol(Protocol):
         encoder.encode_str(CJT188_TAIL)
 
     def decode(self, decoder):
-        decoder.decode_str(2)
-        self.address = decoder.decode_str(7)[::-1]
+        decoder.decode_bytes(2)
+        self.address = decoder.decode_bytes(7)[::-1]
 
     @staticmethod
     def find_frame_in_buff(data):
         """
         >>> receive_str = "00 00 00 00 FE FE FE FE FE FE "
         >>> receive_str+="68 10 01 02 03 04 05 06 07 81 16 90 1F 96 00 55 55 05 2C 00 55 55 05 2C 00 00 00 00 00 00 00 00 00 26 16"
-        >>> receive_data = hexstr2str(receive_str)
+        >>> receive_data = hexstr2bytes(receive_str)
         >>> protocol =  CJT188Protocol()
         >>> protocol.find_frame_in_buff(receive_data)
         (True, 10, 35)
-        >>> receive_data = hexstr2str("68 10 01 02 03 04 05 ")
+        >>> receive_data = hexstr2bytes("68 10 01 02 03 04 05 ")
         >>> protocol.find_frame_in_buff(receive_data)
         (False, 0, 0)
         """

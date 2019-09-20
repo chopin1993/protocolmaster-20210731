@@ -1,5 +1,5 @@
 # encoding:utf-8
-from tools.converter import str2hexstr, hexstr2str
+from tools.converter import str2hexstr, hexstr2bytes
 from PyQt4.QtCore import pyqtSignal, QObject
 import os
 
@@ -56,7 +56,7 @@ def get_all_device(file_name="devices.txt"):
                 if address.strip() != "":
                     address_list.append(address)
     for address in address_list:
-        devices.append(Device(hexstr2str(address)))
+        devices.append(Device(hexstr2bytes(address)))
     return devices
 
 

@@ -2,7 +2,7 @@
 from .protocol import Protocol, protocol_register
 from .protocol import find_head
 from .codec import BinaryEncoder, BinaryDecoder
-from tools.converter import hexstr2str, str2hexstr
+from tools.converter import hexstr2bytes, str2hexstr
 from tools.checker import checksum
 
 DL645_HEAD = chr(0x68)
@@ -42,8 +42,8 @@ class DIDRealTimeMeterData(object):
         encoder.encode_str(self.address[::-1])
 
     def decode(self, decoder):
-        decoder.decode_str(54) # did
-        self.address = decoder.decode_str(7)[::-1]
+        decoder.decode_bytes(54) # did
+        self.address = decoder.decode_bytes(7)[::-1]
 
 
 def data_encrypt(data):
@@ -101,13 +101,13 @@ class DL645_07_Protocol(Protocol):
         encoder.encode_str(DL645_TAIL)
 
     def decode(self, decoder):
-        decoder.decode_str(1)
-        self.address = decoder.decode_str(6)[::-1]
-        decoder.decode_str(1)
-        self.cmd = decoder.decode_str(1)
+        decoder.decode_bytes(1)
+        self.address = decoder.decode_bytes(6)[::-1]
+        decoder.decode_bytes(1)
+        self.cmd = decoder.decode_bytes(1)
         self.length = decoder.decode_byte()
         if self.length > 30:
-            did_data = decoder.decode_str(self.length)
+            did_data = decoder.decode_bytes(self.length)
             did_data = data_unencrypt(did_data)
             did_decoder = BinaryDecoder()
             did_decoder.set_data(did_data)
@@ -117,11 +117,11 @@ class DL645_07_Protocol(Protocol):
     def find_frame_in_buff(data):
         """
         >>> receive_str =" fe fe 68 11 11 11 11 11 11 68 01 02 43 C3 3F 16 "
-        >>> receive_data = hexstr2str(receive_str)
+        >>> receive_data = hexstr2bytes(receive_str)
         >>> protocol =  DL645_07_Protocol()
         >>> protocol.find_frame_in_buff(receive_data)
         (True, 2, 14)
-        >>> receive_data = hexstr2str("68 10 01 02 03 04 05 ")
+        >>> receive_data = hexstr2bytes("68 10 01 02 03 04 05 ")
         >>> protocol.find_frame_in_buff(receive_data)
         (False, 0, 0)
         """
@@ -199,13 +199,13 @@ class DL645_97_Protocol(Protocol):
         encoder.encode_str(DL645_TAIL)
 
     def decode(self, decoder):
-        decoder.decode_str(1)
-        self.address = decoder.decode_str(6)[::-1]
-        decoder.decode_str(1)
-        self.cmd = decoder.decode_str(1)
+        decoder.decode_bytes(1)
+        self.address = decoder.decode_bytes(6)[::-1]
+        decoder.decode_bytes(1)
+        self.cmd = decoder.decode_bytes(1)
         self.length = decoder.decode_byte()
         if self.length > 30:
-            did_data = decoder.decode_str(self.length)
+            did_data = decoder.decode_bytes(self.length)
             did_data = data_unencrypt(did_data)
             did_decoder = BinaryDecoder()
             did_decoder.set_data(did_data)
@@ -215,11 +215,11 @@ class DL645_97_Protocol(Protocol):
     def find_frame_in_buff(data):
         """
         >>> receive_str ="fe fe 68 72 00 22 10 16 20 68 81 25 80 83 9B 43 33 33 33 33 33 33 34 B4 49 C3 52 34 3B 94 33 5F 33 3B 94 33 5F 33 33 33 33 33 33 33 33 33 1D 33 33 20 16  "
-        >>> receive_data = hexstr2str(receive_str)
+        >>> receive_data = hexstr2bytes(receive_str)
         >>> protocol =  DL645_97_Protocol()
         >>> protocol.find_frame_in_buff(receive_data)
         (True, 2, 49)
-        >>> receive_data = hexstr2str("68 10 01 02 03 04 05 ")
+        >>> receive_data = hexstr2bytes("68 10 01 02 03 04 05 ")
         >>> protocol.find_frame_in_buff(receive_data)
         (False, 0, 0)
         """

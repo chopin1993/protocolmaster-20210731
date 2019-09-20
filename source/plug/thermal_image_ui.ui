@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>676</width>
-    <height>477</height>
+    <width>751</width>
+    <height>482</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -16,8 +16,8 @@
   <widget class="QPushButton" name="readImageButton">
    <property name="geometry">
     <rect>
-     <x>350</x>
-     <y>30</y>
+     <x>630</x>
+     <y>60</y>
      <width>121</width>
      <height>23</height>
     </rect>
@@ -29,10 +29,10 @@
   <widget class="QLabel" name="image">
    <property name="geometry">
     <rect>
-     <x>30</x>
+     <x>10</x>
      <y>20</y>
-     <width>281</width>
-     <height>261</height>
+     <width>591</width>
+     <height>371</height>
     </rect>
    </property>
    <property name="styleSheet">
@@ -45,10 +45,10 @@
   <widget class="QGroupBox" name="groupBox">
    <property name="geometry">
     <rect>
-     <x>340</x>
-     <y>120</y>
-     <width>241</width>
-     <height>101</height>
+     <x>150</x>
+     <y>400</y>
+     <width>211</width>
+     <height>71</height>
     </rect>
    </property>
    <property name="title">

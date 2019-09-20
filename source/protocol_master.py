@@ -26,6 +26,7 @@ class ESMainWindow(QMainWindow, Ui_MainWindow):
         self.plugs = plugs_get_all()
         self.plugIndexContainer = QStackedWidget()
         self.install_plugs()
+        self.session.data_ready.connect(self.get_current_plug().handle_receive_data)
 
     def update_session(self):
         self.session.media =  self.get_current_media()
@@ -39,17 +40,18 @@ class ESMainWindow(QMainWindow, Ui_MainWindow):
             self.plugIndexContainer.addWidget(plug)
             plug.session = self.session
         self.splitter_v.insertWidget(0, self.plugIndexContainer)
-        self.plugIndexContainer.setCurrentIndex(0)
 
     def init_menu(self):
         action = QAction(u"通信参数", self)
         action.setShortcut("Ctrl+R")
         action.triggered.connect(self.show_media_config)
         self.menuSet.addAction(action)
+        self.toolbar.addAction(action)
         action = QAction(u"协议", self)
         action.setShortcut("Ctrl+R")
         action.triggered.connect(self.show_protocol_config)
         self.menuSet.addAction(action)
+        self.toolbar.addAction(action)
 
     def plug_index_clicked(self, index):
         self.plugIndexContainer.setCurrentIndex(index.row())
@@ -83,13 +85,18 @@ class ESMainWindow(QMainWindow, Ui_MainWindow):
     def get_current_protocol(self):
         return self.protocols[0]
 
+    def get_current_plug(self):
+        return self.plugs[0]
+
+
 def protocol_master_run():
     app = QApplication(sys.argv)
     ex = ESMainWindow()
     ex.show_media_config()
-    ex.move((QApplication.desktop().width() - ex.width()) / 2, (QApplication.desktop().height() - ex.height()) / 2);
+    ex.move((QApplication.desktop().width() - ex.width())/2, (QApplication.desktop().height() - ex.height()) / 2);
     ex.show()
     sys.exit(app.exec_())
+
 
 if __name__ == '__main__':
     protocol_master_run()

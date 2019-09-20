@@ -14,7 +14,7 @@ class FifoBuffer(object):
     """
 
     def __init__(self):
-        self.buff = ""
+        self.buff = bytes([])
 
     def receive(self, data):
         self.buff += data
@@ -27,10 +27,10 @@ class FifoBuffer(object):
         data = self.peek(length)
         assert length >= 0, "length must be greater then 0"
         if length == 0:
-            return ""
+            return bytes([])
 
         if len(self.buff) <= length:
-            self.buff = ""
+            self.buff = bytes([])
         else:
             self.buff = self.buff[length:]
         return data

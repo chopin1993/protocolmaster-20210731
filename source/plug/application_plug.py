@@ -3,6 +3,10 @@ from tools.import_helper import import_all_python
 from PyQt5.QtCore import *
 from PyQt5.QtGui import *
 from PyQt5.QtWidgets import *
+import logging
+
+
+
 
 class ApplicationPlug(QWidget):
 
@@ -17,8 +21,11 @@ class ApplicationPlug(QWidget):
     def get_protocols(self):
          raise NotImplementedError
 
-    def handle_receive_data(self):
-        pass
+    def handle_receive_data(self, msg):
+        print("unhandle plug data", msg)
+
+        #plt.matshow(msg.img_data, cmap='hot')
+        # plt.show()
 
     def handle_send_data(self):
         pass

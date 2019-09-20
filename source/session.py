@@ -2,9 +2,9 @@
 from media.serial_media import SerialMedia
 from protocol.codec import BinaryEncoder, BinaryDecoder
 from protocol.fifo_buffer import FifoBuffer
-from tools.converter import hexstr2str, str2hexstr
+from tools.converter import hexstr2bytes, str2hexstr
 from PyQt5.QtCore import QObject, pyqtSignal
-from tools.converter import bytearray2str
+from tools.converter import bytearray2str,str2bytearray
 from protocol import Protocol
 
 class SessionSuit(QObject):
@@ -26,11 +26,11 @@ class SessionSuit(QObject):
         super(SessionSuit, self).__init__()
 
     def handle_receive_data(self, string):
-        string = bytearray2str(string)
         assert len(string) > 0
         self.buffer.receive(string)
         data = self.buffer.peek(10000)
         protocol = self.protocol
+        print("data rcv",len(data))
         (found, start, length) = protocol.find_frame_in_buff(data)
         if found:
             self.buffer.read(start + length)
