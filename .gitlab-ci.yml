@@ -5,6 +5,6 @@ stages:
 
 buildtest:
   stage: buildtest
-  script: cmake . && make && ./esdagger_test
+  script: echo "hello world"
   tags:
     - test
