@@ -62,6 +62,9 @@
           <verstretch>0</verstretch>
          </sizepolicy>
         </property>
+        <property name="text">
+         <string>500</string>
+        </property>
        </widget>
       </item>
       <item row="1" column="0">
@@ -131,8 +134,8 @@
    <slot>readImageOnce()</slot>
    <hints>
     <hint type="sourcelabel">
-     <x>379</x>
-     <y>43</y>
+     <x>570</x>
+     <y>199</y>
     </hint>
     <hint type="destinationlabel">
      <x>296</x>
@@ -140,8 +143,42 @@
     </hint>
    </hints>
   </connection>
+  <connection>
+   <sender>startButton</sender>
+   <signal>clicked()</signal>
+   <receiver>Form</receiver>
+   <slot>startRead()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>612</x>
+     <y>308</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>607</x>
+     <y>-12</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>stopButton</sender>
+   <signal>clicked()</signal>
+   <receiver>Form</receiver>
+   <slot>stopRead()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>530</x>
+     <y>309</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>503</x>
+     <y>-6</y>
+    </hint>
+   </hints>
+  </connection>
  </connections>
  <slots>
   <slot>readImageOnce()</slot>
+  <slot>startRead()</slot>
+  <slot>stopRead()</slot>
  </slots>
 </ui>

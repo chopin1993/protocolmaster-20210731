@@ -72,6 +72,8 @@ class Ui_Form(object):
 
         self.retranslateUi(Form)
         self.readImageButton.clicked.connect(Form.readImageOnce)
+        self.startButton.clicked.connect(Form.startRead)
+        self.stopButton.clicked.connect(Form.stopRead)
         QtCore.QMetaObject.connectSlotsByName(Form)
 
     def retranslateUi(self, Form):
@@ -79,6 +81,7 @@ class Ui_Form(object):
         Form.setWindowTitle(_translate("Form", "Form"))
         self.groupBox.setTitle(_translate("Form", "循环读取"))
         self.label.setText(_translate("Form", "时间间隔"))
+        self.timespanLineeidt.setText(_translate("Form", "500"))
         self.stopButton.setText(_translate("Form", "停止"))
         self.startButton.setText(_translate("Form", "开始"))
         self.readImageButton.setText(_translate("Form", "单次读取热度图"))

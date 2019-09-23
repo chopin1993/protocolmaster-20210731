@@ -36,3 +36,4 @@
 *.app
 *.pyc
 /venv
+/source/protocol/parsetab.py

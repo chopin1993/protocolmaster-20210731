@@ -35,8 +35,8 @@ class BinaryEncoder(Encoder):
     def __init__(self):
         self.data = bytes([])
 
-    def encode_str(self, str):
-        self.data += str
+    def encode_bytes(self, bytes):
+        self.data += bytes
 
     def encode_byte(self, nb):
         self.data += struct.pack("@B", nb)

@@ -27,13 +27,14 @@ class ImageProtocol(Protocol):
     def __init__(self):
         super(ImageProtocol, self).__init__()
 
+    @staticmethod
     def create_frame(*args, **kwargs):
         protocol = ImageProtocol()
-        protocol.did_unit = bytes([1,2])
+        protocol.did_unit = args[0]
         return protocol
 
     def encode(self, encoder):
-        encoder.encode_int(12)
+        encoder.encode_bytes(self.did_unit)
         return encoder.encode_char(5)
 
     def decode(self, decoder):
