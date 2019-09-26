@@ -73,6 +73,7 @@ class SerialMedia(Media):
             try:
                 data = self.serial.read(10000)
                 if len(data) > 0:
+                    #print("recive data len:",len(data))
                     self.data_ready.emit(data)
             except SerialException as err:
                 self.error.emit(str(err))

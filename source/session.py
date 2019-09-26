@@ -36,12 +36,13 @@ class SessionSuit(QObject):
             (found, start, length) = protocol.find_frame_in_buff(data)
             if found:
                 self.buffer.read(start + length)
-                print(datetime.datetime.now(), " rcv", str2hexstr(data[0:start + length]))
+                #print(datetime.datetime.now(),"length:",len(data[0:start + length])," rcv", str2hexstr(data[0:start + length]))
                 frame_data = data[start:start+length]
                 self.decoder.set_data(frame_data)
                 protocol.decode(self.decoder)
                 self.data_ready.emit(protocol)
             else:
+                #print("unhanle data",len(data))
                 break
 
 
@@ -50,7 +51,7 @@ class SessionSuit(QObject):
         self.encoder.encode_object(protocol)
         data = self.encoder.get_data()
         self.media.send(data)
-        print(datetime.datetime.now()," snd",str2hexstr(data))
+        #print(datetime.datetime.now(),len(data)," snd ",len(data),str2hexstr(data))
         self.encoder.reset()
 
     def close(self):

@@ -55,10 +55,24 @@ class ThermalImage(ApplicationPlug, Ui_Form):
         self.timer.timeout.connect(self.readImageOnce)
         self.rcv_cnt = 0
         self.send_cnt = 0
+        self.previous_time = datetime.datetime.now()
+        self.fresh_timer = QTimer(self)
+        self.fresh_timer.timeout.connect(self.refresh_timer_handle)
+        self.imges = []
+        self.fresh_timer.start(250)
+
+    def refresh_timer_handle(self):
+        if len(self.imges) > 0:
+            img = self.imges[-1]
+            self.imges.clear()
+            self.plot_image.imshow(img)
 
     def readImageOnce(self):
         self.send_cnt += 1
+        now  = datetime.datetime.now()
+        print("snd:" ,now - self.previous_time , self.send_cnt)
         self.session.write(bytes([0x30]))
+        self.previous_time = now
         self.plot_image.clear_img()
 
     def startRead(self):
@@ -68,7 +82,8 @@ class ThermalImage(ApplicationPlug, Ui_Form):
         self.timer.stop()
 
     def handle_receive_data(self, msg):
-        self.plot_image.imshow(msg.image_data)
+        self.imges.append(msg.image_data)
         self.rcv_cnt += 1
-        print("snd:",self.send_cnt, " rcv:", self.rcv_cnt)
+        print("rcv:",(self.send_cnt, self.rcv_cnt))
+        #self.readImageOnce()
 
