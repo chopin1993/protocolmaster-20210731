@@ -150,7 +150,10 @@ def show_user_options(options, ok_func):
     global dialog
 
     def ok_button_press(protocol, options):
-            dialog.hide()
+            dialog.close()
+
+    def close_button_press(media):
+        dialog.hide()
 
     dialog = QDialog()
     layout = QVBoxLayout()
@@ -160,5 +163,6 @@ def show_user_options(options, ok_func):
     dialog.setModal(True)
     widget.set_options(options)
     widget.set_ok_function(ok_button_press)
+    widget.set_close_function(close_button_press)
     dialog.show()
 
