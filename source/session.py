@@ -20,7 +20,8 @@ class SessionSuit(QObject):
         return SessionSuit(media, encoder, decoder, protocol)
 
     def __init__(self, media, encoder, decoder, protocol):
-        media.data_ready.connect(self.handle_receive_data)
+
+        self._media = None
         self.media = media
         self.encoder = encoder
         self.decoder = decoder
@@ -29,6 +30,17 @@ class SessionSuit(QObject):
         super(SessionSuit, self).__init__()
         self.bytes_timer = QTimer()
         self.bytes_timer.timeout.connect(self.clear_data)
+
+    @property
+    def media(self):
+        return self._media
+
+    @media.setter
+    def media(self, value):
+        if self._media is not None:
+            self._media.data_ready.disconnect(self.handle_receive_data)
+        value.data_ready.connect(self.handle_receive_data)
+        self._media = value
 
     def handle_receive_data(self, string):
         assert len(string) > 0
@@ -66,12 +78,8 @@ class SessionSuit(QObject):
         self.data_snd.emit(deepcopy(protocol))
         self.encoder.encode_object(protocol)
         data = self.encoder.get_data()
-        if self.media.is_open():
-            self.media.send(data)
-        else:
-            print("serial is not open ")
-            #print(datetime.datetime.now(),len(data)," snd ",len(data),str2hexstr(data))
+        self._media.send(data)
         self.encoder.reset()
 
     def close(self):
-        self.media.close()
+        self._media.close()

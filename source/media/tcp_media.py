@@ -41,7 +41,7 @@ class TCPMedia(Media):
             self.rcv_thread = Thread(target=receive_from_socket, args=(self,))
             self.rcv_thread.start()
         except socket.error as e:
-            print("error happen",e.message)
+            print("error happen",e)
             self.refresh_media_options()
             return False
         return  True
@@ -67,11 +67,11 @@ class TCPMedia(Media):
         self.socket.send(data)
 
     def _receive(self):
-        data = ""
+        data = bytes([])
         while not self.rcv_queue.empty():
             data += self.rcv_queue.get()
         if len(data) > 0:
-            self.data_ready.emit(str2bytearray(data))
+            self.data_ready.emit(data)
 
     def set_media_options(self, options):
         self.read_timer.stop()

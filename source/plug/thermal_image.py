@@ -88,3 +88,5 @@ class ThermalImage(ApplicationPlug, Ui_Form):
         #print("rcv:",(self.send_cnt, self.rcv_cnt))
         #self.readImageOnce()
 
+    def media_error_happen(self):
+        self.timer.stop()

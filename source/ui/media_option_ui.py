@@ -88,7 +88,7 @@ class EsUserOptionsDialog(QWidget):
 
     def close(self):
         if self.close_func is not None:
-            self.close_func()
+            self.close_func(self.data)
         self.hide()
 
     def get_user_options(self):
@@ -131,7 +131,8 @@ def show_user_media_options(medias, ok_func=None):
             else:
                 QMessageBox.information(dialog, u"错误", u"打开错误，请检查资源是否被占用")
 
-        def close_button_press():
+        def close_button_press(media):
+            media.close()
             dialog.hide()
 
         widgit = EsUserOptionsDialog(media)
@@ -147,13 +148,17 @@ def show_user_media_options(medias, ok_func=None):
 
 def show_user_options(options, ok_func):
     global dialog
+
+    def ok_button_press(protocol, options):
+            dialog.hide()
+
     dialog = QDialog()
     layout = QVBoxLayout()
     dialog.setLayout(layout)
     widget = EsUserOptionsDialog()
     layout.addWidget(widget)
     dialog.setModal(True)
-    dialog.set_options(options)
-    dialog.set_ok_function(ok_func)
+    widget.set_options(options)
+    widget.set_ok_function(ok_button_press)
     dialog.show()
 

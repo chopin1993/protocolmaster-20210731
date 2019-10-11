@@ -27,6 +27,9 @@ class ApplicationPlug(QWidget):
     def handle_send_data(self):
         pass
 
+    def media_error_happen(self):
+        pass
+
 
 _all_plugs = dict()
 

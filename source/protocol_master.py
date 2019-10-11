@@ -37,7 +37,7 @@ class ESMainWindow(QMainWindow, Ui_MainWindow):
         self.tableWidgetFrame.setColumnWidth(1, 35)
 
     def update_session(self):
-        self.session.media =  self.get_current_media()
+        self.session.media = self.get_current_media()
         self.session.protocol = self.get_current_protocol()
 
     def install_plugs(self):
@@ -67,7 +67,8 @@ class ESMainWindow(QMainWindow, Ui_MainWindow):
     def show_media_config(self):
         if len(self.medias) > 0:
             def ok_func(meida):
-                self.current_media = meida
+                if self.current_media and self.current_media != media:
+                    self.current_media = meida
                 self.update_session()
             ui.show_user_media_options(self.medias, ok_func)
             self.update_session()
@@ -76,7 +77,7 @@ class ESMainWindow(QMainWindow, Ui_MainWindow):
 
     def show_protocol_config(self):
         if len(self.protocols) > 0:
-            def ok_func(options):
+            def ok_func(protocol, options):
                 pass
             options = list()
             for pros in self.protocols:
@@ -86,9 +87,9 @@ class ESMainWindow(QMainWindow, Ui_MainWindow):
         else:
             QMessageBox.information(None, u"错误", u"没有可以用使用的协议")
 
-    @staticmethod
-    def show_error(msg):
+    def show_error(self, msg):
         QMessageBox.information(None, u"错误", msg)
+        self.get_current_plug().media_error_happen()
 
     def log_snd_frame(self, protocol):
         self._add_log_info("snd",str(protocol))
