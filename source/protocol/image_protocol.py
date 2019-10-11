@@ -19,6 +19,9 @@ class ThremalImageData(object):
     def get_data(self):
         return self.data
 
+    def __str__(self):
+        return "img data"
+
 
 # 'u8:STC=0x4e u8:CMD u8:SEQ u16:DID u32:Length  byte[Length]:Data  u8:CS u8:END=0x5f'
 @protocol_register
@@ -26,12 +29,21 @@ class ImageProtocol(Protocol):
 
     def __init__(self):
         super(ImageProtocol, self).__init__()
+        self.image_data = None
+        self.did_unit = None
 
     @staticmethod
     def create_frame(*args, **kwargs):
         protocol = ImageProtocol()
         protocol.did_unit = args[0]
         return protocol
+
+    def __str__(self):
+        if self.did_unit:
+            return str2hexstr(self.did_unit)
+        if self.image_data:
+            return str2hexstr(self.image_data)
+        return "not handle data"
 
     def encode(self, encoder):
         encoder.encode_bytes(self.did_unit)
@@ -40,8 +52,8 @@ class ImageProtocol(Protocol):
     def decode(self, decoder):
         decoder.decode_bytes(5) # skip start , cmd , seq
         self.length = decoder.decode_uint()
-        self.width =  decoder.decode_u16()
-        self.height =  decoder.decode_u16()
+        self.width = decoder.decode_u16()
+        self.height = decoder.decode_u16()
         self.image_data = decoder.decode_numpy_float(self.width, self.height)
         return ThremalImageData(self.width, self.height, self.image_data)
 

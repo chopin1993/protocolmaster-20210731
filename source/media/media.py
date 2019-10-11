@@ -4,7 +4,6 @@ from PyQt5.QtCore import QObject, pyqtSignal
 import pickle
 from copy import deepcopy
 
-
 class MediaOptions(object):
     def __init__(self, key, options, label_text=None, show_options=None,select_id=0):
         self.key = key
@@ -64,6 +63,8 @@ class Media(QObject, object):
                 media_options = pickle.load(handle)
             for current, last in zip(self.media_options, media_options):
                 current.load_save_value(last)
+    def is_open(self):
+        pass
 
     def open(self):
         pass

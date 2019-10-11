@@ -1,15 +1,10 @@
 # encoding:utf-8
-from media import media_register, Media, MediaOptions, MediaText
-import os
-from collections import OrderedDict
-import serial
-from PyQt4.QtCore import QTimer, pyqtSignal
-from tools.converter import str2bytearray
-from serial import SerialException
+from .media import media_register, Media,MediaText
 import socket
-from Queue import Queue
+from queue import Queue
 from threading import Thread
 from tools.converter import str2bytearray
+from PyQt5.QtCore import QTimer, pyqtSignal
 
 
 def receive_from_socket(tcp_media):
@@ -31,6 +26,9 @@ class TCPMedia(Media):
         self.receiving = True
         self.rcv_thread = None
 
+    def is_open(self):
+        return self.socket
+
     def open(self):
         if self.socket is None:
             selected_options = self.get_selected_options()
@@ -42,8 +40,8 @@ class TCPMedia(Media):
             self.receiving = True
             self.rcv_thread = Thread(target=receive_from_socket, args=(self,))
             self.rcv_thread.start()
-        except socket.error, e:
-            print "error happen",e.message
+        except socket.error as e:
+            print("error happen",e.message)
             self.refresh_media_options()
             return False
         return  True
@@ -89,4 +87,4 @@ class TCPMedia(Media):
 if __name__ == "__main__":
     import json
     serial = TCPMedia()
-    print json.dumps(serial.get_media_options(), ensure_ascii=False, encoding='UTF-8')
+    print(json.dumps(serial.get_media_options(), ensure_ascii=False, encoding='UTF-8'))

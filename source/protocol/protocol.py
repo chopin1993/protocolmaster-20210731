@@ -1,5 +1,5 @@
 # encoding:utf-8
-
+from tools.converter  import str2hexstr
 
 def find_head(buff, start, head):
     """
@@ -34,14 +34,27 @@ class Protocol(object):
     def create_frame(self, *args, **kwargs):
         pass
 
+    @staticmethod
+    def create_raw_frame(data):
+        pro = Protocol()
+        pro.raw_data = data
+        return pro
+
     def __init__(self):
         self.data_fragments = []
+        self.raw_data = None
 
     def _get_min_length(self):
         length = 0
         for fragment in self.data_fragments:
             length += fragment.get_min_length()
         return length
+
+    def __str__(self):
+        if self.raw_data is not None:
+            return str2hexstr(self.raw_data)
+        else:
+            return "unknow data frame\n"
 
     def _get_frame_len(self, data ,decoder):
         decoder.data = data

@@ -30,6 +30,9 @@ class SerialMedia(Media):
         self.read_timer.timeout.connect(self._receive)
         self.read_timer.start(1)
 
+    def is_open(self):
+        return self.serial.is_open
+
     def open(self):
         if self.serial is None:
             selected_options = self.get_selected_options()
@@ -67,6 +70,7 @@ class SerialMedia(Media):
                 self.close()
         except SerialException as err:
              self.error.emit(str(err))
+             self.close()
 
     def _receive(self):
         if self.serial is not None and self.serial.is_open:

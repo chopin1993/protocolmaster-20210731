@@ -27,7 +27,7 @@ class PlotCanvas(FigureCanvas):
         self.cb = None
 
     def imshow(self,img):
-        im = self.axes.imshow(img,vmin=20, vmax=38)
+        im = self.axes.imshow(img,vmin=15, vmax=38)
         if self.cb is None:
             self.cb = self.fig.colorbar(im, shrink=0.5)
         self.draw()
@@ -70,7 +70,7 @@ class ThermalImage(ApplicationPlug, Ui_Form):
     def readImageOnce(self):
         self.send_cnt += 1
         now  = datetime.datetime.now()
-        print("snd:" ,now - self.previous_time , self.send_cnt)
+        # print("snd:" ,now - self.previous_time , self.send_cnt)
         self.session.write(bytes([0x30]))
         self.previous_time = now
         self.plot_image.clear_img()
@@ -83,7 +83,8 @@ class ThermalImage(ApplicationPlug, Ui_Form):
 
     def handle_receive_data(self, msg):
         self.imges.append(msg.image_data)
+        #print(msg.image_data)
         self.rcv_cnt += 1
-        print("rcv:",(self.send_cnt, self.rcv_cnt))
+        #print("rcv:",(self.send_cnt, self.rcv_cnt))
         #self.readImageOnce()
 

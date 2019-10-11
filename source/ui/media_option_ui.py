@@ -6,16 +6,17 @@ from PyQt5 import QtCore, QtGui
 from media.media import MediaOptions,MediaText
 from PyQt5.QtWidgets import *
 
-class EsUserOptionsDialog(QDialog):
-    def __init__(self):
+
+class EsUserOptionsDialog(QWidget):
+    def __init__(self, data=None):
         super(EsUserOptionsDialog, self).__init__()
         self.options = []
-        self.setModal(True)
         self.ok_func = None
         self.close_func = None
         self.vlayout = None
         self.group_widget =None
         self.widget_list =[]
+        self.data = data
 
     def setup_ui(self):
         #self.resize(237, 298)
@@ -79,7 +80,7 @@ class EsUserOptionsDialog(QDialog):
 
     def accept(self):
         if self.ok_func is not None:
-            self.ok_func(self.get_user_options())
+            self.ok_func(self.data, self.get_user_options())
         self.hide()
 
     def reject(self):
@@ -101,29 +102,56 @@ class EsUserOptionsDialog(QDialog):
 dialog = None
 
 
-def show_user_media_options(media):
+class TabsDialog(QDialog):
+    def __init__(self):
+        super(TabsDialog, self).__init__()
+        self.layout = QVBoxLayout()
+        self.tabWidgt = QTabWidget()
+        self.setLayout(self.layout)
+        self.layout.addWidget(self.tabWidgt)
+
+    def add_tabs(self,tabs):
+        for tab in tabs:
+            self.tabWidgt.addTab(tab, tab.name)
+
+
+def show_user_media_options(medias, ok_func=None):
     global dialog
 
-    def ok_button_press(options):
-        if media.set_media_options(options):
-            dialog.hide()
-        else:
-            QMessageBox.information(dialog, u"错误", u"打开错误，请检查资源是否被占用")
-
-    def close_button_press():
-        media.close()
-
-    dialog = EsUserOptionsDialog()
+    dialog = TabsDialog()
     dialog.setModal(True)
-    dialog.set_options(media.get_media_options())
-    dialog.set_ok_function(ok_button_press)
-    dialog.set_close_function(close_button_press())
+    media_uis = []
+
+    for media in medias:
+        def ok_button_press(media, options):
+            if media.set_media_options(options):
+                if ok_func is not None:
+                    ok_func(media)
+                dialog.hide()
+            else:
+                QMessageBox.information(dialog, u"错误", u"打开错误，请检查资源是否被占用")
+
+        def close_button_press():
+            dialog.hide()
+
+        widgit = EsUserOptionsDialog(media)
+        widgit.set_options(media.get_media_options())
+        widgit.name = media.name
+        widgit.set_ok_function(ok_button_press)
+        widgit.set_close_function(close_button_press)
+        media_uis.append(widgit)
+
+    dialog.add_tabs(media_uis)
     dialog.show()
 
 
 def show_user_options(options, ok_func):
     global dialog
-    dialog = EsUserOptionsDialog()
+    dialog = QDialog()
+    layout = QVBoxLayout()
+    dialog.setLayout(layout)
+    widget = EsUserOptionsDialog()
+    layout.addWidget(widget)
     dialog.setModal(True)
     dialog.set_options(options)
     dialog.set_ok_function(ok_func)
