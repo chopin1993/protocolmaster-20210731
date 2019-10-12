@@ -58,11 +58,11 @@ class SessionSuit(QObject):
                 protocol.decode(self.decoder)
                 self.data_ready.emit(protocol)
             else:
-                if len(data) > 1000:
+                if len(data) > 10000:
                     print("to mange data",len(data))
                 else:
                     if len(data) > 0:
-                        self.bytes_timer.start(2000)
+                        self.bytes_timer.start(5000)
                     else:
                         self.bytes_timer.stop()
                 break

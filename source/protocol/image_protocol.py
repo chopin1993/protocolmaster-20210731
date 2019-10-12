@@ -41,8 +41,8 @@ class ImageProtocol(Protocol):
     def __str__(self):
         if self.did_unit:
             return str2hexstr(self.did_unit)
-        if self.image_data:
-            return str2hexstr(self.image_data)
+        if self.image_data is not None:
+            return str(self.image_data)
         return "not handle data"
 
     def encode(self, encoder):

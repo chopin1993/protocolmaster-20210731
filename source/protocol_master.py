@@ -1,14 +1,14 @@
 # encoding:utf-8
 import sys
 from PyQt5.QtWidgets import *
-from PyQt5 import QtCore
+from PyQt5.QtCore import *
 from plug import plugs_get_all
 from protocol_master_ui import Ui_MainWindow
 import ui
 import media
 import protocol
 import session
-
+import datetime
 
 class ESMainWindow(QMainWindow, Ui_MainWindow):
     """
@@ -35,6 +35,19 @@ class ESMainWindow(QMainWindow, Ui_MainWindow):
         self.tableWidgetFrame.setSelectionBehavior(QAbstractItemView.SelectionBehavior.SelectRows)
         self.tableWidgetFrame.setColumnWidth(0, 95)
         self.tableWidgetFrame.setColumnWidth(1, 35)
+        self.tableWidgetFrame.setContextMenuPolicy(Qt.CustomContextMenu)
+        self.tableWidgetFrame.customContextMenuRequested.connect(self.log_tablewidgit_menu)
+
+    def log_tablewidgit_menu(self,pos):
+        menu = QMenu()
+        clear = menu.addAction("清空")
+        action = menu.exec_(self.tableWidgetFrame.mapToGlobal(pos))
+        if action == clear:
+            self.tableWidgetFrame.setRowCount(0)
+            self.log_idx = 0
+            return
+        else:
+            return
 
     def update_session(self):
         self.session.media = self.get_current_media()
@@ -100,8 +113,7 @@ class ESMainWindow(QMainWindow, Ui_MainWindow):
     def _add_log_info(self,tag, info):
         self.log_idx += 1
         self.tableWidgetFrame.setRowCount(self.log_idx)
-        time = QtCore.QDateTime.currentDateTime()
-        time_display = time.toString("MM-dd hh:mm:ss")
+        time_display = datetime.datetime.now().strftime('%m-%d %H:%M:%S.%f')
         widget = QTableWidgetItem(time_display)
         self.tableWidgetFrame.setItem(self.log_idx-1, 0, widget)
         widget = QTableWidgetItem(tag)

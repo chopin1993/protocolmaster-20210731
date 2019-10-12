@@ -59,13 +59,13 @@ class ThermalImage(ApplicationPlug, Ui_Form):
         self.fresh_timer = QTimer(self)
         self.fresh_timer.timeout.connect(self.refresh_timer_handle)
         self.imges = []
-        self.fresh_timer.start(250)
+        self.fresh_timer.start(500)
 
     def refresh_timer_handle(self):
         if len(self.imges) > 0:
             img = self.imges[-1]
             self.imges.clear()
-            self.plot_image.imshow(img)
+            #self.plot_image.imshow(img)
 
     def readImageOnce(self):
         self.send_cnt += 1
