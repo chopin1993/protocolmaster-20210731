@@ -3,6 +3,8 @@ from database import EsDatabase
 import numpy as np
 from nose.tools import assert_equal
 
+
+
 def test_database():
     name = "test.db"
     if os.path.exists(name):

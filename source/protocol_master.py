@@ -43,8 +43,7 @@ class ESMainWindow(QMainWindow, Ui_MainWindow):
         clear = menu.addAction("清空")
         action = menu.exec_(self.tableWidgetFrame.mapToGlobal(pos))
         if action == clear:
-            self.tableWidgetFrame.setRowCount(0)
-            self.log_idx = 0
+            self.clear_log_info()
             return
         else:
             return
@@ -120,6 +119,12 @@ class ESMainWindow(QMainWindow, Ui_MainWindow):
         self.tableWidgetFrame.setItem(self.log_idx-1, 1, widget)
         widget = QTableWidgetItem(info)
         self.tableWidgetFrame.setItem(self.log_idx-1, 2, widget)
+        if self.log_idx > 50000:
+            self.clear_log_info()
+
+    def clear_log_info(self):
+        self.tableWidgetFrame.setRowCount(0)
+        self.log_idx = 0
 
     def get_current_media(self):
         return self.current_media

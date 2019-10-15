@@ -52,6 +52,7 @@ class ImageProtocol(Protocol):
     def decode(self, decoder):
         decoder.decode_bytes(5) # skip start , cmd , seq
         self.length = decoder.decode_uint()
+        self.idx = decoder.decode_uint()
         self.width = decoder.decode_u16()
         self.height = decoder.decode_u16()
         self.image_data = decoder.decode_numpy_float(self.width, self.height)
