@@ -27,8 +27,10 @@ class ThermalImage(ApplicationPlug, Ui_Form):
         self.rcv_cnt = 0
         self.send_cnt = 0
         self.previous_time = datetime.datetime.now()
-        self.imges = []
         self.database = EsDatabase("image.db")
+        self.refresh_timer = QTimer(self)
+        self.refresh_timer.timeout.connect(self.show_next_img_in_db)
+        self.data_src = None
 
     def readImageOnce(self):
         self.send_cnt += 1
@@ -44,17 +46,37 @@ class ThermalImage(ApplicationPlug, Ui_Form):
         self.timer.stop()
 
     def handle_receive_data(self, msg):
-        self.imges.append(msg.image_data)
-        #print(msg.image_data)
         self.rcv_cnt += 1
-        jpg_data = numpy2jpg(np.copy(msg.image_data.data))
+        numpy = np.copy(msg.image_data.data)
+        jpg_data = numpy2jpg(numpy)
         self.database.append_sample(msg.idx,self.tagLineEdit.text(),"rcv",msg.image_data.data, jpg_data)
+        self._show_numpy(numpy)
+
+    def _show_numpy(self, data):
+        jpg_data = numpy2jpg(data)
         image = QImage.fromData(jpg_data)
-        pixmap = QPixmap.fromImage(image)
-        self.image_label.setPixmap(pixmap)
+        pixelmap = QPixmap.fromImage(image)
+        self.image_label.setPixmap(pixelmap)
         self.image_label.setAlignment(QtCore.Qt.AlignCenter)
-        #print("rcv:",(self.send_cnt, self.rcv_cnt))
-        #self.readImageOnce()
 
     def media_error_happen(self):
         self.timer.stop()
+
+    def playImage(self):
+        self.data_src = self.database.get_sample_images()
+        self.refresh_timer.start(300)
+
+    def show_next_img_in_db(self):
+        try:
+            datas = next(self.data_src)
+            if datas is not None:
+                img = datas[3]
+                data = np.frombuffer(img, dtype=np.float32)
+                data = data.reshape(24, 32)
+                self._show_numpy(data)
+        except StopIteration:
+            self.refresh_timer.stop()
+            QMessageBox.information(None,"信息","数据播放完毕")
+
+    def searchImage(self):
+        pass

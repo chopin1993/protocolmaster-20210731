@@ -53,7 +53,7 @@ class ESMainWindow(QMainWindow, Ui_MainWindow):
         self.session.protocol = self.get_current_protocol()
 
     def install_plugs(self):
-        self.plugIndexContainer.setMinimumHeight(375)
+        self.plugIndexContainer.setMinimumHeight(475)
         for plug in self.plugs:
             widget = QTreeWidgetItem(self.treeWidget)
             widget.setText(0, plug.name)

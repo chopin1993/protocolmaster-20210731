@@ -4,7 +4,7 @@ import colorcet as cc
 import scipy.misc
 import numpy as np
 
-color_map = np.array( cc.linear_bgy_10_95_c74)*255
+color_map = np.array(cc.linear_bgy_10_95_c74)*255
 
 
 def numpy2color(gray_array, min_value=10.0, max_value=40.0):
@@ -28,6 +28,7 @@ def color2jpg(color):
     data = buf.getvalue()
     buf.close()
     return data
+
 
 def numpy2jpg(gray_array, min_value=10.0, max_value=40.0):
     data = numpy2color(gray_array, min_value=min_value, max_value=max_value)

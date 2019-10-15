@@ -32,69 +32,7 @@
    <property name="spacing">
     <number>15</number>
    </property>
-   <item row="0" column="0" rowspan="7">
-    <widget class="QWidget" name="image" native="true">
-     <property name="sizePolicy">
-      <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
-       <horstretch>0</horstretch>
-       <verstretch>0</verstretch>
-      </sizepolicy>
-     </property>
-    </widget>
-   </item>
-   <item row="2" column="1">
-    <widget class="QGroupBox" name="groupBox">
-     <property name="sizePolicy">
-      <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
-       <horstretch>0</horstretch>
-       <verstretch>0</verstretch>
-      </sizepolicy>
-     </property>
-     <property name="title">
-      <string>循环读取</string>
-     </property>
-     <layout class="QGridLayout" name="gridLayout">
-      <property name="verticalSpacing">
-       <number>12</number>
-      </property>
-      <item row="0" column="0">
-       <widget class="QLabel" name="label">
-        <property name="text">
-         <string>时间间隔</string>
-        </property>
-       </widget>
-      </item>
-      <item row="0" column="1">
-       <widget class="QLineEdit" name="timespanLineeidt">
-        <property name="sizePolicy">
-         <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
-          <horstretch>0</horstretch>
-          <verstretch>0</verstretch>
-         </sizepolicy>
-        </property>
-        <property name="text">
-         <string>700</string>
-        </property>
-       </widget>
-      </item>
-      <item row="1" column="0">
-       <widget class="QPushButton" name="stopButton">
-        <property name="text">
-         <string>停止</string>
-        </property>
-       </widget>
-      </item>
-      <item row="1" column="1">
-       <widget class="QPushButton" name="startButton">
-        <property name="text">
-         <string>开始</string>
-        </property>
-       </widget>
-      </item>
-     </layout>
-    </widget>
-   </item>
-   <item row="4" column="1">
+   <item row="0" column="1">
     <widget class="QGroupBox" name="groupBox_2">
      <property name="title">
       <string>数据标签</string>
@@ -123,7 +61,17 @@
      </layout>
     </widget>
    </item>
-   <item row="0" column="1">
+   <item row="0" column="0" rowspan="10">
+    <widget class="QWidget" name="image" native="true">
+     <property name="sizePolicy">
+      <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
+       <horstretch>0</horstretch>
+       <verstretch>0</verstretch>
+      </sizepolicy>
+     </property>
+    </widget>
+   </item>
+   <item row="1" column="1">
     <widget class="QPushButton" name="readImageButton">
      <property name="sizePolicy">
       <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
@@ -134,6 +82,121 @@
      <property name="text">
       <string>单次读取热度图</string>
      </property>
+    </widget>
+   </item>
+   <item row="2" column="1">
+    <widget class="QGroupBox" name="groupBox">
+     <property name="sizePolicy">
+      <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
+       <horstretch>0</horstretch>
+       <verstretch>0</verstretch>
+      </sizepolicy>
+     </property>
+     <property name="title">
+      <string>读取</string>
+     </property>
+     <layout class="QGridLayout" name="gridLayout">
+      <property name="verticalSpacing">
+       <number>12</number>
+      </property>
+      <item row="0" column="1">
+       <widget class="QLineEdit" name="timespanLineeidt">
+        <property name="sizePolicy">
+         <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
+          <horstretch>0</horstretch>
+          <verstretch>0</verstretch>
+         </sizepolicy>
+        </property>
+        <property name="text">
+         <string>700</string>
+        </property>
+       </widget>
+      </item>
+      <item row="2" column="0">
+       <widget class="QPushButton" name="stopButton">
+        <property name="text">
+         <string>停止</string>
+        </property>
+       </widget>
+      </item>
+      <item row="2" column="1">
+       <widget class="QPushButton" name="startButton">
+        <property name="text">
+         <string>开始</string>
+        </property>
+       </widget>
+      </item>
+      <item row="0" column="0">
+       <widget class="QLabel" name="label">
+        <property name="text">
+         <string>时间间隔</string>
+        </property>
+       </widget>
+      </item>
+     </layout>
+    </widget>
+   </item>
+   <item row="3" column="1">
+    <widget class="QGroupBox" name="showdataGroup">
+     <property name="sizePolicy">
+      <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
+       <horstretch>0</horstretch>
+       <verstretch>0</verstretch>
+      </sizepolicy>
+     </property>
+     <property name="title">
+      <string>数据查看</string>
+     </property>
+     <layout class="QFormLayout" name="formLayout">
+      <item row="0" column="0">
+       <widget class="QLabel" name="label_3">
+        <property name="text">
+         <string>rowid</string>
+        </property>
+       </widget>
+      </item>
+      <item row="0" column="1">
+       <widget class="QLineEdit" name="rowidLineEdit">
+        <property name="sizePolicy">
+         <sizepolicy hsizetype="Maximum" vsizetype="Fixed">
+          <horstretch>0</horstretch>
+          <verstretch>0</verstretch>
+         </sizepolicy>
+        </property>
+       </widget>
+      </item>
+      <item row="2" column="0">
+       <widget class="QLabel" name="label_4">
+        <property name="text">
+         <string>idx</string>
+        </property>
+       </widget>
+      </item>
+      <item row="2" column="1">
+       <widget class="QLineEdit" name="idxLineEdit">
+        <property name="sizePolicy">
+         <sizepolicy hsizetype="Maximum" vsizetype="Fixed">
+          <horstretch>0</horstretch>
+          <verstretch>0</verstretch>
+         </sizepolicy>
+        </property>
+       </widget>
+      </item>
+      <item row="3" column="0">
+       <widget class="QPushButton" name="searchPushButton">
+        <property name="text">
+         <string>查找</string>
+        </property>
+       </widget>
+      </item>
+      <item row="3" column="1">
+       <widget class="QPushButton" name="playPushButton">
+        <property name="text">
+         <string>play</string>
+        </property>
+       </widget>
+      </item>
+     </layout>
     </widget>
    </item>
   </layout>
@@ -147,8 +210,8 @@
    <slot>readImageOnce()</slot>
    <hints>
     <hint type="sourcelabel">
-     <x>570</x>
-     <y>199</y>
+     <x>460</x>
+     <y>104</y>
     </hint>
     <hint type="destinationlabel">
      <x>296</x>
@@ -163,8 +226,8 @@
    <slot>startRead()</slot>
    <hints>
     <hint type="sourcelabel">
-     <x>612</x>
-     <y>308</y>
+     <x>592</x>
+     <y>220</y>
     </hint>
     <hint type="destinationlabel">
      <x>607</x>
@@ -179,12 +242,44 @@
    <slot>stopRead()</slot>
    <hints>
     <hint type="sourcelabel">
-     <x>530</x>
-     <y>309</y>
+     <x>453</x>
+     <y>220</y>
     </hint>
     <hint type="destinationlabel">
      <x>503</x>
      <y>-6</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>searchPushButton</sender>
+   <signal>clicked()</signal>
+   <receiver>Form</receiver>
+   <slot>searchImage()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>412</x>
+     <y>333</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>401</x>
+     <y>-19</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>playPushButton</sender>
+   <signal>clicked()</signal>
+   <receiver>Form</receiver>
+   <slot>playImage()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>542</x>
+     <y>340</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>547</x>
+     <y>-25</y>
     </hint>
    </hints>
   </connection>
@@ -193,5 +288,7 @@
   <slot>readImageOnce()</slot>
   <slot>startRead()</slot>
   <slot>stopRead()</slot>
+  <slot>searchImage()</slot>
+  <slot>playImage()</slot>
  </slots>
 </ui>
