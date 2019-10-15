@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-# Form implementation generated from reading ui file 'G:\ProtocolMaster\source\protocol_master_ui.ui'
+# Form implementation generated from reading ui file 'protocol_master_ui.ui'
 #
 # Created by: PyQt5 UI code generator 5.13.0
 #
@@ -36,6 +36,12 @@ class Ui_MainWindow(object):
         self.treeWidget.setMaximumSize(QtCore.QSize(200, 16777215))
         self.treeWidget.setObjectName("treeWidget")
         self.splitter_v = QtWidgets.QSplitter(self.splitter_h)
+        self.splitter_v.setEnabled(True)
+        sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Preferred, QtWidgets.QSizePolicy.Minimum)
+        sizePolicy.setHorizontalStretch(0)
+        sizePolicy.setVerticalStretch(0)
+        sizePolicy.setHeightForWidth(self.splitter_v.sizePolicy().hasHeightForWidth())
+        self.splitter_v.setSizePolicy(sizePolicy)
         self.splitter_v.setMaximumSize(QtCore.QSize(16777215, 16777215))
         self.splitter_v.setFrameShape(QtWidgets.QFrame.NoFrame)
         self.splitter_v.setFrameShadow(QtWidgets.QFrame.Plain)
@@ -43,14 +49,14 @@ class Ui_MainWindow(object):
         self.splitter_v.setOrientation(QtCore.Qt.Vertical)
         self.splitter_v.setObjectName("splitter_v")
         self.tabWidget = QtWidgets.QTabWidget(self.splitter_v)
-        sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.MinimumExpanding, QtWidgets.QSizePolicy.Preferred)
+        sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.MinimumExpanding, QtWidgets.QSizePolicy.MinimumExpanding)
         sizePolicy.setHorizontalStretch(0)
         sizePolicy.setVerticalStretch(0)
         sizePolicy.setHeightForWidth(self.tabWidget.sizePolicy().hasHeightForWidth())
         self.tabWidget.setSizePolicy(sizePolicy)
         self.tabWidget.setObjectName("tabWidget")
         self.tabFrame = QtWidgets.QWidget()
-        sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Preferred, QtWidgets.QSizePolicy.MinimumExpanding)
+        sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.MinimumExpanding, QtWidgets.QSizePolicy.MinimumExpanding)
         sizePolicy.setHorizontalStretch(0)
         sizePolicy.setVerticalStretch(0)
         sizePolicy.setHeightForWidth(self.tabFrame.sizePolicy().hasHeightForWidth())
@@ -61,7 +67,7 @@ class Ui_MainWindow(object):
         self.horizontalLayout.setSpacing(6)
         self.horizontalLayout.setObjectName("horizontalLayout")
         self.tableWidgetFrame = QtWidgets.QTableWidget(self.tabFrame)
-        sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Preferred, QtWidgets.QSizePolicy.MinimumExpanding)
+        sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.MinimumExpanding, QtWidgets.QSizePolicy.MinimumExpanding)
         sizePolicy.setHorizontalStretch(2)
         sizePolicy.setVerticalStretch(0)
         sizePolicy.setHeightForWidth(self.tableWidgetFrame.sizePolicy().hasHeightForWidth())

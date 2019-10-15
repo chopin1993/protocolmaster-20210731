@@ -57,7 +57,7 @@ class ThermalImage(ApplicationPlug, Ui_Form):
         image = QImage.fromData(jpg_data)
         pixelmap = QPixmap.fromImage(image)
         self.image_label.setPixmap(pixelmap)
-        self.image_label.setAlignment(QtCore.Qt.AlignCenter)
+        self.image_label.setAlignment(QtCore.Qt.AlignTop |QtCore.Qt.AlignHCenter)
 
     def media_error_happen(self):
         self.timer.stop()
