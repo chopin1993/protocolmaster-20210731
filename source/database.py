@@ -34,6 +34,13 @@ class EsDatabase(object):
             yield values
         cursor.close()
 
+    def get_first_sample_by_sql(self, sql):
+        cursor = self.conn.cursor()
+        cursor.execute(sql)
+        values = cursor.fetchone()
+        cursor.close()
+        return values
+
     def __del__(self):
         self.conn.close()
 

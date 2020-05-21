@@ -1,5 +1,4 @@
 # encoding:utf-8
-from abc import ABC
 
 from .application_plug import plug_register,ApplicationPlug
 from .thermal_image_ui import Ui_Form
@@ -17,7 +16,7 @@ from tools.imgtool import numpy2jpg
 class ThermalImage(ApplicationPlug, Ui_Form):
 
     def __init__(self):
-        super(ThermalImage, self).__init__("红外阵列90240")
+        super(ThermalImage, self).__init__("红外阵列90240数据收集")
         self.setupUi(self)
         self.layout_image = QtWidgets.QVBoxLayout(self.image)
         self.image_label = QLabel()
@@ -27,7 +26,6 @@ class ThermalImage(ApplicationPlug, Ui_Form):
         self.rcv_cnt = 0
         self.send_cnt = 0
         self.previous_time = datetime.datetime.now()
-        self.database = EsDatabase("image.db")
         self.refresh_timer = QTimer(self)
         self.refresh_timer.timeout.connect(self.show_next_img_in_db)
         self.data_src = None

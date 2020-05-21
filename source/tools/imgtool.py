@@ -30,7 +30,6 @@ def color2jpg(color):
     return data
 
 
-def numpy2jpg(gray_array, min_value=10.0, max_value=40.0):
+def numpy2jpg(gray_array, min_value=12.0, max_value=37.0):
     data = numpy2color(gray_array, min_value=min_value, max_value=max_value)
     return color2jpg(data)
-

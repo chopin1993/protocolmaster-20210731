@@ -9,6 +9,7 @@ import media
 import protocol
 import session
 import datetime
+from database import EsDatabase
 
 class ESMainWindow(QMainWindow, Ui_MainWindow):
     """
@@ -19,6 +20,7 @@ class ESMainWindow(QMainWindow, Ui_MainWindow):
         self.setupUi(self)
         self.medias = media.get_media_instances()
         self.current_media = self.medias[0]
+        self.database = EsDatabase("image.db")
         self.get_current_media().error.connect(self.show_error)
         self.init_menu()
         self.protocols = protocol.get_all_protocol_instance()
@@ -37,6 +39,8 @@ class ESMainWindow(QMainWindow, Ui_MainWindow):
         self.tableWidgetFrame.setColumnWidth(1, 35)
         self.tableWidgetFrame.setContextMenuPolicy(Qt.CustomContextMenu)
         self.tableWidgetFrame.customContextMenuRequested.connect(self.log_tablewidgit_menu)
+        self.current_index = 0
+
 
     def log_tablewidgit_menu(self,pos):
         menu = QMenu()
@@ -59,6 +63,7 @@ class ESMainWindow(QMainWindow, Ui_MainWindow):
             widget.setText(0, plug.name)
             self.plugIndexContainer.addWidget(plug)
             plug.session = self.session
+            plug.database = self.database
         self.splitter_v.insertWidget(0, self.plugIndexContainer)
 
     def init_menu(self):
@@ -74,7 +79,10 @@ class ESMainWindow(QMainWindow, Ui_MainWindow):
         self.toolbar.addAction(action)
 
     def plug_index_clicked(self, index):
-        self.plugIndexContainer.setCurrentIndex(index.row())
+        if self.current_index != index.row():
+            self.plugIndexContainer.setCurrentIndex(index.row())
+            self.current_index = index.row()
+
 
     def show_media_config(self):
         if len(self.medias) > 0:
