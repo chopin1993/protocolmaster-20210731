@@ -11,7 +11,9 @@ import session
 import datetime
 from database import EsDatabase
 
+
 class ESMainWindow(QMainWindow, Ui_MainWindow):
+    PLUG_INDEX_KEY="plugIndexKey"
     """
        管理插件、信道、和协议。
     """
@@ -40,6 +42,8 @@ class ESMainWindow(QMainWindow, Ui_MainWindow):
         self.tableWidgetFrame.setContextMenuPolicy(Qt.CustomContextMenu)
         self.tableWidgetFrame.customContextMenuRequested.connect(self.log_tablewidgit_menu)
         self.current_index = 0
+        self.setting = QSettings("eastsoft","ProtocolMaster")
+        self.plug_index_clicked(self.setting.value(self.PLUG_INDEX_KEY, defaultValue=0))
 
 
     def log_tablewidgit_menu(self,pos):
@@ -79,9 +83,13 @@ class ESMainWindow(QMainWindow, Ui_MainWindow):
         self.toolbar.addAction(action)
 
     def plug_index_clicked(self, index):
-        if self.current_index != index.row():
-            self.plugIndexContainer.setCurrentIndex(index.row())
-            self.current_index = index.row()
+        idx = index
+        if not isinstance(index, int):
+            idx = index.row()
+        if self.current_index != idx:
+            self.plugIndexContainer.setCurrentIndex(idx)
+            self.current_index = idx
+            self.setting.setValue(self.PLUG_INDEX_KEY,self.current_index)
 
 
     def show_media_config(self):
@@ -142,6 +150,8 @@ class ESMainWindow(QMainWindow, Ui_MainWindow):
 
     def get_current_plug(self):
         return self.plugs[0]
+
+        
 
 
 def protocol_master_run():

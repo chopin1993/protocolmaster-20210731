@@ -21,7 +21,6 @@ class CameraImage(ApplicationPlug, Ui_Form):
         test = ThremalImageData(400,300,bytes([0x00,0xf8]*400*100) + bytes([0xe0,0x07]*400*100)+bytes([0x1f,0x00]*400*100))
         self.show_img(test)
 
-
     def handle_receive_data(self, msg):
         self.show_img(msg)
 
@@ -30,3 +29,7 @@ class CameraImage(ApplicationPlug, Ui_Form):
         pixelmap = QPixmap.fromImage(image)
         self.label.setPixmap(pixelmap)
         self.label.setAlignment(QtCore.Qt.AlignTop |QtCore.Qt.AlignHCenter)
+
+    def get_protocols(self):
+        return ["ImageProtocol0203",]
+        
