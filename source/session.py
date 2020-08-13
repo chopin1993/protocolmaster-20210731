@@ -48,18 +48,20 @@ class SessionSuit(QObject):
         protocol = deepcopy(self.protocol)
         #print(datetime.datetime.now()," rcv bytes:",len(string),string[0])
         while True:
-            data = self.buffer.peek(10000)
+            data = self.buffer.peek(-1)
             (found, start, length) = protocol.find_frame_in_buff(data)
             if found:
                 self.buffer.read(start + length)
                 #print(datetime.datetime.now(),"length:",len(data[0:start + length])," rcv", str2hexstr(data[0:start + length]))
                 frame_data = data[start:start+length]
                 self.decoder.set_data(frame_data)
-                protocol.decode(self.decoder)
-                self.data_ready.emit(protocol)
+                data = protocol.decode(self.decoder)
+                self.data_ready.emit(data)
+            elif length > 0:
+                self.buffer.read(start + length)
             else:
-                if len(data) > 10000:
-                    print("to mange data",len(data))
+                if len(data) >= 800000:
+                    self.clear_data()
                 else:
                     if len(data) > 0:
                         self.bytes_timer.start(5000)
@@ -68,7 +70,8 @@ class SessionSuit(QObject):
                 break
 
     def clear_data(self):
-        data = self.buffer.read(10000)
+        print("clear data")
+        data = self.buffer.read(800000)
         if len(data) > 0:
             self.data_clean.emit(self.protocol.create_raw_frame(data))
         self.bytes_timer.stop()

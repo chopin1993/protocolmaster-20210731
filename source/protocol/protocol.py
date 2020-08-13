@@ -125,6 +125,3 @@ def protocol_create(name):
     if protocol_class is None:
         raise FoundClassException(name)
     return protocol_class()
-
-
-

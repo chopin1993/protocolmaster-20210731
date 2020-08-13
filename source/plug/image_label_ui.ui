@@ -1,0 +1,115 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ui version="4.0">
+ <class>Form</class>
+ <widget class="QWidget" name="Form">
+  <property name="geometry">
+   <rect>
+    <x>0</x>
+    <y>0</y>
+    <width>703</width>
+    <height>466</height>
+   </rect>
+  </property>
+  <property name="windowTitle">
+   <string>Form</string>
+  </property>
+  <widget class="QLabel" name="rawDataLabel">
+   <property name="geometry">
+    <rect>
+     <x>30</x>
+     <y>30</y>
+     <width>320</width>
+     <height>240</height>
+    </rect>
+   </property>
+   <property name="minimumSize">
+    <size>
+     <width>171</width>
+     <height>0</height>
+    </size>
+   </property>
+   <property name="baseSize">
+    <size>
+     <width>320</width>
+     <height>240</height>
+    </size>
+   </property>
+   <property name="styleSheet">
+    <string notr="true">background:rgb(255, 255, 255)</string>
+   </property>
+   <property name="text">
+    <string>raw</string>
+   </property>
+  </widget>
+  <widget class="QLabel" name="resultDataLabel">
+   <property name="geometry">
+    <rect>
+     <x>370</x>
+     <y>30</y>
+     <width>320</width>
+     <height>240</height>
+    </rect>
+   </property>
+   <property name="baseSize">
+    <size>
+     <width>320</width>
+     <height>240</height>
+    </size>
+   </property>
+   <property name="styleSheet">
+    <string notr="true">background:rgb(0, 255, 0)</string>
+   </property>
+   <property name="text">
+    <string>result</string>
+   </property>
+  </widget>
+  <widget class="QPushButton" name="playPushButton">
+   <property name="geometry">
+    <rect>
+     <x>400</x>
+     <y>300</y>
+     <width>75</width>
+     <height>23</height>
+    </rect>
+   </property>
+   <property name="text">
+    <string>play</string>
+   </property>
+  </widget>
+  <widget class="QLabel" name="infoLabel">
+   <property name="geometry">
+    <rect>
+     <x>120</x>
+     <y>290</y>
+     <width>131</width>
+     <height>51</height>
+    </rect>
+   </property>
+   <property name="text">
+    <string>TextLabel</string>
+   </property>
+  </widget>
+ </widget>
+ <resources/>
+ <connections>
+  <connection>
+   <sender>playPushButton</sender>
+   <signal>clicked()</signal>
+   <receiver>Form</receiver>
+   <slot>playbutton_clicked()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>287</x>
+     <y>339</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>254</x>
+     <y>-14</y>
+    </hint>
+   </hints>
+  </connection>
+ </connections>
+ <slots>
+  <slot>playbutton_clicked()</slot>
+ </slots>
+</ui>

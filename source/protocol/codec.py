@@ -90,6 +90,12 @@ class BinaryDecoder(Decoder):
         data = data.reshape(h,w)
         return data
 
+    def decode_numpy_u16(self, w, h):
+        data = self.decode_bytes(w*h*2)
+        data = np.frombuffer(data, dtype=np.uint16)
+        data = data.reshape(h,w)
+        return data
+
     def decode_uint(self):
         data = self.decode_bytes(4)
         return struct.unpack("I",data)[0]

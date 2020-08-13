@@ -1,5 +1,5 @@
 # encoding:utf-8
-
+from copy import  deepcopy
 
 class FifoBuffer(object):
     """
@@ -20,6 +20,8 @@ class FifoBuffer(object):
         self.buff += data
 
     def peek(self, length):
+        if length == -1:
+            return  deepcopy(self.buff)
         length = min(length, len(self.buff))
         return self.buff[0:length]
 
