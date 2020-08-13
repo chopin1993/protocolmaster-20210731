@@ -26,13 +26,16 @@ class FifoBuffer(object):
         return self.buff[0:length]
 
     def read(self, length):
+        if length <0:
+            length = len(self.buf)
         data = self.peek(length)
-        assert length >= 0, "length must be greater then 0"
         if length == 0:
             return bytes([])
-
         if len(self.buff) <= length:
             self.buff = bytes([])
         else:
             self.buff = self.buff[length:]
         return data
+
+    def data_length(self):
+        return len(self.buff)

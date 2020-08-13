@@ -20,11 +20,13 @@ class CameraImage(ApplicationPlug, Ui_Form):
         # 高字节：低字节 r g b 。计算机采用小端模式
         test = ThremalImageData(400,300,bytes([0x00,0xf8]*400*100) + bytes([0xe0,0x07]*400*100)+bytes([0x1f,0x00]*400*100))
         self.show_img(test)
+        self.img = None
 
     def handle_receive_data(self, msg):
         self.show_img(msg)
 
     def show_img(self, msg):
+        self.img = msg
         image = QImage(msg.data, msg.width, msg.height, QImage.Format_RGB16)
         pixelmap = QPixmap.fromImage(image)
         self.label.setPixmap(pixelmap)
@@ -32,4 +34,3 @@ class CameraImage(ApplicationPlug, Ui_Form):
 
     def get_protocols(self):
         return ["ImageProtocol0203",]
-        

@@ -44,7 +44,13 @@ class ESMainWindow(QMainWindow, Ui_MainWindow):
         self.current_index = 0
         self.setting = QSettings("eastsoft","ProtocolMaster")
         self.plug_index_clicked(self.setting.value(self.PLUG_INDEX_KEY, defaultValue=0))
+        self.status_bar_timer = QTimer(self)
+        self.status_bar_timer.timeout.connect(self.update_status_bar)
+        self.status_bar_timer.start(1000)
 
+    def update_status_bar(self):
+        message = self.session.status_message()
+        self.statusBar.showMessage(message)
 
     def log_tablewidgit_menu(self,pos):
         menu = QMenu()

@@ -71,7 +71,7 @@ class SessionSuit(QObject):
 
     def clear_data(self):
         print("clear data")
-        data = self.buffer.read(800000)
+        data = self.buffer.read(-1)
         if len(data) > 0:
             self.data_clean.emit(self.protocol.create_raw_frame(data))
         self.bytes_timer.stop()
@@ -86,3 +86,11 @@ class SessionSuit(QObject):
 
     def close(self):
         self._media.close()
+
+    def status_message(self):
+        length = self.buffer.data_length()
+        if length > 0:
+            msg = "received {0} bytes, wait more data receiving...".format(length)
+        else:
+            msg = 'reveive no data, free'
+        return msg
