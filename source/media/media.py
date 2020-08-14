@@ -110,7 +110,7 @@ def get_all_medias():
     return _all_medias
 
 
-media_instance = []
+media_instance = {}
 
 
 def get_media_instances():
@@ -119,8 +119,8 @@ def get_media_instances():
     else:
         for cls in _all_medias.values():
             ins = media_create(cls.__name__)
-            media_instance.append(ins)
             ins.name = cls.__name__
+            media_instance[ins.name] = ins
     return media_instance
 
 

@@ -11,13 +11,9 @@ class ApplicationPlug(QWidget):
         super(QWidget, self).__init__()
         self.name = name
         self.session = None
-        self.database = None
-
-    def get_medias_cnt(self):
-        raise NotImplementedError
 
     def get_protocols(self):
-         raise NotImplementedError
+         return []
 
     def handle_receive_data(self, msg):
         print("unhandle plug data", msg)

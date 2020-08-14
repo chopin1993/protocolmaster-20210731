@@ -17,6 +17,7 @@ class ThermalImage(ApplicationPlug, Ui_Form):
 
     def __init__(self):
         super(ThermalImage, self).__init__("红外阵列90240数据收集")
+        self.database = EsDatabase("image.db")
         self.setupUi(self)
         self.layout_image = QtWidgets.QVBoxLayout(self.image)
         self.image_label = QLabel()

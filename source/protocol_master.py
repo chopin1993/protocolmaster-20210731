@@ -9,44 +9,55 @@ import media
 import protocol
 import session
 import datetime
-from database import EsDatabase
+from ESSetting import ESSetting
 
 
 class ESMainWindow(QMainWindow, Ui_MainWindow):
-    PLUG_INDEX_KEY="plugIndexKey"
     """
        管理插件、信道、和协议。
     """
     def __init__(self):
         super(ESMainWindow, self).__init__()
         self.setupUi(self)
-        self.medias = media.get_media_instances()
-        self.current_media = self.medias[0]
-        self.database = EsDatabase("image.db")
-        self.get_current_media().error.connect(self.show_error)
+        self.setting = ESSetting.instance()
+        self.medias_dict = media.get_media_instances()
+        self.protocols_dict = protocol.get_all_protocol_instance()
         self.init_menu()
-        self.protocols = protocol.get_all_protocol_instance()
-        self.session = None
-        self.session = session.SessionSuit.create_binary_suit(self.get_current_media(), self.get_current_protocol())
-        self.plugs = plugs_get_all()
         self.plugIndexContainer = QStackedWidget()
-        self.install_plugs()
-        self.session.data_ready.connect(self.get_current_plug().handle_receive_data)
+        self.plugs = plugs_get_all()
+        self.session = session.SessionSuit.create_binary_suit(self.get_current_media(), self.get_current_protocol())
         self.session.data_snd.connect(self.log_snd_frame)
         self.session.data_ready.connect(self.log_rcv_frame)
         self.session.data_clean.connect(self.log_rcv_frame)
+
+        self.install_plugs()
+
         self.log_idx = 0
         self.tableWidgetFrame.setSelectionBehavior(QAbstractItemView.SelectionBehavior.SelectRows)
         self.tableWidgetFrame.setColumnWidth(0, 95)
         self.tableWidgetFrame.setColumnWidth(1, 35)
         self.tableWidgetFrame.setContextMenuPolicy(Qt.CustomContextMenu)
         self.tableWidgetFrame.customContextMenuRequested.connect(self.log_tablewidgit_menu)
-        self.current_index = 0
-        self.setting = QSettings("eastsoft","ProtocolMaster")
-        self.plug_index_clicked(self.setting.value(self.PLUG_INDEX_KEY, defaultValue=0))
         self.status_bar_timer = QTimer(self)
         self.status_bar_timer.timeout.connect(self.update_status_bar)
         self.status_bar_timer.start(1000)
+        self.sync_plug(-1)
+        self.plugIndexContainer.setCurrentIndex(self.setting.get_plug_idx())
+        self.sync_media(None)
+
+    def sync_plug(self, idx):
+        if idx >= 0:
+            self.session.data_ready.disconnect()
+            self.setting.set_plug_idx(idx)
+        self.session.protocol = self.get_current_protocol()
+        self.session.data_ready.connect(self.get_current_plug().handle_receive_data)
+
+    def sync_media(self, key):
+        if key is not None:
+            self.get_current_media().error.disconnect()
+            self.setting.set_media_key(key)
+        self.session.media = self.get_current_media()
+        self.session.media.error.connect(self.show_error)
 
     def update_status_bar(self):
         message = self.session.status_message()
@@ -62,10 +73,6 @@ class ESMainWindow(QMainWindow, Ui_MainWindow):
         else:
             return
 
-    def update_session(self):
-        self.session.media = self.get_current_media()
-        self.session.protocol = self.get_current_protocol()
-
     def install_plugs(self):
         self.plugIndexContainer.setMinimumHeight(475)
         for plug in self.plugs:
@@ -73,7 +80,9 @@ class ESMainWindow(QMainWindow, Ui_MainWindow):
             widget.setText(0, plug.name)
             self.plugIndexContainer.addWidget(plug)
             plug.session = self.session
-            plug.database = self.database
+            protocols = plug.get_protocols()
+            for pro in protocols:
+                assert pro in self.protocols_dict
         self.splitter_v.insertWidget(0, self.plugIndexContainer)
 
     def init_menu(self):
@@ -92,29 +101,26 @@ class ESMainWindow(QMainWindow, Ui_MainWindow):
         idx = index
         if not isinstance(index, int):
             idx = index.row()
-        if self.current_index != idx:
+        if self.setting.get_plug_idx() != idx:
             self.plugIndexContainer.setCurrentIndex(idx)
-            self.current_index = idx
-            self.setting.setValue(self.PLUG_INDEX_KEY,self.current_index)
-
+            self.sync_plug(idx)
 
     def show_media_config(self):
-        if len(self.medias) > 0:
-            def ok_func(meida):
-                if self.current_media and self.current_media != media:
-                    self.current_media = meida
-                self.update_session()
-            ui.show_user_media_options(self.medias, ok_func)
-            self.update_session()
+        if len(self.medias_dict) > 0:
+            self.session.media = self.get_current_media()
+            def ok_func(media):
+                if self.get_current_media() != media:
+                    self.sync_media(media.name)
+            ui.show_user_media_options(list(self.medias_dict.values()), ok_func)
         else:
             QMessageBox.information(None, "错误", u"没有可以用使用的信道")
 
     def show_protocol_config(self):
-        if len(self.protocols) > 0:
+        if len(self.protocols_dict) > 0:
             def ok_func(protocol, options):
                 pass
             options = list()
-            for pros in self.protocols:
+            for pros in self.protocols_dict:
                  options.append(pros.name)
             ui.show_user_options([media.MediaOptions(u"协议",options)],ok_func)
             self.update_session()
@@ -149,15 +155,18 @@ class ESMainWindow(QMainWindow, Ui_MainWindow):
         self.log_idx = 0
 
     def get_current_media(self):
-        return self.current_media
+        key = list(self.medias_dict.keys())[0]
+        return self.medias_dict[self.setting.get_media_key(key)]
 
     def get_current_protocol(self):
-        return self.protocols[0]
+        keys = self.plugs[self.setting.get_plug_idx()].get_protocols()
+        if len(keys) > 0:
+            return self.protocols_dict[keys[0]]
+        else:
+            return list(self.protocols_dict.values())[0]
 
     def get_current_plug(self):
-        return self.plugs[0]
-
-        
+        return self.plugs[self.setting.get_plug_idx()]
 
 
 def protocol_master_run():

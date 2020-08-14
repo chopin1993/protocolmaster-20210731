@@ -108,15 +108,14 @@ def protocol_register(media_class):
 
 
 
-instances = []
+instances = dict()
 
 
 def get_all_protocol_instance():
     if len(instances) == 0:
       for key, protocol in _all_protocols.items():
          pro = protocol()
-         pro.name = key
-         instances.append(pro)
+         instances[key] = pro
     return instances
 
 def protocol_create(name):
