@@ -27,7 +27,7 @@ class FifoBuffer(object):
 
     def read(self, length):
         if length <0:
-            length = len(self.buf)
+            length = len(self.buff)
         data = self.peek(length)
         if length == 0:
             return bytes([])
