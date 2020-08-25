@@ -6,7 +6,6 @@ from tools.converter import hexstr2bytes, str2hexstr
 from .data_fragment import *
 
 
-
 @protocol_register
 class TestProtocol(Protocol):
 

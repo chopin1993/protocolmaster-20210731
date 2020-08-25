@@ -75,11 +75,12 @@ class BinaryDecoder(Decoder):
         self.data = data
 
     def decoder_for_object(self, cls):
-        protocol = cls()
-        protocol.decode(self)
+        protocol = cls(decoder=self)
         return protocol
 
     def decode_bytes(self, length):
+        if length == 0:
+            return bytes()
         data = self.data[0:length]
         self.data = self.data[length:]
         return data
@@ -100,9 +101,16 @@ class BinaryDecoder(Decoder):
         data = self.decode_bytes(4)
         return struct.unpack("I",data)[0]
 
+    def decode_u32(self):
+        return self.decode_uint()
+
     def decode_u16(self):
         data = self.decode_bytes(2)
         return struct.unpack("H",data)[0]
+
+    def decode_u8(self):
+        data = self.decode_byte()
+        return struct.unpack("B",data)[0]
 
     def decode_byte(self):
         data = self.decode_bytes(1)
