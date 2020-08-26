@@ -11,10 +11,13 @@ class Encoder(object):
     def encode_char(self, nb):
         pass
 
-    def encode_unsigned_short(self, nb):
+    def encode_s16(self, nb):
         pass
 
-    def encode_int(self, nb):
+    def encode_u32(self, nb):
+        pass
+
+    def encode_s32(self, nb):
        pass
 
     def encode_object(self, nb):
@@ -35,20 +38,26 @@ class BinaryEncoder(Encoder):
     def __init__(self):
         self.data = bytes([])
 
+    def encode_str(self, str):
+        return self.encode_bytes(str)
+
     def encode_bytes(self, bytes):
         self.data += bytes
 
-    def encode_byte(self, nb):
+    def encode_u8(self, nb):
         self.data += struct.pack("@B", nb)
 
-    def encode_unsigned_short(self, nb):
+    def encode_u16(self, nb):
         self.data += struct.pack("@H", nb)
 
-    def encode_short(self, nb):
+    def encode_s16(self, nb):
         self.data += struct.pack("@h", nb)
 
-    def encode_int(self, nb):
+    def encode_s32(self, nb):
         self.data += struct.pack("@i", nb)
+
+    def encode_u32(self, nb):
+        self.data += struct.pack("@I", nb)
 
     def encode_object(self, object_data):
         object_data.encode(self)

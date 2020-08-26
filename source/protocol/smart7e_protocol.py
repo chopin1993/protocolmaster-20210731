@@ -1,4 +1,5 @@
 # encoding:utf-8
+from enum import Enum
 from .protocol import Protocol, protocol_register
 from .protocol import find_head
 from .codec import BinaryEncoder
@@ -9,20 +10,67 @@ import struct
 SMART_7e_HEAD = bytes([0x7e])
 
 
+class LocalCmd(Enum):
+    ASK_APPLICATION_ADDR = 0x05
+    SET_APPLICATION_ADDR = 0x01
+    READ_APPLICATION_ADDR = 0x03
+
+
+class RemoteCmd(Enum):
+    DEBUG_CMD=0xff00
+
+
+class LocalFBD(Protocol):
+    def __init__(self, cmd, data):
+        self.cmd = cmd
+        self.data = data
+
+    def encode(self, encoder):
+        encoder.encode_u8(self.cmd.value)
+        if self.cmd == LocalCmd.SET_APPLICATION_ADDR:
+            encoder.encode_u32(self.data)
+
+class RemoteFBD(Protocol):
+    pass
+
 class Smart7EData(Protocol):
-    def __init__(self, decoder=None):
-        self.data = decoder.data
+    SEQ = 0
+    def __init__(self,src=None, dst=None, fbd=None, decoder=None):
+        self.data = None
         if decoder is not None:
+            self.data = decoder.data
             decoder.decode_byte()
             self.said = decoder.decode_u32()
             self.taid = decoder.decode_u32()
             self.seq = decoder.decode_u8()
             self.len = decoder.decode_u8()
             self.fbd = decoder.decode_bytes(self.len)
+        else:
+            self.said = src
+            self.taid = dst
+            self.fbd = fbd
+            self.seq = self.SEQ
+            self.SEQ +=1
 
+    def is_local(self):
+        return self.said ==0 and self.taid == 0
+
+    def encode(self, encoder):
+        encoder.encode_bytes(SMART_7e_HEAD)
+        encoder.encode_u32(self.said)
+        encoder.encode_u32(self.taid)
+        encoder.encode_u8(self.seq)
+        if isinstance(self.fbd, bytes) or isinstance(self.fbd, bytearray):
+            fbd_data = self.fbd
+        else:
+            fbd_data = encoder.object2data(self.fbd)
+        encoder.encode_u8(len(fbd_data))
+        encoder.encode_str(fbd_data)
+        encoder.encode_u8(checksum(encoder.get_data()))
 
     def __str__(self):
-        return str2hexstr(self.data)
+        data = BinaryEncoder.object2data(self)
+        return str2hexstr(data)
 
 
 @protocol_register

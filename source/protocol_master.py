@@ -38,6 +38,7 @@ class ESMainWindow(QMainWindow, Ui_MainWindow):
         self.tableWidgetFrame.setColumnWidth(1, 35)
         self.tableWidgetFrame.setContextMenuPolicy(Qt.CustomContextMenu)
         self.tableWidgetFrame.customContextMenuRequested.connect(self.log_tablewidgit_menu)
+        self.tableWidgetFrame.cellClicked.connect(self.log_history_clicked)
         self.status_bar_timer = QTimer(self)
         self.status_bar_timer.timeout.connect(self.update_status_bar)
         self.status_bar_timer.start(1000)
@@ -62,6 +63,11 @@ class ESMainWindow(QMainWindow, Ui_MainWindow):
     def update_status_bar(self):
         message = self.session.status_message()
         self.statusBar.showMessage(message)
+
+    def log_history_clicked(self, row, col):
+        txt = self.tableWidgetFrame.item(row, col).text()
+        self.textBrowserFrameInfo.setText(txt)
+
 
     def log_tablewidgit_menu(self,pos):
         menu = QMenu()
@@ -132,7 +138,7 @@ class ESMainWindow(QMainWindow, Ui_MainWindow):
         self.get_current_plug().media_error_happen()
 
     def log_snd_frame(self, protocol):
-        self._add_log_info("snd",str(protocol))
+        self._add_log_info("snd", str(protocol))
 
     def log_rcv_frame(self, protocol):
         self._add_log_info("rcv", str(protocol))

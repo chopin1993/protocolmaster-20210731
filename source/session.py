@@ -77,12 +77,12 @@ class SessionSuit(QObject):
         self.bytes_timer.stop()
 
     def write(self, data, **kwargs):
-        protocol = self.protocol.create_frame(data, **kwargs)
-        self.data_snd.emit(deepcopy(protocol))
-        self.encoder.encode_object(protocol)
+        self.data_snd.emit(deepcopy(data))
+        self.encoder.reset()
+        self.encoder.encode_object(data)
         data = self.encoder.get_data()
         self._media.send(data)
-        self.encoder.reset()
+
 
     def close(self):
         self._media.close()

@@ -6,7 +6,7 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>748</width>
+    <width>760</width>
     <height>526</height>
    </rect>
   </property>
@@ -17,16 +17,85 @@
    <property name="geometry">
     <rect>
      <x>13</x>
-     <y>10</y>
-     <width>640</width>
-     <height>480</height>
+     <y>20</y>
+     <width>71</width>
+     <height>20</height>
     </rect>
    </property>
-   <property name="styleSheet">
-    <string notr="true">background:rgb(170, 255, 0)</string>
+   <property name="text">
+    <string>抄控器地址</string>
+   </property>
+  </widget>
+  <widget class="QLineEdit" name="myAddrLineEdit">
+   <property name="geometry">
+    <rect>
+     <x>80</x>
+     <y>20</y>
+     <width>113</width>
+     <height>20</height>
+    </rect>
    </property>
    <property name="text">
-    <string>this is 智能视觉传感器</string>
+    <string>1</string>
+   </property>
+  </widget>
+  <widget class="QPushButton" name="setMyAddress">
+   <property name="geometry">
+    <rect>
+     <x>200</x>
+     <y>20</y>
+     <width>75</width>
+     <height>23</height>
+    </rect>
+   </property>
+   <property name="text">
+    <string>设置</string>
+   </property>
+  </widget>
+  <widget class="QLabel" name="label_2">
+   <property name="geometry">
+    <rect>
+     <x>310</x>
+     <y>22</y>
+     <width>54</width>
+     <height>20</height>
+    </rect>
+   </property>
+   <property name="text">
+    <string>设备地址</string>
+   </property>
+  </widget>
+  <widget class="QLineEdit" name="devieAddrLineEdit">
+   <property name="geometry">
+    <rect>
+     <x>370</x>
+     <y>20</y>
+     <width>113</width>
+     <height>20</height>
+    </rect>
+   </property>
+  </widget>
+  <widget class="QPushButton" name="pushButton">
+   <property name="geometry">
+    <rect>
+     <x>100</x>
+     <y>70</y>
+     <width>75</width>
+     <height>23</height>
+    </rect>
+   </property>
+   <property name="text">
+    <string>设置</string>
+   </property>
+  </widget>
+  <widget class="QComboBox" name="debugcomboBox">
+   <property name="geometry">
+    <rect>
+     <x>10</x>
+     <y>70</y>
+     <width>69</width>
+     <height>22</height>
+    </rect>
    </property>
   </widget>
  </widget>

@@ -16,9 +16,9 @@ class DIDReadMeter(object):
         self.serial = 0
 
     def encode(self, encoder):
-        encoder.encode_byte(0x90)
-        encoder.encode_byte(0x1f)
-        encoder.encode_byte(self.serial)
+        encoder.encode_u8(0x90)
+        encoder.encode_u8(0x1f)
+        encoder.encode_u8(self.serial)
 
     def decode(self, decoder):
         pass
@@ -59,14 +59,14 @@ class CJT188Protocol(Protocol):
     def encode(self, encoder):
         self.padding_address()
         encoder.encode_str(CJT188_HEAD)
-        encoder.encode_byte(self.meter_type)
+        encoder.encode_u8(self.meter_type)
         encoder.encode_str(self.address[::-1])
-        encoder.encode_byte(self.cmd)
+        encoder.encode_u8(self.cmd)
         length = len(encoder.object2data(self.did_unit))
-        encoder.encode_byte(length)
+        encoder.encode_u8(length)
         self.did_unit.serial = self.serial
         encoder.encode_object(self.did_unit)
-        encoder.encode_byte(checksum(encoder.get_data()))
+        encoder.encode_u8(checksum(encoder.get_data()))
         encoder.encode_str(CJT188_TAIL)
 
     def decode(self, decoder):

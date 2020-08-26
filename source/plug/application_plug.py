@@ -18,11 +18,15 @@ class ApplicationPlug(QWidget):
     def handle_receive_data(self, msg):
         print("unhandle plug data", msg)
 
-    def handle_send_data(self):
-        pass
+    def send_data(self, data):
+        self.session.write(data)
 
     def media_error_happen(self):
         pass
+
+    def show_error_msg(self, title, msg):
+        QMessageBox.information(self, title, msg)
+
 
 
 _all_plugs = dict()

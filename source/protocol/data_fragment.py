@@ -96,7 +96,7 @@ class StatisticsDataFragment(DataFragment):
 
     def encode(self, encoder):
         value = self.statistics_func(**self.depends_dict)
-        encoder.encode_byte(value)
+        encoder.encode_u8(value)
 
     def decode(self, decoder):
         return decoder.decode_bytes(self.length())

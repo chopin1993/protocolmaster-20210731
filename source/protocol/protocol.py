@@ -85,10 +85,9 @@ class Protocol(object):
     def add_fragment(self, fragment):
         self.data_fragments.append(fragment)
 
-    def encode(self, encoder, dicts):
-        for fragment in self.data_fragments:
-            fragment.set_depends(self.gather_fragments(fragment.encode_depends))
-            encoder.encode_object(fragment)
+    def encode(self, encoder):
+        print("error not handle encode")
+        pass
 
     def decode(self, decoder):
         datas = dict()

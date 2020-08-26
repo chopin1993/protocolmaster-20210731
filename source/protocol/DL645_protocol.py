@@ -11,8 +11,8 @@ DL645_TAIL = chr(0x16)
 
 class DIDReadAddress(object):
     def encode(self, encoder):
-        encoder.encode_byte(0x13)
-        encoder.encode_byte(0x00)
+        encoder.encode_u8(0x13)
+        encoder.encode_u8(0x00)
 
     def decode(self, decoder):
         pass
@@ -23,8 +23,8 @@ class DIDESTunnelData(object):
         self.data = data
 
     def encode(self, encoder):
-        encoder.encode_byte(0x50)
-        encoder.encode_byte(0x4d)
+        encoder.encode_u8(0x50)
+        encoder.encode_u8(0x4d)
         encoder.encode_str(self.data)
 
 class DIDRealTimeMeterData(object):
@@ -34,11 +34,11 @@ class DIDRealTimeMeterData(object):
         self.current_meter_used = 0
 
     def encode(self, encoder):
-        encoder.encode_byte(00)
-        encoder.encode_byte(0xff)
-        encoder.encode_byte(0x01)
-        encoder.encode_byte(0x00)
-        encoder.encode_byte(0x00)
+        encoder.encode_u8(00)
+        encoder.encode_u8(0xff)
+        encoder.encode_u8(0x01)
+        encoder.encode_u8(0x00)
+        encoder.encode_u8(0x00)
         encoder.encode_str(self.address[::-1])
 
     def decode(self, decoder):
@@ -89,15 +89,15 @@ class DL645_07_Protocol(Protocol):
         encoder.encode_str(DL645_HEAD)
         encoder.encode_str(self.address[::-1])
         encoder.encode_str(DL645_HEAD)
-        encoder.encode_byte(self.cmd)
+        encoder.encode_u8(self.cmd)
         if self.cmd == 0x11:
             did_data = encoder.object2data(self.did_unit)
-            encoder.encode_byte(len(did_data))
+            encoder.encode_u8(len(did_data))
             did_data = data_encrypt(did_data)
             encoder.encode_str(did_data)
         elif self.cmd == 0x13:
-            encoder.encode_byte(0x00)
-        encoder.encode_byte(checksum(encoder.get_data()))
+            encoder.encode_u8(0x00)
+        encoder.encode_u8(checksum(encoder.get_data()))
         encoder.encode_str(DL645_TAIL)
 
     def decode(self, decoder):
@@ -187,15 +187,15 @@ class DL645_97_Protocol(Protocol):
         encoder.encode_str(DL645_HEAD)
         encoder.encode_str(self.address[::-1])
         encoder.encode_str(DL645_HEAD)
-        encoder.encode_byte(self.cmd)
+        encoder.encode_u8(self.cmd)
         if self.cmd == 0x11:
             did_data = encoder.object2data(self.did_unit)
-            encoder.encode_byte(len(did_data))
+            encoder.encode_u8(len(did_data))
             did_data = data_encrypt(did_data)
             encoder.encode_str(did_data)
         elif self.cmd == 0x13:
-            encoder.encode_byte(0x00)
-        encoder.encode_byte(checksum(encoder.get_data()))
+            encoder.encode_u8(0x00)
+        encoder.encode_u8(checksum(encoder.get_data()))
         encoder.encode_str(DL645_TAIL)
 
     def decode(self, decoder):
