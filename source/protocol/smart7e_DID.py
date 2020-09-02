@@ -66,7 +66,7 @@ class DIDRemote(object):
             self.len = decoder.decode_u8()
             if self.len & 0x80:
                 self.is_error = True
-                self.error_code = decoder.decode_s8()
+                self.error_code = decoder.decode_u16()
             else:
                 self.data = decoder.decode_bytes(self.len)
 

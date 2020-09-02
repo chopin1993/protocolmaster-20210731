@@ -105,7 +105,10 @@ class Smart7EData(Protocol):
         encoder.encode_u8(checksum(encoder.get_data()))
 
     def __str__(self):
-        data = BinaryEncoder.object2data(self)
+        if self.data is not None:
+            data = self.data
+        else:
+            data = BinaryEncoder.object2data(self)
         return str2hexstr(data)
 
     def to_readable_str(self):
