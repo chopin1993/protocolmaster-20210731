@@ -20,6 +20,8 @@ class CMD(Enum):
     READ = 0x02
     WRTIE = 0x7
 
+
+
 class LocalFBD(Protocol):
     def __init__(self, cmd, data):
         self.cmd = cmd

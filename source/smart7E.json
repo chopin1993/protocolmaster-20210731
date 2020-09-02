@@ -10,6 +10,12 @@
       "name": "DIDDeviceType",
       "member":[
       ]
+    },
+    { "did": "0xd702",
+      "name": "DIDSensorInvalidTime",
+      "member":[
+         {"value": "DataU16"}
+      ]
     }
   ]
 }

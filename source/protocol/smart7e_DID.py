@@ -6,6 +6,16 @@ import json
 from json import JSONDecodeError
 from protocol.DataMetaType import *
 
+class ErrorCode(Enum):
+    NO_ERROR = 0
+    OTHER_ERROR= 0x0f
+    LEN_ERROR = 0x01
+    BUFFER_ERR = 0x02
+    DATA_ERR = 0x03
+    DID_ERROR = 0x04
+    DEV_BUSY = 0x05
+    NO_RETURN = 0x10
+
 _all_did = dict()
 
 def did_register(media_class):
@@ -106,7 +116,11 @@ class DIDRemote(object):
             else:
                 txt += " no data"
         else:
-            txt = "{0}-0x{1:0>4x} error:{2}".format(self.__class__.__name__,self.DID, self.error_code)
+            name = ErrorCode(value=self.error_code).name
+            txt = "{0}-0x{1:0>4x} error:{2} {3}".format(self.__class__.__name__,
+                                                        self.DID,
+                                                        self.error_code,
+                                                        name)
         return txt
 
 @did_register

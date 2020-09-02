@@ -55,3 +55,13 @@ class DataU8(DataMetaType):
 
     def decode(self, decoder):
         self.value = decoder.decode_u8()
+
+class DataU16(DataMetaType):
+    def __init__(self,name=None, value=None, decoder=None):
+        super(DataU16, self).__init__(name, value, decoder)
+
+    def encode(self, encoder):
+        encoder.encode_u16(self.value)
+
+    def decode(self, decoder):
+        self.value = decoder.decode_u16()
