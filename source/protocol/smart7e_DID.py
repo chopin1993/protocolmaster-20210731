@@ -17,13 +17,18 @@ def find_class_by_name(name):
     if name in _all_did.keys():
         return _all_did[name]
     else:
+        try:
+           did = int(name, base=16)
+           return find_class_by_did(did)
+        except ValueError as error:
+            return None
         return None
 
 def find_class_by_did(did):
     for value in _all_did.values():
         if value.DID == did:
             return value
-    return DIDRemote
+    return  create_remote_class(str(did), did, [])
 
 
 def get_all_DID():
@@ -119,6 +124,14 @@ class DIDDebug(DIDRemote):
         self.declare_metadata(DataU8("choice"))
 
 
+def create_remote_class(name, did, member):
+    cls = type(name, (DIDRemote,), {})
+    cls.DID = did
+    cls.MEMBERS = member
+    did_register(cls)
+    return cls
+
+
 def sync_json_dids():
     ret = 0
     err1 = ""
@@ -128,11 +141,11 @@ def sync_json_dids():
             dids = json.load(handle)
             for did in dids['DIDS']:
                 cls = find_class_by_name(did['name'])
-                if cls is None:
-                    cls = type(did['name'],(DIDRemote,), {})
-                    did_register(cls)
-                cls.DID = int(did["did"],base=16)
-                cls.MEMBERS = did['member']
+                if cls is not None:
+                    cls.DID = int(did["did"], base=16)
+                    cls.MEMBERS = did['member']
+                else:
+                    create_remote_class(did['name'], int(did["did"], base=16), did['member'])
         except JSONDecodeError as err:
             ret = -1
             err1 = str(err)

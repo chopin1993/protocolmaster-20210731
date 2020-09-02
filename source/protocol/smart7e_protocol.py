@@ -36,6 +36,8 @@ class RemoteFBD(Protocol):
     @staticmethod
     def create(cmd, did_name, data):
         did_class = find_class_by_name(did_name)
+        if did_class is None:
+            return None
         did = did_class(data)
         return RemoteFBD(cmd, did)
 
