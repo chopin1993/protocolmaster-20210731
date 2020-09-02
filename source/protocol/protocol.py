@@ -51,10 +51,7 @@ class Protocol(object):
         return length
 
     def __str__(self):
-        if self.raw_data is not None:
-            return str2hexstr(self.raw_data)
-        else:
-            return "unknow data frame\n"
+        return "{0} no data analyse \n".format(self.__class__.__name__)
 
     def _get_frame_len(self, data ,decoder):
         decoder.data = data
@@ -96,6 +93,8 @@ class Protocol(object):
             datas[fragment.name] = decoder.encode_object(fragment)
         return datas
 
+    def to_readable_str(self, hex_text):
+        return "no text tranlation"
 
 _all_protocols = dict()
 

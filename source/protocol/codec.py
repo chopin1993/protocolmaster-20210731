@@ -1,6 +1,6 @@
 import struct
 import numpy as np
-
+from tools.converter import bytearray2str
 class Encoder(object):
     def __init__(self):
         self.data = bytes([])
@@ -83,6 +83,9 @@ class BinaryDecoder(Decoder):
     def __init__(self, data=None):
         self.data = data
 
+    def left_bytes(self):
+        return len(self.data)
+
     def decoder_for_object(self, cls):
         protocol = cls(decoder=self)
         return protocol
@@ -121,9 +124,26 @@ class BinaryDecoder(Decoder):
         data = self.decode_byte()
         return struct.unpack("B",data)[0]
 
+    def decode_s8(self):
+        data = self.decode_byte()
+        return struct.unpack("b",data)[0]
+
     def decode_byte(self):
         data = self.decode_bytes(1)
         return data
 
+    def decode_cstr(self):
+        for i in range(len(self.data)):
+            if self.data[i] == 0:
+                break
+        data = self.decode_bytes(i+1)
+        return  bytearray2str(data)
+
     def set_data(self, data):
         self.data = data
+
+    @staticmethod
+    def data2object(cls, data):
+        decoder = BinaryDecoder(data)
+        data = decoder.decoder_for_object(cls)
+        return data

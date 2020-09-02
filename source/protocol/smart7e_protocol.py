@@ -2,23 +2,23 @@
 from enum import Enum
 from .protocol import Protocol, protocol_register
 from .protocol import find_head
-from .codec import BinaryEncoder
+from .codec import BinaryEncoder,BinaryDecoder
 from tools.converter import hexstr2bytes, str2hexstr
 from .data_fragment import *
 import time
+from .smart7e_DID import *
 import struct
+
 SMART_7e_HEAD = bytes([0x7e])
 
-
-class LocalCmd(Enum):
+class DIDLocal(Enum):
     ASK_APPLICATION_ADDR = 0x05
     SET_APPLICATION_ADDR = 0x01
     READ_APPLICATION_ADDR = 0x03
 
-
-class RemoteCmd(Enum):
-    DEBUG_CMD=0xff00
-
+class CMD(Enum):
+    READ = 0x02
+    WRTIE = 0x7
 
 class LocalFBD(Protocol):
     def __init__(self, cmd, data):
@@ -27,11 +27,42 @@ class LocalFBD(Protocol):
 
     def encode(self, encoder):
         encoder.encode_u8(self.cmd.value)
-        if self.cmd == LocalCmd.SET_APPLICATION_ADDR:
+        if self.cmd == DIDLocal.SET_APPLICATION_ADDR:
             encoder.encode_u32(self.data)
 
+
 class RemoteFBD(Protocol):
-    pass
+
+    @staticmethod
+    def create(cmd, did_name, data):
+        did_class = find_class_by_name(did_name)
+        did = did_class(data)
+        return RemoteFBD(cmd, did)
+
+    def __init__(self, cmd=None, didunit=None, decoder=None):
+        self.didunits = []
+        if decoder is None:
+            self.cmd = cmd
+            self.didunits.append(didunit)
+        else:
+            self.cmd = CMD(value=decoder.decode_u8())
+            while decoder.left_bytes() >= 3:
+                did = decoder.decode_u16()
+                didunit = decoder.decoder_for_object(find_class_by_did(did))
+                self.didunits.append(didunit)
+
+    def encode(self, encoder):
+        encoder.encode_u8(self.cmd.value)
+        for did in self.didunits:
+            encoder.encode_object(did)
+
+    def __str__(self):
+       text =" "*2 + "fbd:{0}\n".format(self.cmd.name)
+       for did in self.didunits:
+           text += " "*4 + str(did)
+           text += "\n"
+       return text
+
 
 class Smart7EData(Protocol):
     SEQ = 0
@@ -44,7 +75,10 @@ class Smart7EData(Protocol):
             self.taid = decoder.decode_u32()
             self.seq = decoder.decode_u8()
             self.len = decoder.decode_u8()
-            self.fbd = decoder.decode_bytes(self.len)
+            if self.is_local():
+                self.fbd = decoder.decoder_for_object(LocalFBD)
+            else:
+                self.fbd = decoder.decoder_for_object(RemoteFBD)
         else:
             self.said = src
             self.taid = dst
@@ -71,6 +105,11 @@ class Smart7EData(Protocol):
     def __str__(self):
         data = BinaryEncoder.object2data(self)
         return str2hexstr(data)
+
+    def to_readable_str(self):
+        text = "said:{0},taid:{1},seq:{2}, len:{3}\n".format(self.said, self.taid, self.seq, self.len)
+        text += str(self.fbd)
+        return text
 
 
 @protocol_register
@@ -101,6 +140,15 @@ class Smart7eProtocol(Protocol):
     def decode(self, decoder):
         return decoder.decoder_for_object(Smart7EData)
 
+    def to_readable_str(self, text):
+        data = hexstr2bytes(text)
+        found, start, datalen = self.find_frame_in_buff(data)
+        if found:
+            data = data[start:start+datalen]
+            data = BinaryDecoder.data2object(Smart7EData, data)
+            return data.to_readable_str()
+        else:
+            return "no valid frame"
     @staticmethod
     def find_frame_in_buff(data):
         start_pos = 0

@@ -1,0 +1,15 @@
+{
+  "DIDS": [
+    { "did": "0x0002",
+      "name": "DIDPlcVersion",
+      "member":[
+        {"value": "DataCString"}
+      ]
+    },
+    { "did": "0x0001",
+      "name": "DIDDeviceType",
+      "member":[
+      ]
+    }
+  ]
+}

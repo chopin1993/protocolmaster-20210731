@@ -32,3 +32,10 @@ class ESSetting(object):
     def set_media_key(self, value):
         self.setting.setValue(self.SELECTED_MEDIA_KEY, value)
         self.setting.sync()
+
+    def save_plug_data(self, plug, key, value):
+        self.setting.setValue(key+plug.name, value)
+        self.setting.sync()
+
+    def get_plug_data(self, plug, key, default_value=None):
+        return self.setting.value(key+plug.name, default_value)

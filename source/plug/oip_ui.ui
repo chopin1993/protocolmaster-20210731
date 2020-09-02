@@ -75,10 +75,10 @@
     </rect>
    </property>
   </widget>
-  <widget class="QPushButton" name="pushButton">
+  <widget class="QPushButton" name="setPushButton">
    <property name="geometry">
     <rect>
-     <x>100</x>
+     <x>530</x>
      <y>70</y>
      <width>75</width>
      <height>23</height>
@@ -88,14 +88,69 @@
     <string>设置</string>
    </property>
   </widget>
-  <widget class="QComboBox" name="debugcomboBox">
+  <widget class="QComboBox" name="didcomboBox">
+   <property name="enabled">
+    <bool>true</bool>
+   </property>
+   <property name="geometry">
+    <rect>
+     <x>48</x>
+     <y>70</y>
+     <width>171</width>
+     <height>22</height>
+    </rect>
+   </property>
+   <property name="editable">
+    <bool>true</bool>
+   </property>
+  </widget>
+  <widget class="QPushButton" name="readPushButton">
+   <property name="geometry">
+    <rect>
+     <x>440</x>
+     <y>70</y>
+     <width>75</width>
+     <height>23</height>
+    </rect>
+   </property>
+   <property name="text">
+    <string>读取</string>
+   </property>
+  </widget>
+  <widget class="QLabel" name="label_4">
    <property name="geometry">
     <rect>
      <x>10</x>
      <y>70</y>
-     <width>69</width>
-     <height>22</height>
+     <width>41</width>
+     <height>20</height>
     </rect>
+   </property>
+   <property name="text">
+    <string>DID</string>
+   </property>
+  </widget>
+  <widget class="QLineEdit" name="didLineEdit">
+   <property name="geometry">
+    <rect>
+     <x>240</x>
+     <y>70</y>
+     <width>181</width>
+     <height>20</height>
+    </rect>
+   </property>
+  </widget>
+  <widget class="QPushButton" name="syncDIDPushButton">
+   <property name="geometry">
+    <rect>
+     <x>530</x>
+     <y>20</y>
+     <width>81</width>
+     <height>23</height>
+    </rect>
+   </property>
+   <property name="text">
+    <string>刷新did列表</string>
    </property>
   </widget>
  </widget>

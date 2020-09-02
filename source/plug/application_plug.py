@@ -5,6 +5,7 @@ from PyQt5.QtGui import *
 from PyQt5.QtWidgets import *
 import logging
 
+
 class ApplicationPlug(QWidget):
 
     def __init__(self, name):
