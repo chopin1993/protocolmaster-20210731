@@ -1,8 +1,5 @@
 # encoding:utf-8
-
-
 from tools.checker import checksum
-
 
 class DataFragment(object):
 

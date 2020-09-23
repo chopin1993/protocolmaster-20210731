@@ -8,11 +8,12 @@ from tools.converter import bytearray2str,str2bytearray
 from protocol import Protocol
 import datetime
 from copy import deepcopy
+from protocol.data_fragment import DataFragment
 
 class SessionSuit(QObject):
-    data_ready = pyqtSignal(Protocol)
-    data_snd = pyqtSignal(Protocol)
-    data_clean = pyqtSignal(Protocol)
+    data_ready = pyqtSignal(DataFragment)
+    data_snd = pyqtSignal(DataFragment)
+    data_clean = pyqtSignal(DataFragment)
     @staticmethod
     def create_binary_suit(media, protocol):
         encoder = BinaryEncoder()

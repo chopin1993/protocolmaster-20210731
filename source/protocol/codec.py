@@ -132,6 +132,11 @@ class BinaryDecoder(Decoder):
         data = self.decode_bytes(1)
         return data
 
+    def decode_left_bytes(self):
+        data = self.data
+        self.data = bytes()
+        return data
+
     def decode_cstr(self):
         for i in range(len(self.data)):
             if self.data[i] == 0:
