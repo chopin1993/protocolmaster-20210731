@@ -22,6 +22,10 @@ class OIPPlug(ApplicationPlug, Ui_Form):
         self.setPushButton.clicked.connect(self.setDID)
         self.syncDIDPushButton.clicked.connect(self.sync_json_dids)
         self.refresh_didcomboBox()
+        self.didcomboBox.currentTextChanged.connect(self.sync_did_widgets)
+
+    def sync_did_widgets(self, txt):
+        print("comboxchange ",txt)
 
     def refresh_didcomboBox(self):
         self.didcomboBox.clear()

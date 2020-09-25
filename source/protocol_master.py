@@ -23,7 +23,10 @@ class ESMainWindow(QMainWindow, Ui_MainWindow):
         self.medias_dict = media.get_media_instances()
         self.protocols_dict = protocol.get_all_protocol_instance()
         self.init_menu()
+        layout = QHBoxLayout()
         self.plugIndexContainer = QStackedWidget()
+        layout.addWidget(self.plugIndexContainer)
+        self.upper.setLayout(layout)
         self.plugs = plugs_get_all()
         self.session = session.SessionSuit.create_binary_suit(self.get_current_media(), self.get_current_protocol())
         self.session.data_snd.connect(self.log_snd_frame)
@@ -70,7 +73,6 @@ class ESMainWindow(QMainWindow, Ui_MainWindow):
         readable_text =  self.get_current_protocol().to_readable_str(txt)
         self.textBrowserFrameInfo.append(readable_text)
 
-
     def log_tablewidgit_menu(self,pos):
         menu = QMenu()
         clear = menu.addAction("清空")
@@ -82,16 +84,14 @@ class ESMainWindow(QMainWindow, Ui_MainWindow):
             return
 
     def install_plugs(self):
-        self.plugIndexContainer.setMinimumHeight(475)
         for plug in self.plugs:
-            widget = QTreeWidgetItem(self.treeWidget)
+            widget = QTreeWidgetItem(self.leftTreeWidget)
             widget.setText(0, plug.name)
             self.plugIndexContainer.addWidget(plug)
             plug.session = self.session
             protocols = plug.get_protocols()
             for pro in protocols:
                 assert pro in self.protocols_dict
-        self.splitter_v.insertWidget(0, self.plugIndexContainer)
 
     def init_menu(self):
         action = QAction(u"通信参数", self)
@@ -175,6 +175,11 @@ class ESMainWindow(QMainWindow, Ui_MainWindow):
 
     def get_current_plug(self):
         return self.plugs[self.setting.get_plug_idx()]
+
+    def resizeEvent(self, a0):
+        #print("upper size",self.upper.size())
+        #print("lower size",self.lower.size())
+        super(ESMainWindow, self).resizeEvent(a0)
 
 
 def protocol_master_run():
