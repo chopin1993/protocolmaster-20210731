@@ -193,7 +193,7 @@ class Ui_MainWindow(object):
         self.toolbar.addSeparator()
 
         self.retranslateUi(MainWindow)
-        self.tabWidget.setCurrentIndex(1)
+        self.tabWidget.setCurrentIndex(0)
         self.leftTreeWidget.clicked['QModelIndex'].connect(MainWindow.plug_index_clicked)
         QtCore.QMetaObject.connectSlotsByName(MainWindow)
 

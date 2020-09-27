@@ -29,9 +29,9 @@ def str2hexstr(string):
 
 
 def str2bytearray(string):
-    out = bytes()
-    for x in string:
-        out += ord(x)
+    out = bytes(string, encoding="utf-8")
+    # for x in string:
+    #     out += ord(x)
     return out
 
 

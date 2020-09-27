@@ -1,6 +1,6 @@
 import struct
 import numpy as np
-from tools.converter import bytearray2str
+from tools.converter import bytearray2str,str2bytearray
 class Encoder(object):
     def __init__(self):
         self.data = bytes([])
@@ -42,6 +42,8 @@ class BinaryEncoder(Encoder):
         return self.encode_bytes(str)
 
     def encode_bytes(self, bytes):
+        if isinstance(bytes, str):
+            bytes = str2bytearray(bytes)
         self.data += bytes
 
     def encode_u8(self, nb):

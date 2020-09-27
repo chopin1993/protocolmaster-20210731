@@ -5,6 +5,7 @@ from protocol.codec import BinaryEncoder,BinaryDecoder
 import json
 from json import JSONDecodeError
 from protocol.DataMetaType import *
+from copy import deepcopy
 
 class ErrorCode(Enum):
     NO_ERROR = 0
@@ -20,6 +21,7 @@ _all_did = dict()
 
 def did_register(media_class):
     global _all_did
+    assert media_class.__name__ not in _all_did
     _all_did[media_class.__name__] = media_class
     return media_class
 
@@ -62,13 +64,12 @@ class DIDRemote(object):
         self.units = []
         self.is_error = False
         self.data = bytes()
-
         for member in self.MEMBERS:
-            meta_data = DataMetaType.create(member)
-            if meta_data is not None:
-                self.declare_metadata(meta_data)
+            if isinstance(member, DataMetaType):
+                self.declare_metadata(member)
             else:
                 print("error not support meta type", member)
+                assert False
 
         if decoder is None:
             self.data = data
@@ -126,16 +127,13 @@ class DIDRemote(object):
 @did_register
 class DIDSoftversion(DIDRemote):
     DID=0x0003
-    def __init__(self,data=None, decoder=None):
-        super(DIDSoftversion, self).__init__(data,decoder=decoder)
-        self.declare_metadata(DataCString("softVersion"))
+    MEMBERS = [DataCString("softVersion")]
+
 
 @did_register
 class DIDDebug(DIDRemote):
     DID=0xff00
-    def __init__(self, data=None, decoder=None):
-        super(DIDDebug, self).__init__(data,decoder=decoder)
-        self.declare_metadata(DataU8("choice"))
+    MEMBERS = [DataU8("choice")]
 
 
 def create_remote_class(name, did, member):
@@ -157,9 +155,10 @@ def sync_json_dids():
                 cls = find_class_by_name(did['name'])
                 if cls is not None:
                     cls.DID = int(did["did"], base=16)
-                    cls.MEMBERS = did['member']
+                    cls.MEMBERS = [DataMetaType.create(mem) for mem in did['member']]
                 else:
-                    create_remote_class(did['name'], int(did["did"], base=16), did['member'])
+                    members =  [DataMetaType.create(mem) for mem in did['member']]
+                    create_remote_class(did['name'], int(did["did"], base=16), members)
         except JSONDecodeError as err:
             ret = -1
             err1 = str(err)
