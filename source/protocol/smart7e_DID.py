@@ -1,11 +1,9 @@
 #encoding:utf-8
 from enum import Enum
-from tools.converter import bytearray2str,str2hexstr
-from protocol.codec import BinaryEncoder,BinaryDecoder
 import json
 from json import JSONDecodeError
 from protocol.DataMetaType import *
-from copy import deepcopy
+
 
 class ErrorCode(Enum):
     NO_ERROR = 0
@@ -17,48 +15,81 @@ class ErrorCode(Enum):
     DEV_BUSY = 0x05
     NO_RETURN = 0x10
 
-_all_did = dict()
 
-def did_register(media_class):
-    global _all_did
-    assert media_class.__name__ not in _all_did
-    _all_did[media_class.__name__] = media_class
-    return media_class
-
-def find_class_by_name(name):
-    if name in _all_did.keys():
-        return _all_did[name]
-    else:
-        try:
-           did = int(name, base=16)
-           return find_class_by_did(did)
-        except ValueError as error:
-            return None
-        return None
-
-def find_class_by_did(did):
-    for value in _all_did.values():
-        if value.DID == did:
-            return value
-    return  create_remote_class(str(did), did, [])
+class SensorType(Enum):
+    PERSON_CAMERA = 0x10
+    PERSON_IR = 0x0d
+    ILLUMINACE = 0x0b
 
 
-def get_all_DID():
-    return _all_did
+def cmd_filter(name, cmd):
+    from .smart7e_protocol import CMD
+    ids = cmd
+    if cmd == CMD.READ.name:
+        ids = "r"
+    elif cmd == CMD.WRTIE.name:
+        ids = "w"
+    suffixs = name.split("_")
+    if len(suffixs) <= 1:
+        return False
+    return ids in suffixs[-1]
 
 class DIDRemote(object):
     DID=0xff00
-    SUPPORTS_DIDS = []
     MEMBERS = []
+    _all_did = None
 
     @classmethod
-    def is_support_did(cls, did):
-        if did in cls.SUPPORTS_DIDS:
-            return True
-        elif did == cls.DID:
-            return True
+    def get_did_dict(cls, refresh=False):
+        if refresh:
+            cls._all_did = None
+        if DIDRemote._all_did is None:
+            cls._all_did = dict()
+            sub_classes = cls.__subclasses__()
+            for sub_cls in sub_classes:
+                cls._all_did[sub_cls.__name__] = sub_cls
+        return cls._all_did
+
+    @classmethod
+    def find_class_by_name(cls, name, refresh=False):
+        all_did = cls.get_did_dict(refresh)
+        if name in all_did.keys():
+            return all_did[name]
         else:
-            return False
+            try:
+                did = int(name, base=16)
+                return cls.find_class_by_did(did)
+            except ValueError as error:
+                return None
+            return None
+
+    @classmethod
+    def find_class_by_did(cls, did):
+        all_did = cls.get_did_dict()
+        for value in all_did.values():
+            if value.DID == did:
+                return value
+        return create_remote_class(str(did), did, [])
+
+    @classmethod
+    def create_widgets(cls, cmd):
+        ask_widgets = [meta.create_widgets(cmd) for meta in cls.MEMBERS if cmd_filter(meta.name, cmd)]
+        reply_widgets = [meta.create_widgets(cmd) for meta in cls.MEMBERS if cmd_filter(meta.name, "d")]
+        return ask_widgets, reply_widgets
+
+    @classmethod
+    def encode_widgets(cls, widgets, cmd):
+        encoder = BinaryEncoder()
+        metas = [meta for meta in cls.MEMBERS if cmd_filter(meta.name, cmd.name)]
+        for meta, widget in zip(metas, widgets):
+            meta.encode_widget_value(widget, encoder)
+        return encoder.get_data()
+
+    @classmethod
+    def sync_reply_value(cls, widgets, decoder):
+        metas = [meta for meta in cls.MEMBERS if cmd_filter(meta.name, "d")]
+        for meta, widget in zip(metas, widgets):
+            meta.set_widget_value(widget, decoder)
 
     def __init__(self, data=None, decoder=None):
         self.units = []
@@ -111,7 +142,7 @@ class DIDRemote(object):
                 for unit in self.units:
                     if decoder.left_bytes() > 0:
                         unit.decode(decoder)
-                        txt += str(unit)
+                        txt +=" " + str(unit)
             elif len(self.data) > 0:
                 txt += " " + str2hexstr(self.data)
             else:
@@ -124,23 +155,26 @@ class DIDRemote(object):
                                                         name)
         return txt
 
-@did_register
+
 class DIDSoftversion(DIDRemote):
     DID=0x0003
-    MEMBERS = [DataCString("softVersion")]
+    MEMBERS = [DataCString("softVersion_d")]
 
 
-@did_register
 class DIDDebug(DIDRemote):
     DID=0xff00
-    MEMBERS = [DataU8("choice")]
+    MEMBERS = [DataU8("choice_d")]
+
+
+class DIDReportStep(DIDRemote):
+    DID = 0xd103
+    MEMBERS = [DataU8Enum("SensorType_wrd", cls=SensorType), ConextBaseStep("stepValue")]
 
 
 def create_remote_class(name, did, member):
     cls = type(name, (DIDRemote,), {})
     cls.DID = did
     cls.MEMBERS = member
-    did_register(cls)
     return cls
 
 
@@ -152,12 +186,12 @@ def sync_json_dids():
         try:
             dids = json.load(handle)
             for did in dids['DIDS']:
-                cls = find_class_by_name(did['name'])
+                cls = DIDRemote.find_class_by_name(did['name'], refresh=True)
                 if cls is not None:
                     cls.DID = int(did["did"], base=16)
                     cls.MEMBERS = [DataMetaType.create(mem) for mem in did['member']]
                 else:
-                    members =  [DataMetaType.create(mem) for mem in did['member']]
+                    members = [DataMetaType.create(mem) for mem in did['member']]
                     create_remote_class(did['name'], int(did["did"], base=16), members)
         except JSONDecodeError as err:
             ret = -1
@@ -167,7 +201,9 @@ def sync_json_dids():
             ret = -1
             err1 = str(err)
         print(dids)
+    DIDRemote.get_did_dict(refresh=True)
     return ret, err1
+
 
 sync_json_dids()
 

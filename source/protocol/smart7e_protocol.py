@@ -2,12 +2,12 @@
 from enum import Enum
 from .protocol import Protocol, protocol_register
 from .protocol import find_head
-from .codec import BinaryEncoder,BinaryDecoder
-from tools.converter import hexstr2bytes, str2hexstr
 from .data_fragment import *
 import time
-from .smart7e_DID import *
-import struct
+from .smart7e_DID import DIDRemote
+from .codec import BinaryEncoder, BinaryDecoder
+from tools.converter import str2hexstr,hexstr2bytes
+
 from .data_fragment import DataFragment
 
 SMART_7e_HEAD = bytes([0x7e])
@@ -47,7 +47,7 @@ class RemoteFBD(DataFragment):
 
     @staticmethod
     def create(cmd, did_name, data):
-        did_class = find_class_by_name(did_name)
+        did_class = DIDRemote.find_class_by_name(did_name)
         if did_class is None:
             return None
         did = did_class(data)
@@ -62,7 +62,7 @@ class RemoteFBD(DataFragment):
             self.cmd = CMD(value=decoder.decode_u8())
             while decoder.left_bytes() >= 3:
                 did = decoder.decode_u16()
-                didunit = decoder.decoder_for_object(find_class_by_did(did))
+                didunit = decoder.decoder_for_object(DIDRemote.find_class_by_did(did))
                 self.didunits.append(didunit)
 
     def encode(self, encoder):

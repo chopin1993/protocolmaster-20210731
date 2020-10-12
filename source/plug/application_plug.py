@@ -25,7 +25,10 @@ class ApplicationPlug(QWidget):
     def media_error_happen(self):
         pass
 
-    def show_error_msg(self, title, msg):
+    def show_error_msg(self, title, msg, e=None):
+        if e:
+            print(e.__traceback__.tb_frame.f_globals["__file__"])  # 发生异常所在的文件
+            print(e.__traceback__.tb_lineno)
         QMessageBox.information(self, title, msg)
 
 

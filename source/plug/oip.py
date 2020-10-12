@@ -1,70 +1,95 @@
 # encoding:utf-8
+from PyQt5.QtWidgets import QHBoxLayout
 
 from .application_plug import plug_register,ApplicationPlug
 from .oip_ui import Ui_Form
 from PyQt5.QtGui import QImage,QPixmap
 from PyQt5 import QtCore
+from protocol.codec import BinaryDecoder,BinaryEncoder
 from protocol.smart7e_protocol import *
 from ESSetting import ESSetting
 from tools.converter import hexstr2bytes
-from protocol.smart7e_DID import find_class_by_name
+from protocol.smart7e_DID import DIDRemote
 import sip
+from protocol.smart7e_DID import sync_json_dids
 
 @plug_register
 class OIPPlug(ApplicationPlug, Ui_Form):
     TAID_KEY= "TAID_KEY"
     def __init__(self):
         super(OIPPlug, self).__init__("智能视觉传感器")
-        self.current_txt = None
+        self.current_did_tmp = None
+        self.current_cmd_tmp = None
         self.setupUi(self)
         self.setMyAddress.clicked.connect(self.set_my_address)
         self.setting = ESSetting.instance()
         self.devieAddrLineEdit.setText(self.setting.get_plug_data(self, self.TAID_KEY, default_value="2"))
         self.devieAddrLineEdit.textChanged.connect(self.save_plug_config)
-        self.readPushButton.clicked.connect(self.readDID)
-        self.setPushButton.clicked.connect(self.setDID)
+        self.sendPushButton.clicked.connect(self.send_message)
         self.syncDIDPushButton.clicked.connect(self.sync_json_dids)
-        self.refresh_didcomboBox()
-        self.didcomboBox.currentTextChanged.connect(self.sync_did_widgets)
-        self.did_widgets = []
-        self.groupdata_layout = QHBoxLayout()
-        self.sync_did_widgets(self.didcomboBox.currentText())
-        self.dataGroup.setLayout(self.groupdata_layout)
+        self.sync_did_2_comboBox()
+        self.didcomboBox.currentTextChanged.connect(self.did_changed)
+        self.operation_widgets = []
+        self.reply_widgets = []
+        self.reply_layout = QHBoxLayout()
+        self.dataGroup.setLayout(self.reply_layout)
+        for cmd in CMD:
+            self.cmdComboBox.addItem(cmd.name)
+        self.cmdComboBox.currentTextChanged.connect(self.cmd_changed)
+        self.cmd_changed(self.cmdComboBox.currentText())
 
-    def widgets_value_change(self):
-        selecteddid = self.get_selected_did()
-        if selecteddid is not None:
-            encoder = BinaryEncoder()
-            for widget, meta in zip(self.did_widgets, selecteddid.MEMBERS):
-                meta.encode_widget_value(widget, encoder)
+    def send_message(self):
+        cls = DIDRemote.find_class_by_name(self.didcomboBox.currentText())
+        if cls is None:
+            self.show_error_msg("", "不能正确的识别did")
+            return
+        data = cls.encode_widgets(self.operation_widgets, CMD[self.cmdComboBox.currentText()])
+        fbd = RemoteFBD.create(CMD[self.cmdComboBox.currentText()], self.didcomboBox.currentText(), data)
+        if fbd is None:
+            self.show_error_msg("", "did is not valid")
+        else:
+            self.send_remote_data(fbd)
 
-    def sync_did_widgets(self, txt):
-        if self.current_txt == txt:
+    def sync_widget(self, did, cmd):
+        if self.current_did_tmp == did and self.current_cmd_tmp==cmd:
             return
         else:
-            self.current_txt = txt
-        for widget in self.did_widgets:
-            self.groupdata_layout.removeWidget(widget)
+            self.current_did_tmp = did
+            self.current_cmd_tmp = cmd
+        for widget in self.operation_widgets:
+            self.operationGroup.layout().removeWidget(widget)
             sip.delete(widget)
-        self.did_widgets = []
-        cls = find_class_by_name(txt)
+        for widget in self.reply_widgets:
+            self.reply_layout.removeWidget(widget)
+            sip.delete(widget)
+        self.operation_widgets = []
+        self.reply_widgets = []
+        cls = DIDRemote.find_class_by_name(did)
         if cls is None:
             return
-        self.did_widgets = [meta.create_widgets(self.widgets_value_change) for meta in cls.MEMBERS]
-        for widget in self.did_widgets:
-            self.groupdata_layout.addWidget(widget)
+        self.operation_widgets, self.reply_widgets = cls.create_widgets(cmd)
+        for widget in self.operation_widgets:
+            self.operationGroup.layout().insertWidget(2, widget)
+        for widget in self.reply_widgets:
+            self.reply_layout.addWidget(widget)
 
-    def sync_widgets_value(self, data):
-        selecteddid = self.get_selected_did()
-        if selecteddid is not None:
+    def cmd_changed(self, txt):
+        self.sync_widget(self.didcomboBox.currentText(), self.cmdComboBox.currentText())
+        print("cmd change ",txt)
+
+    def did_changed(self, txt):
+        self.sync_widget(self.didcomboBox.currentText(), self.cmdComboBox.currentText())
+
+    def sync_reply_widgets_value(self, data):
+        cls = self.get_selected_did()
+        if cls is not None:
             decoder = BinaryDecoder(data)
-            for widget,meta in zip(self.did_widgets, selecteddid.MEMBERS):
-                meta.set_widget_value(widget, decoder)
+            cls.sync_reply_value(self.reply_widgets, decoder)
 
-    def refresh_didcomboBox(self):
+    def sync_did_2_comboBox(self):
         self.didcomboBox.clear()
-        dids = get_all_DID()
-        for key in dids:
+        dids = DIDRemote.get_did_dict()
+        for key,_ in dids.items():
             self.didcomboBox.addItem(key)
 
     def sync_json_dids(self):
@@ -72,9 +97,10 @@ class OIPPlug(ApplicationPlug, Ui_Form):
         if ret < 0:
             self.show_error_msg("Smart7E文件格式有误", msg)
         else:
-            self.refresh_didcomboBox()
+            self.sync_did_2_comboBox()
 
     def readDID(self):
+        self.widgets_value_change(True)
         data = hexstr2bytes(self.rawLineEdit.text())
         fbd = RemoteFBD.create(CMD.READ, self.didcomboBox.currentText(), data)
         if fbd is None:
@@ -115,13 +141,12 @@ class OIPPlug(ApplicationPlug, Ui_Form):
                         self.show_error_msg("错误",str(didunit))
                         continue
                     if didunit.DID == self.get_selected_did().DID:
-                        self.sync_widgets_value(didunit.data)
-                        self.rawLineEdit.setText(str2hexstr(didunit.data))
+                        self.sync_reply_widgets_value(didunit.data)
         except Exception as e:
             self.show_error_msg("解析错误",str(e))
 
     def get_selected_did(self):
-        cls = find_class_by_name(self.didcomboBox.currentText())
+        cls = DIDRemote.find_class_by_name(self.didcomboBox.currentText())
         return cls
 
     def send_local_data(self, fbd):
