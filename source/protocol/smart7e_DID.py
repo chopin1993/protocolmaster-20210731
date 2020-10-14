@@ -3,7 +3,7 @@ from enum import Enum
 import json
 from json import JSONDecodeError
 from protocol.DataMetaType import *
-
+from copy import deepcopy
 
 class ErrorCode(Enum):
     NO_ERROR = 0
@@ -73,8 +73,8 @@ class DIDRemote(object):
 
     @classmethod
     def create_widgets(cls, cmd):
-        ask_widgets = [meta.create_widgets(cmd) for meta in cls.MEMBERS if cmd_filter(meta.name, cmd)]
-        reply_widgets = [meta.create_widgets(cmd) for meta in cls.MEMBERS if cmd_filter(meta.name, "d")]
+        ask_widgets = [meta.create_widgets() for meta in cls.MEMBERS if cmd_filter(meta.name, cmd)]
+        reply_widgets = [meta.create_widgets() for meta in cls.MEMBERS if cmd_filter(meta.name, "d")]
         return ask_widgets, reply_widgets
 
     @classmethod
@@ -82,14 +82,16 @@ class DIDRemote(object):
         encoder = BinaryEncoder()
         metas = [meta for meta in cls.MEMBERS if cmd_filter(meta.name, cmd.name)]
         for meta, widget in zip(metas, widgets):
-            meta.encode_widget_value(widget, encoder)
+            data = deepcopy(encoder.data)
+            meta.encode_widget_value(widget, encoder, ctx=data)
         return encoder.get_data()
 
     @classmethod
     def sync_reply_value(cls, widgets, decoder):
         metas = [meta for meta in cls.MEMBERS if cmd_filter(meta.name, "d")]
+        data = deepcopy(decoder.data)
         for meta, widget in zip(metas, widgets):
-            meta.set_widget_value(widget, decoder)
+            meta.set_widget_value(widget, decoder, ctx=data)
 
     def __init__(self, data=None, decoder=None):
         self.units = []
@@ -140,8 +142,9 @@ class DIDRemote(object):
                 txt +=" " + unit.value_str()
             elif len(self.units) > 0:
                 for unit in self.units:
+                    data = deepcopy(decoder.data)
                     if decoder.left_bytes() > 0:
-                        unit.decode(decoder)
+                        unit.decode(decoder, ctx=data)
                         txt +=" " + str(unit)
             elif len(self.data) > 0:
                 txt += " " + str2hexstr(self.data)
@@ -166,9 +169,28 @@ class DIDDebug(DIDRemote):
     MEMBERS = [DataU8("choice_d")]
 
 
+def encode_func(value, encoder, **kwargs):
+    ctx = kwargs['ctx']
+    if ctx[0] == SensorType.ILLUMINACE.value:
+        encoder.encode_u16(value)
+    else:
+        encoder.encode_u8(value)
+
+
+def decode_func(decoder,  **kwargs):
+    ctx = kwargs['ctx']
+    if ctx[0] == SensorType.ILLUMINACE.value:
+       value = decoder.decode_u16()
+    else:
+       value = decoder.decode_u8()
+    return str(value)
+
+
 class DIDReportStep(DIDRemote):
+    from protocol.DataMetaType import to_number
     DID = 0xd103
-    MEMBERS = [DataU8Enum("SensorType_wrd", cls=SensorType), ConextBaseStep("stepValue")]
+    MEMBERS = [DataU8Enum("SensorType_wrd", cls=SensorType),
+               ContextBaseValue("stepValue_wd", encoder_func=encode_func, decoder_func=decode_func)]
 
 
 def create_remote_class(name, did, member):
@@ -206,4 +228,3 @@ def sync_json_dids():
 
 
 sync_json_dids()
-

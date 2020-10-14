@@ -9,6 +9,7 @@
     { "did": "0x0001",
       "name": "DIDDeviceType",
       "member":[
+         {"value_d": "DataByteArray"}
       ]
     },
     { "did": "0xd702",

@@ -50,7 +50,8 @@ class OIPPlug(ApplicationPlug, Ui_Form):
         else:
             self.send_remote_data(fbd)
 
-    def sync_widget(self, did, cmd):
+    def sync_widget(self):
+        did, cmd = self.didcomboBox.currentText(), self.cmdComboBox.currentText()
         if self.current_did_tmp == did and self.current_cmd_tmp==cmd:
             return
         else:
@@ -68,17 +69,17 @@ class OIPPlug(ApplicationPlug, Ui_Form):
         if cls is None:
             return
         self.operation_widgets, self.reply_widgets = cls.create_widgets(cmd)
-        for widget in self.operation_widgets:
-            self.operationGroup.layout().insertWidget(2, widget)
+        for i,widget in enumerate(self.operation_widgets):
+            self.operationGroup.layout().insertWidget(3+i, widget)
         for widget in self.reply_widgets:
             self.reply_layout.addWidget(widget)
 
     def cmd_changed(self, txt):
-        self.sync_widget(self.didcomboBox.currentText(), self.cmdComboBox.currentText())
+        self.sync_widget()
         print("cmd change ",txt)
 
     def did_changed(self, txt):
-        self.sync_widget(self.didcomboBox.currentText(), self.cmdComboBox.currentText())
+        self.sync_widget()
 
     def sync_reply_widgets_value(self, data):
         cls = self.get_selected_did()
@@ -143,7 +144,7 @@ class OIPPlug(ApplicationPlug, Ui_Form):
                     if didunit.DID == self.get_selected_did().DID:
                         self.sync_reply_widgets_value(didunit.data)
         except Exception as e:
-            self.show_error_msg("解析错误",str(e))
+            self.show_error_msg("解析错误",str(e),e)
 
     def get_selected_did(self):
         cls = DIDRemote.find_class_by_name(self.didcomboBox.currentText())

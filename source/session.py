@@ -78,7 +78,7 @@ class SessionSuit(QObject):
         self.bytes_timer.stop()
 
     def write(self, data, **kwargs):
-        self.data_snd.emit(deepcopy(data))
+        self.data_snd.emit(data)
         self.encoder.reset()
         self.encoder.encode_object(data)
         data = self.encoder.get_data()
