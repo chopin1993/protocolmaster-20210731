@@ -1,5 +1,5 @@
 # encoding:utf-8
-from .media import media_register, Media,MediaText
+from .media import Media,MediaText
 import socket
 from queue import Queue
 from threading import Thread
@@ -13,7 +13,7 @@ def receive_from_socket(tcp_media):
         tcp_media.rcv_queue.put(data)
 
 
-@media_register
+
 class TCPMedia(Media):
 
     def __init__(self):

@@ -1,5 +1,5 @@
 # encoding:utf-8
-from .protocol import Protocol, protocol_register
+from .protocol import Protocol
 from .protocol import find_head
 from .codec import BinaryEncoder
 from tools.converter import hexstr2bytes, str2hexstr
@@ -24,7 +24,6 @@ class ThremalImageData(object):
 
 
 # 'u8:STC=0x4e u8:CMD u8:SEQ u16:DID u32:Length  byte[Length]:Data  u8:CS u8:END=0x5f'
-@protocol_register
 class ImageProtocol(Protocol):
 
     def __init__(self):

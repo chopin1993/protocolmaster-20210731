@@ -100,23 +100,6 @@ class OIPPlug(ApplicationPlug, Ui_Form):
         else:
             self.sync_did_2_comboBox()
 
-    def readDID(self):
-        self.widgets_value_change(True)
-        data = hexstr2bytes(self.rawLineEdit.text())
-        fbd = RemoteFBD.create(CMD.READ, self.didcomboBox.currentText(), data)
-        if fbd is None:
-            self.show_error_msg("", "did is not valid")
-        else:
-            self.send_remote_data(fbd)
-
-    def setDID(self):
-        data = hexstr2bytes(self.rawLineEdit.text())
-        fbd = RemoteFBD.create(CMD.WRTIE, self.didcomboBox.currentText(), data)
-        if fbd is None:
-            self.show_error_msg("", "did is not valid")
-        else:
-            self.send_remote_data(fbd)
-
     def save_plug_config(self):
         self.setting.save_plug_data(self, self.TAID_KEY, self.devieAddrLineEdit.text())
 

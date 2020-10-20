@@ -1,5 +1,6 @@
 # encoding:utf-8
 from tools.converter  import str2hexstr
+from register import Register
 
 def find_head(buff, start, head):
     """
@@ -17,7 +18,7 @@ def find_head(buff, start, head):
     return pos + start
 
 
-class Protocol(object):
+class Protocol(Register):
 
     @staticmethod
     def create_frame(self, *args, **kwargs):
@@ -85,29 +86,3 @@ class Protocol(object):
     def to_readable_str(self, hex_text):
         return "no text tranlation"
 
-_all_protocols = dict()
-
-
-def protocol_register(media_class):
-    global _all_protocols
-    _all_protocols[media_class.__name__] = media_class
-    return media_class
-
-
-
-instances = dict()
-
-
-def get_all_protocol_instance():
-    if len(instances) == 0:
-      for key, protocol in _all_protocols.items():
-         pro = protocol()
-         instances[key] = pro
-    return instances
-
-def protocol_create(name):
-    from user_exceptions import FoundClassException
-    protocol_class = _all_protocols(name)
-    if protocol_class is None:
-        raise FoundClassException(name)
-    return protocol_class()

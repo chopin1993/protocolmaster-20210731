@@ -1,0 +1,116 @@
+#encoding:utf-8
+import docx
+import logging
+import time
+__version__ = "V1.0"
+class DocxEngine(object):
+    def __init__(self, name=None):
+        self.name = None
+        self.document = docx.Document("resource/template_test.docx")
+        styles = [s for s in self.document.styles]
+        if name is not None:
+            self.write_doc_head(name)
+
+    def write_doc_head(self, name):
+        self.name = name
+        self.document.add_heading("\n\n\n", 0)
+        self.document.add_heading("自动测试", 0)
+        self.document.add_heading(name, 0)
+        self.document.add_heading("\n\n\n\n\n", 0)
+        time_str = "测试时间:{0}".format(time.strftime('%Y-%m-%d %H:%M:%S',time.localtime(time.time())))
+        self.document.add_paragraph(" "*35 + time_str)
+        engine_version = "测试引擎版本:{0}".format(__version__)
+        self.document.add_paragraph(" " * 35 + engine_version)
+        self.document.add_page_break()
+
+    def write_summary(self, total, passed, fails, all_infos):
+        fails_cnt = len(fails)
+        self.document.add_heading("概要", 1)
+        txt = "总测试用例:{0} 通过:{1} 失败:{2}".format(total, passed, fails_cnt)
+        self.document.add_paragraph(txt, style="important")
+        self.document.add_heading("失败用例汇总", 2)
+        table = self.document.add_table(rows=1, cols=2,style="Table Grid")
+        hdr_cells = table.rows[0].cells
+        hdr_cells[0].text = '用例名称'
+        hdr_cells[1].text = '失败原因'
+        for case in fails:
+            case.write_fail_table(table)
+        self.document.add_heading("所有测试用例汇总", 2)
+        table = self.document.add_table(rows=1, cols=3,style="Table Grid")
+        hdr_cells = table.rows[0].cells
+        hdr_cells[0].text = '测试组'
+        hdr_cells[1].text = '测试用例'
+        hdr_cells[2].text = '状态'
+        for info in all_infos:
+            info.write_summary_table(table)
+        self.document.add_page_break()
+
+    def write_detail(self):
+        self.document.add_heading("测试详情", 1)
+
+    def start_group(self, name):
+        self.document.add_heading(name, 2)
+
+    def end_group(self, name):
+        pass
+
+    def start_test(self, name):
+        self.document.add_heading(name, 3)
+
+    def end_test(self, name):
+        pass
+
+    def add_tag_msg(self, name, tag, msg):
+        style = "code"
+        if tag == "snd":
+            body = "{0}::{1} -> {2}".format(name, tag, msg)
+            style = "code"
+        elif tag in ["rcv","rev"]:
+            body = "{0}::{1} <- {2}".format(name, tag, msg)
+            style = "code"
+        elif tag == "annotation":
+            body = msg
+            style = "annotation"
+        elif tag in ["expect success","sucess","success"]:
+            body = msg
+            style = "success"
+        elif tag in ["expect fail","fail"]:
+            body = msg
+            style = "fail"
+        else:
+            logging.info("no handle tag %s",tag)
+            body = "{0}::{1} {2}".format(name, tag, msg)
+            style = "annotation"
+        self.document.add_paragraph(body, style=style)
+
+    def add_fail(self, body):
+        self.document.add_paragraph(body, style='fail')
+
+    def save_doc(self):
+       name = self.name + ".docx"
+       logging.info("generate doc %s",name)
+       self.document.save(name)
+
+
+if __name__ == "__main__":
+    doc = DocxEngine("ESSN-OIP-19900101(V1.2)")
+    doc.start_group("基本报文管理")
+    doc.start_test("版本测试")
+    doc.add_normal("send 73 33 33 33 33 33 33 33 33 33 3 ")
+    doc.add_normal("analyse 73 33 33 33 33 33 33 33 33 33 3 ")
+    doc.add_normal("rcv 73 33 33 33 33 33 33 33 33 33 3 ")
+    doc.add_normal("analyse 73 33 33 33 33 33 33 33 33 33 3 ")
+    doc.end_test("版本测试")
+    doc.end_group("基本报文管理")
+
+    doc.start_group("上报测试")
+    doc.start_test("上电上报")
+    doc.add_normal("send 73 33 33 33 33 33 33 33 33 33 3 ")
+    doc.add_normal("analyse 73 33 33 33 33 33 33 33 33 33 3 ")
+    doc.add_normal("rcv 73 33 33 33 33 33 33 33 33 33 3 ")
+    doc.add_normal("analyse 73 33 33 33 33 33 33 33 33 33 3 ")
+    doc.end_test("上电上报")
+    doc.end_group("上报测试")
+    doc.save_doc()
+
+

@@ -1,25 +1,26 @@
 # encoding:utf-8
 from enum import Enum
-from .protocol import Protocol, protocol_register
+from .protocol import Protocol
 from .protocol import find_head
 from .data_fragment import *
 import time
 from .smart7e_DID import DIDRemote
 from .codec import BinaryEncoder, BinaryDecoder
 from tools.converter import str2hexstr,hexstr2bytes
-
+from esenum import EsEnum
 from .data_fragment import DataFragment
 
 SMART_7e_HEAD = bytes([0x7e])
 
-class DIDLocal(Enum):
+
+class DIDLocal(EsEnum):
     ASK_APPLICATION_ADDR = 0x05
     SET_APPLICATION_ADDR = 0x01
     READ_APPLICATION_ADDR = 0x03
     ACTION_OK = 0x00
     ACTION_FAIL = 0xff
 
-class CMD(Enum):
+class CMD(EsEnum):
     READ = 0x02
     WRTIE = 0x7
 
@@ -51,6 +52,7 @@ class RemoteFBD(DataFragment):
         if did_class is None:
             return None
         did = did_class(data)
+        cmd = CMD.to_enum(cmd)
         return RemoteFBD(cmd, did)
 
     def __init__(self, cmd=None, didunit=None, decoder=None):
@@ -71,16 +73,15 @@ class RemoteFBD(DataFragment):
             encoder.encode_object(did)
 
     def __str__(self):
-       text =" "*2 + "fbd:{0}\n".format(self.cmd.name)
+       text = self.cmd.name
        for did in self.didunits:
-           text += " "*4 + str(did)
-           text += "\n"
+           text += " " + str(did)
        return text
 
 
 class Smart7EData(DataFragment):
     SEQ = 0
-    def __init__(self,src=None, dst=None, fbd=None, decoder=None):
+    def __init__(self, src=None, dst=None, fbd=None, decoder=None):
         self.data = None
         if decoder is not None:
             self.data = decoder.data
@@ -100,6 +101,7 @@ class Smart7EData(DataFragment):
             self.fbd = fbd
             self.seq = self.SEQ
             self.SEQ +=1
+            self.len = self.get_fbd_len()
 
     def is_local(self):
         return self.said ==0 and self.taid == 0
@@ -117,6 +119,14 @@ class Smart7EData(DataFragment):
         encoder.encode_str(fbd_data)
         encoder.encode_u8(checksum(encoder.get_data()))
 
+    def get_fbd_len(self):
+        encoder = BinaryEncoder()
+        if isinstance(self.fbd, bytes) or isinstance(self.fbd, bytearray):
+            fbd_data = self.fbd
+        else:
+            fbd_data = encoder.object2data(self.fbd)
+        return len(fbd_data)
+
     def __str__(self):
         if self.data is not None:
             data = self.data
@@ -125,12 +135,14 @@ class Smart7EData(DataFragment):
         return str2hexstr(data)
 
     def to_readable_str(self):
-        text = "said:{0},taid:{1},seq:{2}, len:{3}\n".format(self.said, self.taid, self.seq, self.len)
-        text += str(self.fbd)
+        text = "said:{0} taid:{1} seq:{2} len:{3} fbd:{4}".format(self.said,
+                                                                  self.taid,
+                                                                  self.seq,
+                                                                  self.len,
+                                                                  str(self.fbd))
         return text
 
 
-@protocol_register
 class Smart7eProtocol(Protocol):
 
     def __init__(self):

@@ -4,6 +4,7 @@ import json
 from json import JSONDecodeError
 from protocol.DataMetaType import *
 from copy import deepcopy
+from tools.converter import *
 
 class ErrorCode(Enum):
     NO_ERROR = 0
@@ -92,6 +93,15 @@ class DIDRemote(object):
         data = deepcopy(decoder.data)
         for meta, widget in zip(metas, widgets):
             meta.set_widget_value(widget, decoder, ctx=data)
+
+    @classmethod
+    def encode_string(cls, str1):
+        metas = [meta for meta in cls.MEMBERS if cmd_filter(meta.name, "d")]
+        if len(metas) == 1 and  isinstance(metas[0], DataCString):
+            str1 = str2bytearray(str1)
+        else:
+            str1 = hexstr2bytes(str1)
+        return str1
 
     def __init__(self, data=None, decoder=None):
         self.units = []

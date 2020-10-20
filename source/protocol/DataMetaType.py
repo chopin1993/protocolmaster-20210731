@@ -23,7 +23,7 @@ class DataMetaType(Register):
           利用字符串从json中创建DataMetaType
         '''
         for key,value in member.items():
-            cls = DataMetaType.find_class_by_name(value)
+            cls = DataMetaType.find_sub_class_by_name(value)
             return cls(name=key)
         return None
 

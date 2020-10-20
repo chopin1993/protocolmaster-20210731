@@ -1,5 +1,5 @@
 # encoding:utf-8
-from .media import media_register, Media, MediaOptions
+from .media import Media, MediaOptions
 import os
 from collections import OrderedDict
 import serial
@@ -8,7 +8,6 @@ from tools.converter import str2bytearray
 from serial import SerialException
 
 
-@media_register
 class SerialMedia(Media):
 
     @staticmethod
@@ -92,6 +91,7 @@ class SerialMedia(Media):
         is_open = self.open()
         self.read_timer.start(10)
         return is_open
+
 
 
 if __name__ == "__main__":

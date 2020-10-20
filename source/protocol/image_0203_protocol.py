@@ -1,16 +1,17 @@
 # encoding:utf-8
-from .protocol import Protocol, protocol_register
+from .protocol import Protocol
 from .protocol import find_head
 from .codec import BinaryEncoder
 from tools.converter import hexstr2bytes, str2hexstr
 from .data_fragment import *
 import time
 import struct
+from protocol.data_fragment import DataFragment
 IMG0203_HEAD = bytes([0x54,0x17,0xfe,0x02])
 IMG0203_TAIL = 0x03
 
 
-class ThremalImageData(Protocol):
+class ThremalImageData(DataFragment):
     def __init__(self, width, height, data):
         self.width = width
         self.height = height
@@ -24,7 +25,7 @@ class ThremalImageData(Protocol):
 
 
 # 'u8:STC=0x02 u8:CMD  u32:Length  byte[Length]:Data  u8:CS u8:END=0x03'
-@protocol_register
+
 class ImageProtocol0203(Protocol):
 
     def __init__(self):

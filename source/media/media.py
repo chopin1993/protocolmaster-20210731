@@ -3,6 +3,7 @@ import os
 from PyQt5.QtCore import QObject, pyqtSignal
 import pickle
 from copy import deepcopy
+from register import Register
 
 class MediaOptions(object):
     def __init__(self, key, options, label_text=None, show_options=None,select_id=0):
@@ -27,6 +28,13 @@ class MediaOptions(object):
         if self.options == saved.options:
             self.select_id = saved.select_id
 
+    def set_value(self, value):
+        for i,option in enumerate(self.get_options()):
+            if option == value:
+                self.select_id = i
+                return
+        raise ValueError("only support {0},but get {1}".format(self.get_options(), value))
+
 
 class MediaText(object):
     def __init__(self, key, value, label_text=None, func=None):
@@ -46,10 +54,14 @@ class MediaText(object):
     def load_save_value(self, saved):
         self.value = saved.value
 
+    def set_value(self, option):
+        self.value = option
 
-class Media(QObject, object):
+
+class Media(QObject, Register):
     data_ready = pyqtSignal(bytes)
     error = pyqtSignal(str)
+    media_instance = {}
 
     def __init__(self, media_options):
         super(Media, self).__init__()
@@ -63,6 +75,7 @@ class Media(QObject, object):
                 media_options = pickle.load(handle)
             for current, last in zip(self.media_options, media_options):
                 current.load_save_value(last)
+
     def is_open(self):
         pass
 
@@ -97,36 +110,15 @@ class Media(QObject, object):
             selected_options[key] = value
         return selected_options
 
-
-_all_medias = dict()
-
-
-def media_register(media_class):
-    _all_medias[media_class.__name__] = media_class
-    return media_class
-
-
-def get_all_medias():
-    return _all_medias
-
-
-media_instance = {}
-
-
-def get_media_instances():
-    if len(media_instance) > 0:
-        return media_instance
-    else:
-        for cls in _all_medias.values():
-            ins = media_create(cls.__name__)
-            ins.name = cls.__name__
-            media_instance[ins.name] = ins
-    return media_instance
-
-
-def media_create(name):
-    from user_exceptions import FoundClassException
-    media_class = _all_medias[name]
-    if media_class is None:
-        raise FoundClassException(name)
-    return media_class()
+    def config(self, **kwargs):
+        options = self.get_media_options()
+        def sync_options(key,value):
+            nonlocal options
+            for option in options:
+                if key == option.key:
+                    option.set_value(value)
+                    return
+            raise TypeError("{0} is not supported".format(key))
+        for key,value in kwargs.items():
+            sync_options(key, value)
+        self.set_media_options(options)
