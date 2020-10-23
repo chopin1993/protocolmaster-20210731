@@ -9,6 +9,7 @@ from protocol.smart7e_protocol import *
 from PyQt5.QtCore import *
 import sys
 from validator import *
+from tools.converter import *
 
 logging.basicConfig(format='%(asctime)s - %(levelname)s: %(message)s', level=logging.DEBUG)
 
@@ -109,18 +110,21 @@ class TestEngine(object):
 
     def __init__(self):
         self.doc_engine = DocxEngine()
-        self.roles = []
+        self.com_medias = []
         self.current_group = None
         self.current_test = None
         self.test_infos = []
         self.test_name = None
 
+    def get_default_role(self):
+        return self.com_medias[0]
+
     def config_test_program_name(self, name):
         self.test_name = name
 
-    def create_role(self, name):
+    def create_com_device(self, name):
         role = Role(name)
-        self.roles.append(role)
+        self.com_medias.append(role)
         return role
 
     def group_begin(self, name):
@@ -166,15 +170,18 @@ class TestEngine(object):
         self.doc_engine.save_doc()
 
 
-def config_test_program_name(name):
-    TestEngine.instance().config_test_program_name(name)
+class MockDevice(object):
+    def __init__(self, name, src , dst):
+        self.name = name
+        self.src = src
+        self.dst = dst
+
+
 
 
 class Role(object):
     def __init__(self, name, media="SerialMedia", protocol="Smart7eProtocol"):
         self.name = name
-        self.src = None
-        self.dst = None
         self.media = Media.create_sub_class(media)
         self.protocol = Protocol.create_sub_class(protocol)
         self.session = SessionSuit.create_binary_suit(self.media, self.protocol)
@@ -184,6 +191,8 @@ class Role(object):
         self.timer.timeout.connect(self.timeout_handle)
         self.waiting = False
         self.validate = None
+        self.devices = []
+        self.default_device = None
 
     def timeout_handle(self):
         self.waiting = False
@@ -193,17 +202,22 @@ class Role(object):
     def config_com(self, **kwargs):
         self.media.config(**kwargs)
 
-    def config_address(self, src, dst):
-        self.src = src
-        self.dst = dst
-        fbd = LocalFBD(DIDLocal.SET_APPLICATION_ADDR, self.src)
+    def create_device(self, name, src, dst):
+        device = MockDevice(name, src, dst)
+        self.devices.append(device)
+        if self.default_device is None:
+            self.default_device = device
+        fbd = LocalFBD(DIDLocal.SET_APPLICATION_ADDR, src)
         data = Smart7EData(0, 0, fbd)
         self.session.write(data)
         self.expect_local_message([DIDLocal.ACTION_OK, DIDLocal.ACTION_FAIL], timeout=2)
 
     def send_1_did(self, cmd, did, value=bytes(), **kwargs):
+        did_cls = DIDRemote.find_class_by_name(did)
+        if isinstance(value, str):
+            value = hexstr2bytes(value)
         fbd = RemoteFBD.create(cmd, did, value)
-        data = Smart7EData(self.src, self.dst, fbd)
+        data = Smart7EData(self.default_device.src, self.default_device.dst, fbd)
         self.session.write(data)
 
     def expect_1_did(self, cmd, did, value=None, timeout=2, **kwargs):
@@ -211,9 +225,13 @@ class Role(object):
         self.timer.start(timeout*1000)
         cmd = CMD.to_enum(cmd)
         did_cls = DIDRemote.find_class_by_name(did)
+
         if isinstance(value, str):
-            value = did_cls.encode_string(value)
-        self.validate = SmartOneDidValidator(src=self.dst, dst= self.src, cmd=cmd, did=did_cls.DID, value=value)
+            if  did_cls.is_value_string(value):
+                value = str2bytearray(value)
+            else:
+                value = BytesCompare(value)
+        self.validate = SmartOneDidValidator(src=self.default_device.dst, dst= self.default_device.src, cmd=cmd, did=did_cls.DID, value=value)
         while self.waiting:
             QCoreApplication.instance().processEvents()
 
@@ -248,13 +266,17 @@ class Role(object):
         logging.info("txt %s", data.to_readable_str())
 
 
-def create_role(name):
-    return TestEngine.instance().create_role(name)
+def create_device(name):
+    return TestEngine.instance().create_com_device(name)
 
 
 def add_fail_test(tag, msg):
     TestEngine.add_fail_test(msg)
 
+
+def add_doc_info(msg):
+    TestEngine.instance().add_normal_operation("", "doc", msg)
+    logging.info(msg)
 
 def group_begin(name):
     return TestEngine.instance().group_begin(name)
@@ -275,8 +297,44 @@ def test_end(name):
 def generate_test_report():
     TestEngine.instance().generate_test_report()
 
+def wait(seconds, msg=""):
+    import time
+    while seconds >=0 :
+        seconds -= 1
+        time.sleep(1)
+        logging.info("we will wait  %d s, %s", seconds, msg)
 
-def run_all_tests(funcs):
+
+def create_test_case(fun, *args, **kwargs):
+    from functools import partial
+    test_case = partial(fun, *args, **kwargs)
+    test_case.__doc__ = fun.__doc__
+    return test_case
+
+
+def config(infos):
+    TestEngine.instance().group_begin("测试配置信息")
+    TestEngine.instance().config_test_program_name(infos["测试程序名称"])
+    com = TestEngine.instance().create_com_device(infos["串口"])
+    com.config_com(port=infos["串口"], baudrate=infos["波特率"], parity=infos["校验位"])
+    com.create_device("monitor", infos["抄控器默认源地址"], infos["抄控器默认目的地址"])
+
+
+
+def add_test_case(name, *args, **kwargs):
+    pass
+
+
+def send_1_did(cmd, did, value=bytes(), **kwargs):
+    role = TestEngine.instance().get_default_role()
+    role.send_1_did(cmd, did, value=value, **kwargs)
+
+
+def expect_1_did(cmd, did, value=bytes(), **kwargs):
+    role = TestEngine.instance().get_default_role()
+    role.expect_1_did(cmd, did, value=value, **kwargs)
+
+def run_all_tests(funcs, gui=False):
     inits =[]
     tests = []
     for key,value in funcs.items():
@@ -285,20 +343,24 @@ def run_all_tests(funcs):
         if key.endswith("test"):
             tests.append(value)
     def run_func(funcs):
-        for value in funcs:
+        for test in funcs:
             try:
-                names = value.__doc__.split(".")
+                doc_string = test.__doc__
+                if doc_string is None:
+                    doc_string = "默认"
+                names = doc_string.split(".")
                 if len(names) >= 2:
                     if len(names[0]) >= 2:
                         TestEngine.instance().group_begin(names[0])
                     TestEngine.instance().test_begin(names[1])
                 else:
                     TestEngine.instance().group_begin(names[0])
-                value()
+                test()
             except Exception as e:
                 msg = e.__traceback__.tb_frame.f_globals["__file__"]
                 msg += "  linenumber:{0}".format(e.__traceback__.tb_lineno)
-                TestEngine.instance().add_fail_test("程序运行异常", msg)
+                TestEngine.instance().add_fail_test("engine","exception", "测试运行异常_" +msg)
+                logging.exception(e)
     run_func(inits)
     run_func(tests)
     generate_test_report()

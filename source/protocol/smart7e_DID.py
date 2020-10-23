@@ -28,7 +28,7 @@ def cmd_filter(name, cmd):
     ids = cmd
     if cmd == CMD.READ.name:
         ids = "r"
-    elif cmd == CMD.WRTIE.name:
+    elif cmd == CMD.WRITE.name:
         ids = "w"
     suffixs = name.split("_")
     if len(suffixs) <= 1:
@@ -95,13 +95,12 @@ class DIDRemote(object):
             meta.set_widget_value(widget, decoder, ctx=data)
 
     @classmethod
-    def encode_string(cls, str1):
+    def is_value_string(cls, str1):
         metas = [meta for meta in cls.MEMBERS if cmd_filter(meta.name, "d")]
         if len(metas) == 1 and  isinstance(metas[0], DataCString):
-            str1 = str2bytearray(str1)
+            return True
         else:
-            str1 = hexstr2bytes(str1)
-        return str1
+            return False
 
     def __init__(self, data=None, decoder=None):
         self.units = []
@@ -146,13 +145,13 @@ class DIDRemote(object):
         if not self.is_error:
             txt = "{0}-0x{1:0>4x}".format(self.__class__.__name__,self.DID)
             decoder = BinaryDecoder(self.data)
+            data = deepcopy(decoder.data)
             if len(self.units) == 1 and decoder.left_bytes():
                 unit = self.units[0]
                 unit.decode(decoder)
                 txt +=" " + unit.value_str()
             elif len(self.units) > 0:
                 for unit in self.units:
-                    data = deepcopy(decoder.data)
                     if decoder.left_bytes() > 0:
                         unit.decode(decoder, ctx=data)
                         txt +=" " + str(unit)
@@ -182,26 +181,29 @@ class DIDDebug(DIDRemote):
 def encode_func(value, encoder, **kwargs):
     ctx = kwargs['ctx']
     if ctx[0] == SensorType.ILLUMINACE.value:
-        encoder.encode_u16(value)
+        encoder.encode_bcd_u16(value)
     else:
-        encoder.encode_u8(value)
+        encoder.encode_bcd_u8(value)
 
 
 def decode_func(decoder,  **kwargs):
     ctx = kwargs['ctx']
     if ctx[0] == SensorType.ILLUMINACE.value:
-       value = decoder.decode_u16()
+       value = decoder.decode_bcd_u16()
     else:
-       value = decoder.decode_u8()
-    return str(value)
+       value = decoder.decode_bcd_u8()
+    return value
 
 
 class DIDReportStep(DIDRemote):
-    from protocol.DataMetaType import to_number
     DID = 0xd103
     MEMBERS = [DataU8Enum("SensorType_wrd", cls=SensorType),
                ContextBaseValue("stepValue_wd", encoder_func=encode_func, decoder_func=decode_func)]
 
+class DIDSensorValue(DIDRemote):
+    DID = 0xb701
+    MEMBERS = [DataU8Enum("SensorType_rd", cls=SensorType),
+               ContextBaseValue("Value_d", encoder_func=encode_func, decoder_func=decode_func)]
 
 def create_remote_class(name, did, member):
     cls = type(name, (DIDRemote,), {})

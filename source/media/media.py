@@ -121,4 +121,4 @@ class Media(QObject, Register):
             raise TypeError("{0} is not supported".format(key))
         for key,value in kwargs.items():
             sync_options(key, value)
-        self.set_media_options(options)
+        return self.set_media_options(options)

@@ -31,18 +31,29 @@ class DocxEngine(object):
         self.document.add_heading("失败用例汇总", 2)
         table = self.document.add_table(rows=1, cols=2,style="Table Grid")
         hdr_cells = table.rows[0].cells
-        hdr_cells[0].text = '用例名称'
+        hdr_cells[0].text = '失败用例'
         hdr_cells[1].text = '失败原因'
-        for case in fails:
-            case.write_fail_table(table)
+        if fails:
+            for case in fails:
+                case.write_fail_table(table)
+        else:
+            row_cells = table.add_row().cells
+            row_cells[0].text = "无"
+            row_cells[1].text = "无"
         self.document.add_heading("所有测试用例汇总", 2)
         table = self.document.add_table(rows=1, cols=3,style="Table Grid")
         hdr_cells = table.rows[0].cells
         hdr_cells[0].text = '测试组'
         hdr_cells[1].text = '测试用例'
         hdr_cells[2].text = '状态'
-        for info in all_infos:
-            info.write_summary_table(table)
+        if all_infos:
+            for info in all_infos:
+                info.write_summary_table(table)
+        else:
+            row_cells = table.add_row().cells
+            row_cells[0].text = "无"
+            row_cells[1].text = "无"
+            row_cells[2].text = "无"
         self.document.add_page_break()
 
     def write_detail(self):
@@ -74,9 +85,12 @@ class DocxEngine(object):
         elif tag in ["expect success","sucess","success"]:
             body = msg
             style = "success"
-        elif tag in ["expect fail","fail"]:
+        elif tag in ["expect fail","fail","exception"]:
             body = msg
             style = "fail"
+        elif tag in ['doc']:
+            body = msg
+            style = "doc"
         else:
             logging.info("no handle tag %s",tag)
             body = "{0}::{1} {2}".format(name, tag, msg)

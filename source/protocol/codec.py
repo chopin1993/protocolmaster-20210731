@@ -46,6 +46,14 @@ class BinaryEncoder(Encoder):
             bytes = str2bytearray(bytes)
         self.data += bytes
 
+    def encode_bcd_u16(self, nb):
+        nb = int(str(nb), base=16)
+        self.encode_u16(nb)
+
+    def encode_bcd_u8(self, nb):
+        nb = int(str(nb),base=16)
+        self.encode_u8(nb)
+
     def encode_u8(self, nb):
         self.data += struct.pack("@B", nb)
 
@@ -121,6 +129,16 @@ class BinaryDecoder(Decoder):
     def decode_u16(self):
         data = self.decode_bytes(2)
         return struct.unpack("H",data)[0]
+
+    def decode_bcd_u16(self):
+        data = self.decode_u16()
+        data = int("%x" %(data))
+        return data
+
+    def decode_bcd_u8(self):
+        data = self.decode_u8()
+        data = int("%x" % (data))
+        return data
 
     def decode_u8(self):
         data = self.decode_byte()

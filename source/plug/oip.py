@@ -43,8 +43,12 @@ class OIPPlug(ApplicationPlug, Ui_Form):
         if cls is None:
             self.show_error_msg("", "不能正确的识别did")
             return
-        data = cls.encode_widgets(self.operation_widgets, CMD[self.cmdComboBox.currentText()])
-        fbd = RemoteFBD.create(CMD[self.cmdComboBox.currentText()], self.didcomboBox.currentText(), data)
+        try:
+            data = cls.encode_widgets(self.operation_widgets, CMD[self.cmdComboBox.currentText()])
+            fbd = RemoteFBD.create(CMD[self.cmdComboBox.currentText()], self.didcomboBox.currentText(), data)
+        except Exception as e :
+            self.show_error_msg("数据格式不合法", str(e), e)
+            return
         if fbd is None:
             self.show_error_msg("", "did is not valid")
         else:

@@ -38,7 +38,9 @@ class SerialMedia(Media):
             selected_options["timeout"] = 0
         try:
             self.serial = serial.Serial(**selected_options)
-        except serial.SerialException:
+        except serial.SerialException as e:
+            import logging
+            logging.exception(e)
             self.refresh_media_options()
             return False
         return self.serial.is_open

@@ -22,7 +22,7 @@ class DIDLocal(EsEnum):
 
 class CMD(EsEnum):
     READ = 0x02
-    WRTIE = 0x7
+    WRITE = 0x7
 
 
 class LocalFBD(DataFragment):
@@ -99,8 +99,10 @@ class Smart7EData(DataFragment):
             self.said = src
             self.taid = dst
             self.fbd = fbd
-            self.seq = self.SEQ
-            self.SEQ +=1
+            self.seq = Smart7EData.SEQ
+            Smart7EData.SEQ +=1
+            if Smart7EData.SEQ > 127:
+                Smart7EData.SEQ = 0
             self.len = self.get_fbd_len()
 
     def is_local(self):

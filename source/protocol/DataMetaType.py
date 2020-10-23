@@ -78,7 +78,7 @@ class DataMetaType(Register):
     def encode_widget_value(self, widget, encoder, **kwargs):
         value_widget = widget.value_widget
         self.value = self.to_value(value_widget)
-        self.encode(encoder)
+        self.encode(encoder, **kwargs)
 
     def set_widget_value(self, widget, decoder, **kwargs):
         self.decode(decoder, **kwargs)
@@ -157,6 +157,7 @@ class DataU16(DataMetaType):
 
     def to_value(self, widget):
         return to_number(widget.text())
+
 
 
 class DataU8Enum(DataMetaType):
