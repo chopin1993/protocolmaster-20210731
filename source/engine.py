@@ -13,6 +13,8 @@ from tools.converter import *
 from test_case import TestCaseInfo
 from case_editor import CaseEditor
 from PyQt5.QtWidgets import *
+from copy import deepcopy
+import json
 logging.basicConfig(format='%(asctime)s - %(levelname)s: %(message)s', level=logging.DEBUG)
 
 
@@ -31,8 +33,9 @@ class TestEngine(object):
         self.com_medias = []
         self.current_group = None
         self.current_test = None
-        self.test_infos = []
+        self.all_infos = []
         self.test_name = None
+        self.output_dir = ""
 
     def get_default_role(self):
         return self.com_medias[0]
@@ -48,7 +51,7 @@ class TestEngine(object):
     def group_begin(self, name, func, brief=None):
         logging.info("start test group %s", name)
         self.current_group = TestCaseInfo(name,func,brief)
-        self.test_infos.append(self.current_group)
+        self.all_infos.append(self.current_group)
         self.current_test = self.current_group
 
     def group_end(self, name):
@@ -68,25 +71,35 @@ class TestEngine(object):
     def add_normal_operation(self,role, tag, msg):
         self.current_test.add_normal_operation(role, tag, msg)
 
-    def summary(self):
+    def summary(self, infos):
         total, passed = 0,0
         fails = []
-        for case in self.test_infos:
+        for case in infos:
             case_total, case_passed ,fail = case.summary()
             passed += case_passed
             total += case_total
             fails.extend(fail)
         return total, passed, fails
 
-    def generate_test_report(self):
+    def generate_test_report(self, valids):
         self.doc_engine.write_doc_head(self.test_name)
-        total, passed, failes = self.summary()
-        self.doc_engine.write_summary(total, passed, failes, self.test_infos)
-        self.doc_engine.write_detail(self.test_infos)
+        total, passed, failes = self.summary(valids)
+        self.doc_engine.write_summary(total, passed, failes, valids)
+        self.doc_engine.write_detail(valids)
         self.doc_engine.save_doc()
 
+    def get_valid_infos(self):
+        valids = []
+        for group in self.all_infos:
+            if group.is_enable():
+                group = deepcopy(group)
+                valids.append(group)
+        return valids
+
     def run_all_test(self):
-        def run_test(func):
+        def run_test(case):
+            func = case.func
+            case.clear()
             try:
                 func()
             except Exception as e:
@@ -94,25 +107,51 @@ class TestEngine(object):
                 msg += "  linenumber:{0}".format(e.__traceback__.tb_lineno)
                 self.add_fail_test("engine", "exception", "测试运行异常_" + msg)
                 logging.exception(e)
-        for group in self.test_infos:
+
+        valids = self.get_valid_infos()
+        for group in valids:
             self.current_group = group
             self.current_test = group
             if self.current_group.func is None:
-                for case in group.subcases:
+                for case in group.get_valid_sub_cases():
                     self.current_test = case
-                    run_test(case.func)
+                    run_test(case)
             else:
-                run_test(self.current_group.func)
-        total, passed, fails = TestEngine.instance().summary()
+                run_test(self.current_group)
+        total, passed, fails = TestEngine.instance().summary(valids)
         if total == passed:
             logging.info("测试通过：totoal:%d  passed:%d", total, passed)
         else:
             logging.info("测试失败：totoal:%d  passed:%d", total, passed)
             for case in fails:
                 logging.info("失败测试名称：%s 失败原因：%s", case.name, case.get_fail_msg())
+        self.generate_test_report(valids)
 
+    def is_exist_config(self):
+        file_path = os.path.join(self.output_dir, "config.json")
+        return os.path.exists(file_path)
 
+    def save_config(self):
+        outputs = {}
+        for group in self.all_infos:
+            outputs[group.name] = group.config_dict()
+        file_path = os.path.join(self.output_dir, "config.json")
+        with open(file_path, "w",encoding="utf-8") as handle:
+            json.dump(outputs,handle,ensure_ascii=False,indent=4)
 
+    def load_config(self):
+        file_path = os.path.join(self.output_dir, "config.json")
+        with open(file_path, "r", encoding="utf-8") as handle:
+            config = json.load(handle)
+            for group in self.all_infos:
+                if group.name in config:
+                    group.load_config(config[group.name])
+
+    def set_output_dir(self, path):
+        self.output_dir = path
+
+def set_output_dir(path):
+    TestEngine.instance().set_output_dir(path)
 
 class MockDevice(object):
     def __init__(self, name, src , dst):
@@ -194,6 +233,7 @@ class Role(object):
                 TestEngine.instance().add_fail_test(self.name, "expect fail", msg)
             self.waiting = False
             self.validate = None
+            self.timer.stop()
 
     def log_snd_frame(self, data):
         TestEngine.instance().add_normal_operation(self.name, "snd", str(data))
@@ -313,6 +353,7 @@ def run_all_tests(funcs, gui=False):
             else:
                 TestEngine.instance().group_begin(names[0], test, brief)
 
+    TestEngine.instance().load_config()
     if gui:
        app = QApplication(sys.argv)
        ui = CaseEditor(TestEngine.instance())
@@ -321,8 +362,6 @@ def run_all_tests(funcs, gui=False):
     else:
         app = QCoreApplication(sys.argv)
         TestEngine.instance().run_all_test()
-        generate_test_report()
-
     exit(0)
 
 

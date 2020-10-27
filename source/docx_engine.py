@@ -12,6 +12,7 @@ class DocxEngine(object):
             self.write_doc_head(name)
 
     def write_doc_head(self, name):
+        self.document = docx.Document("resource/template_test.docx")
         self.name = name
         self.document.add_heading("\n\n\n", 0)
         self.document.add_heading("自动测试", 0)

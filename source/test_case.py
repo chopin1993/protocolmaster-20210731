@@ -7,7 +7,21 @@ class TestCaseInfo(object):
         self.errors = []
         self.subcases = []
         self.func = func
+        if brief is not None:
+            brief = brief.strip()
         self.brief = brief
+        self.enable = True
+
+    def clear(self):
+        self.errors = []
+        self.passed =True
+        self.infos = []
+
+    def is_enable(self):
+        return self.enable
+
+    def set_enable(self, enable):
+        self.enable = enable
 
     def add_fail_test(self,role, tag, msg):
         self.passed = False
@@ -29,8 +43,9 @@ class TestCaseInfo(object):
 
     def summary(self):
         if len(self.subcases) > 0:
-            total = len(self.subcases)
-            fails = [sub for sub in self.subcases if not sub.is_passed()]
+            valid_cases = self.get_valid_sub_cases()
+            total = len(valid_cases)
+            fails = [sub for sub in valid_cases if not sub.is_passed()]
             passed_cnt = total - len(fails)
         else:
             total = 1
@@ -41,7 +56,7 @@ class TestCaseInfo(object):
     def write_doc(self, doc_engine, group=False):
         if len(self.subcases) > 0:
             doc_engine.start_group(self.name, self.brief)
-            for case in self.subcases:
+            for case in self.get_valid_sub_cases():
                 case.write_doc(doc_engine)
             doc_engine.end_group(self.name)
         else:
@@ -74,7 +89,7 @@ class TestCaseInfo(object):
             row_cells[2].text = "通过"
         else:
             row_cells[2].text = "失败"
-        for case in self.subcases:
+        for case in self.get_valid_sub_cases():
             row_cells = table.add_row().cells
             row_cells[0].text = self.name
             row_cells[1].text = case.name
@@ -82,3 +97,24 @@ class TestCaseInfo(object):
                 row_cells[2].text = "通过"
             else:
                 row_cells[2].text = "失败"
+
+    def get_valid_sub_cases(self):
+        valids = [case for case in self.subcases if case.is_enable()]
+        return valids
+
+    def config_dict(self):
+        ret = {}
+        ret["enable"] = self.enable
+        subcase = {}
+        for sub in self.subcases:
+            subcase[sub.name] = sub.config_dict()
+        ret["subcase"] = subcase
+        return ret
+
+    def load_config(self, config):
+        self.enable = config['enable']
+        subconfig = config['subcase']
+        for sub in self.subcases:
+            if sub.name in subconfig:
+                sub.load_config(subconfig[sub.name])
+

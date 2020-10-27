@@ -87,4 +87,6 @@ def para_save_test1():
     engine.expect_1_did("WRITE", "DIDReportStep", "10 01")
 
 if __name__ == "__main__":
-    engine.run_all_tests(locals(), gui=False)
+    import os
+    engine.set_output_dir(os.path.dirname(__file__) )
+    engine.run_all_tests(locals(), gui=True)

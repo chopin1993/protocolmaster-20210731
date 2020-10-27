@@ -213,9 +213,11 @@ def create_remote_class(name, did, member):
 
 
 def sync_json_dids():
+    import os
     ret = 0
     err1 = ""
-    with open("smart7E.json", "r") as handle:
+    config_file = "smart7E.json"
+    with open(config_file, "r") as handle:
         dids = None
         try:
             dids = json.load(handle)
