@@ -10,93 +10,11 @@ from PyQt5.QtCore import *
 import sys
 from validator import *
 from tools.converter import *
-
+from test_case import TestCaseInfo
+from case_editor import CaseEditor
+from PyQt5.QtWidgets import *
 logging.basicConfig(format='%(asctime)s - %(levelname)s: %(message)s', level=logging.DEBUG)
 
-app = QCoreApplication(sys.argv)
-
-
-class TestCaseInfo(object):
-    def __init__(self, name):
-        self.name = name
-        self.bodys = []
-        self.passed = True
-        self.errors = []
-        self.subcases = []
-
-    def add_fail_test(self,role, tag, msg):
-        self.passed = False
-        self.errors.append((role, tag, msg))
-
-    def add_normal_operation(self, role, tag, msg):
-        self.bodys.append((role, tag, msg))
-
-    def add_sub_case(self, name):
-        case = TestCaseInfo(name)
-        self.subcases.append(case)
-        return case
-
-    def is_passed(self):
-        passed = True
-        for sub in self.subcases:
-            passed = passed and sub.is_passed()
-        return passed and self.passed
-
-    def summary(self):
-        if len(self.subcases) > 0:
-            total = len(self.subcases)
-            fails = [sub for sub in self.subcases if not sub.is_passed()]
-            passed_cnt = total - len(fails)
-        else:
-            total = 1
-            passed_cnt = 1 if self.passed else 0
-            fails =[] if self.passed else [self]
-        return total, passed_cnt,fails
-
-    def write_doc(self, doc_engine, group=False):
-        if len(self.subcases) > 0:
-            doc_engine.start_group(self.name)
-            for case in self.subcases:
-                case.write_doc(doc_engine)
-            doc_engine.end_group(self.name)
-        else:
-            if group:
-                doc_engine.start_group(self.name)
-            else:
-                doc_engine.start_test(self.name)
-            for body in self.bodys:
-                doc_engine.add_tag_msg(*body)
-            for error in self.errors:
-                doc_engine.add_tag_msg(*error)
-            if group:
-                doc_engine.end_group(self.name)
-            else:
-                doc_engine.end_test(self.name)
-
-    def get_fail_msg(self):
-        return self.errors[0][1]
-
-    def write_fail_table(self, table):
-        row_cells = table.add_row().cells
-        row_cells[0].text = self.name
-        row_cells[1].text = self.get_fail_msg()
-
-    def write_summary_table(self, table):
-        row_cells = table.add_row().cells
-        row_cells[0].text = self.name
-        row_cells[1].text = ""
-        if self.is_passed():
-            row_cells[2].text = "通过"
-        else:
-            row_cells[2].text = "失败"
-        for case in self.subcases:
-            row_cells = table.add_row().cells
-            row_cells[0].text = self.name
-            row_cells[1].text = case.name
-            if case.is_passed():
-                row_cells[2].text = "通过"
-            else:
-                row_cells[2].text = "失败"
 
 
 class TestEngine(object):
@@ -127,18 +45,18 @@ class TestEngine(object):
         self.com_medias.append(role)
         return role
 
-    def group_begin(self, name):
+    def group_begin(self, name, func, brief=None):
         logging.info("start test group %s", name)
-        self.current_group = TestCaseInfo(name)
+        self.current_group = TestCaseInfo(name,func,brief)
         self.test_infos.append(self.current_group)
         self.current_test = self.current_group
 
     def group_end(self, name):
         self.current_group = None
 
-    def test_begin(self, name):
+    def test_begin(self, name, func, brief):
         logging.info("start test case %s", name)
-        self.current_test = self.current_group.add_sub_case(name)
+        self.current_test = self.current_group.add_sub_case(name,func, brief)
 
     def test_end(self, name):
         self.current_test = None
@@ -164,10 +82,36 @@ class TestEngine(object):
         self.doc_engine.write_doc_head(self.test_name)
         total, passed, failes = self.summary()
         self.doc_engine.write_summary(total, passed, failes, self.test_infos)
-        self.doc_engine.write_detail()
-        for case in self.test_infos:
-            case.write_doc(self.doc_engine, True)
+        self.doc_engine.write_detail(self.test_infos)
         self.doc_engine.save_doc()
+
+    def run_all_test(self):
+        def run_test(func):
+            try:
+                func()
+            except Exception as e:
+                msg = e.__traceback__.tb_frame.f_globals["__file__"]
+                msg += "  linenumber:{0}".format(e.__traceback__.tb_lineno)
+                self.add_fail_test("engine", "exception", "测试运行异常_" + msg)
+                logging.exception(e)
+        for group in self.test_infos:
+            self.current_group = group
+            self.current_test = group
+            if self.current_group.func is None:
+                for case in group.subcases:
+                    self.current_test = case
+                    run_test(case.func)
+            else:
+                run_test(self.current_group.func)
+        total, passed, fails = TestEngine.instance().summary()
+        if total == passed:
+            logging.info("测试通过：totoal:%d  passed:%d", total, passed)
+        else:
+            logging.info("测试失败：totoal:%d  passed:%d", total, passed)
+            for case in fails:
+                logging.info("失败测试名称：%s 失败原因：%s", case.name, case.get_fail_msg())
+
+
 
 
 class MockDevice(object):
@@ -175,8 +119,6 @@ class MockDevice(object):
         self.name = name
         self.src = src
         self.dst = dst
-
-
 
 
 class Role(object):
@@ -313,17 +255,17 @@ def create_test_case(fun, *args, **kwargs):
 
 
 def config(infos):
-    TestEngine.instance().group_begin("测试配置信息")
     TestEngine.instance().config_test_program_name(infos["测试程序名称"])
     com = TestEngine.instance().create_com_device(infos["串口"])
-    com.config_com(port=infos["串口"], baudrate=infos["波特率"], parity=infos["校验位"])
-    com.create_device("monitor", infos["抄控器默认源地址"], infos["抄控器默认目的地址"])
-
+    def init_func():
+        nonlocal com
+        com.config_com(port=infos["串口"], baudrate=infos["波特率"], parity=infos["校验位"])
+        com.create_device("monitor", infos["抄控器默认源地址"], infos["抄控器默认目的地址"])
+    TestEngine.instance().group_begin("测试配置信息", init_func,None)
 
 
 def add_test_case(name, *args, **kwargs):
     pass
-
 
 def send_1_did(cmd, did, value=bytes(), **kwargs):
     role = TestEngine.instance().get_default_role()
@@ -334,42 +276,53 @@ def expect_1_did(cmd, did, value=bytes(), **kwargs):
     role = TestEngine.instance().get_default_role()
     role.expect_1_did(cmd, did, value=value, **kwargs)
 
+
 def run_all_tests(funcs, gui=False):
-    inits =[]
+    inits = []
     tests = []
-    for key,value in funcs.items():
+    for key, value in funcs.items():
         if key.endswith("init"):
             inits.append(value)
         if key.endswith("test"):
             tests.append(value)
-    def run_func(funcs):
-        for test in funcs:
-            try:
-                doc_string = test.__doc__
-                if doc_string is None:
-                    doc_string = "默认"
-                names = doc_string.split(".")
-                if len(names) >= 2:
-                    if len(names[0]) >= 2:
-                        TestEngine.instance().group_begin(names[0])
-                    TestEngine.instance().test_begin(names[1])
-                else:
-                    TestEngine.instance().group_begin(names[0])
-                test()
-            except Exception as e:
-                msg = e.__traceback__.tb_frame.f_globals["__file__"]
-                msg += "  linenumber:{0}".format(e.__traceback__.tb_lineno)
-                TestEngine.instance().add_fail_test("engine","exception", "测试运行异常_" +msg)
-                logging.exception(e)
-    run_func(inits)
-    run_func(tests)
-    generate_test_report()
-    total, passed, fails = TestEngine.instance().summary()
-    if total == passed:
-        logging.info("测试通过：totoal:%d  passed:%d", total, passed)
+
+    for init in inits:
+        init()
+
+    for test in tests:
+            doc_string = test.__doc__
+            if doc_string is None:
+                doc_string = "默认"
+            doc_string = doc_string.strip()
+            names = doc_string.split("\n")
+            brief = None
+            if len(names) >= 2:
+                brief = "".join(names[1:])
+            doc_string = names[0]
+            names = doc_string.split(".")
+            if len(names) >= 2:
+                import re
+                search = re.search(r"group:(.*)case:(.*)", brief, re.S)
+                group_brief = None
+                if search is not None:
+                    group_brief = search.group(1)
+                    brief = search.group(2)
+                if len(names[0]) >= 2:
+                    TestEngine.instance().group_begin(names[0], None, group_brief)
+                TestEngine.instance().test_begin(names[1], test, brief)
+            else:
+                TestEngine.instance().group_begin(names[0], test, brief)
+
+    if gui:
+       app = QApplication(sys.argv)
+       ui = CaseEditor(TestEngine.instance())
+       ui.show()
+       sys.exit(app.exec_())
     else:
-        logging.info("测试失败：totoal:%d  passed:%d", total, passed)
-        for case in fails:
-            logging.info("失败测试名称：%s 失败原因：%s",case.name, case.get_fail_msg())
+        app = QCoreApplication(sys.argv)
+        TestEngine.instance().run_all_test()
+        generate_test_report()
+
     exit(0)
+
 

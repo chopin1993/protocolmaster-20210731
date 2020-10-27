@@ -186,7 +186,7 @@ def protocol_master_run():
     app = QApplication(sys.argv)
     ex = ESMainWindow()
     ex.show_media_config()
-    ex.move((QApplication.desktop().width() - ex.width())/2, (QApplication.desktop().height() - ex.height()) / 2);
+    ex.move((QApplication.desktop().width() - ex.width())/2, (QApplication.desktop().height() - ex.height())/2);
     ex.show()
     sys.exit(app.exec_())
 

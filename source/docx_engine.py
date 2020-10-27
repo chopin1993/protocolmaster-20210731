@@ -56,17 +56,23 @@ class DocxEngine(object):
             row_cells[2].text = "无"
         self.document.add_page_break()
 
-    def write_detail(self):
+    def write_detail(self, infos):
         self.document.add_heading("测试详情", 1)
+        for case in infos:
+            case.write_doc(self, True)
 
-    def start_group(self, name):
+    def start_group(self, name, brief=None):
         self.document.add_heading(name, 2)
+        if brief is not None:
+            self.add_tag_msg("", "doc", brief)
 
     def end_group(self, name):
         pass
 
-    def start_test(self, name):
+    def start_test(self, name, brief=None):
         self.document.add_heading(name, 3)
+        if brief is not None:
+            self.add_tag_msg("", "doc", brief)
 
     def end_test(self, name):
         pass
