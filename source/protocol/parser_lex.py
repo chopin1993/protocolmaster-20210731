@@ -20,13 +20,13 @@ t_RBRACKET = r'\]'
 def t_NUMBER(t):
     r'0[xX][0-9a-fA-F]+|\d+'
     try:
-        if t.value.startswith("0x") or t.value.startswith("0X"):
-            t.value = int(t.value,16)
+        if t._value.startswith("0x") or t._value.startswith("0X"):
+            t._value = int(t._value, 16)
         else:
-            t.value = int(t.value)
+            t._value = int(t._value)
     except ValueError:
-        print("Integer value too large %d", t.value)
-        t.value = 0
+        print("Integer value too large %d", t._value)
+        t._value = 0
     return t
 
 
@@ -35,11 +35,11 @@ t_ignore = " \t"
 
 def t_newline(t):
     r'\n+'
-    t.lexer.lineno += t.value.count("\n")
+    t.lexer.lineno += t._value.count("\n")
 
 
 def t_error(t):
-    print("Illegal character '%s'" % t.value[0])
+    print("Illegal character '%s'" % t._value[0])
     t.lexer.skip(1)
 
 
@@ -52,7 +52,7 @@ reserved = {
 
 def t_ID(t):
     r'[a-zA-Z_][a-zA-Z_0-9]*'
-    t.type = reserved.get(t.value, 'ID')  # Check for reserved words
+    t.type = reserved.get(t._value, 'ID')  # Check for reserved words
     return t
 
 # Build the lexer

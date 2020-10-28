@@ -72,7 +72,7 @@ class OIPPlug(ApplicationPlug, Ui_Form):
         cls = DIDRemote.find_class_by_name(did)
         if cls is None:
             return
-        self.operation_widgets, self.reply_widgets = cls.create_widgets(cmd)
+        self.operation_widgets, self.reply_widgets = cls.get_widgets(cmd)
         for i,widget in enumerate(self.operation_widgets):
             self.operationGroup.layout().insertWidget(3+i, widget)
         for widget in self.reply_widgets:

@@ -36,24 +36,49 @@ class DataMetaType(Register):
         4. 接收时，将数据解析为对人类友好的txt
         '''
         self.name = name
-        self.value = value
+        self._value = value
         if decoder is not None:
             self.decode(decoder)
+        self.widget = None
+
+    @property
+    def value(self):
+        return self._value
+
+    @value.setter
+    def value(self, value):
+        if isinstance(value, str):
+            self._value = self.str2value(value)
+        else:
+            self._value = value
+        if self.widget is not None:
+            self.widget.value_widget.setText(self.value_str())
 
     def encode(self, encoder, **kwargs):
-        encoder.encode_str(self.value)
+        encoder.encode_str(self._value)
 
     def decode(self, decoder, **kwargs):
-        self.value = decoder.decode_left_bytes()
+        self._value = decoder.decode_left_bytes()
 
-    def to_value(self, widget):
-        return hexstr2bytes(widget.text())
+    def str2value(self, str_value):
+        return hexstr2bytes(str_value)
+
+    def widget2value(self, widget):
+        if isinstance(widget, QLineEdit):
+            value = widget.text()
+        elif isinstance(widget, QComboBox):
+            value = widget.currentText()
+        else:
+            raise ValueError("not recgonize type")
+        return self.str2value(value)
 
     def value_str(self):
-        if isinstance(self.value, bytes) or isinstance(self.value, bytearray):
-            return str2hexstr(self.value)
+        if self._value is None:
+            return ""
+        if isinstance(self._value, bytes) or isinstance(self._value, bytearray):
+            return str2hexstr(self._value)
         else:
-            return str(self.value)
+            return str(self._value)
 
     def __str__(self):
         return "{0}:{1}".format(self._get_pure_name(), self.value_str())
@@ -62,22 +87,30 @@ class DataMetaType(Register):
         name = self.name
         return name.split("_")[0]
 
-    def create_widgets(self, *args, **kwargs):
-        widget = QtWidgets.QWidget()
-        layout = QHBoxLayout()
-        name_widget = QLabel(self._get_pure_name())
-        value_widget = QLineEdit()
-        layout.addWidget(name_widget)
-        layout.addWidget(value_widget)
-        widget.setLayout(layout)
-        widget.value_widget = value_widget
-        widget.setObjectName("dataMeta")
-        value_widget.setObjectName("valueMeta")
-        return widget
+    def get_widgets(self, *args, **kwargs):
+        if self.widget is None:
+            widget = QtWidgets.QWidget()
+            layout = QHBoxLayout()
+            name_widget = QLabel(self._get_pure_name())
+            value_widget = QLineEdit()
+            if self._value is not None:
+                value_widget.setText(self.value_str())
+            value_widget.textChanged.connect(self.text_change)
+            layout.addWidget(name_widget)
+            layout.addWidget(value_widget)
+            widget.setLayout(layout)
+            widget.value_widget = value_widget
+            widget.setObjectName("dataMeta")
+            value_widget.setObjectName("valueMeta")
+            self.widget = widget
+        return self.widget
+
+    def text_change(self, str1):
+        self._value = self.widget2value(self.widget.value_widget)
 
     def encode_widget_value(self, widget, encoder, **kwargs):
         value_widget = widget.value_widget
-        self.value = self.to_value(value_widget)
+        self._value = self.widget2value(value_widget)
         self.encode(encoder, **kwargs)
 
     def set_widget_value(self, widget, decoder, **kwargs):
@@ -100,7 +133,7 @@ class ContextBaseValue(DataMetaType):
     def decode(self, decoder, **kwargs):
         self.value = self.decoder_func(decoder, **kwargs)
 
-    def to_value(self, widget):
+    def widget2value(self, widget):
         if self.to_value_func is None:
             return to_number(widget.text())
         return self.to_value_func(widget.text())
@@ -122,8 +155,8 @@ class DataCString(DataMetaType):
     def decode(self, decoder, **kwargs):
         self.value = decoder.decode_cstr()
 
-    def to_value(self, widget):
-        return widget.text()
+    def str2value(self, strvalue):
+        return strvalue
 
 
 class DataByteArray(DataMetaType):
@@ -141,8 +174,9 @@ class DataU8(DataMetaType):
     def decode(self, decoder, **kwargs):
         self.value = decoder.decode_u8()
 
-    def to_value(self, widget):
-        return to_number(widget.text())
+    def str2value(self, str_value):
+        return to_number(str_value)
+
 
 
 class DataU16(DataMetaType):
@@ -155,8 +189,8 @@ class DataU16(DataMetaType):
     def decode(self, decoder, **kwargs):
         self.value = decoder.decode_u16()
 
-    def to_value(self, widget):
-        return to_number(widget.text())
+    def str2value(self, str_value):
+        return to_number(str_value)
 
 
 
@@ -165,7 +199,7 @@ class DataU8Enum(DataMetaType):
         super(DataU8Enum, self).__init__(name, value, decoder)
         self.enum_cls = cls
 
-    def create_widgets(self,  *args, **kwargs):
+    def get_widgets(self, *args, **kwargs):
         widget = QtWidgets.QWidget()
         layout = QHBoxLayout()
         name_widget = QLabel(self._get_pure_name())
@@ -188,13 +222,13 @@ class DataU8Enum(DataMetaType):
         encoder.encode_u8(self.value)
 
     def decode(self, decoder, **kwargs):
-        self.value = decoder.decode_u8()
+        self._value = decoder.decode_u8()
 
     def value_str(self):
        return self.enum_cls(value=self.value).name
 
-    def to_value(self, widget):
-        return self.enum_cls[widget.currentText()].value
+    def str2value(self, str_value):
+        return self.enum_cls[str_value].value
 
     def __str__(self):
         return self.value_str()

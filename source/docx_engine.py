@@ -2,7 +2,10 @@
 import docx
 import logging
 import time
+import os
 __version__ = "V1.0"
+
+
 class DocxEngine(object):
     def __init__(self, name=None):
         self.name = None
@@ -107,8 +110,9 @@ class DocxEngine(object):
     def add_fail(self, body):
         self.document.add_paragraph(body, style='fail')
 
-    def save_doc(self):
+    def save_doc(self,output_dir):
        name = self.name + ".docx"
+       name = os.path.join(output_dir,name)
        logging.info("generate doc %s",name)
        self.document.save(name)
 

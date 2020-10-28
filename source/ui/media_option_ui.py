@@ -96,7 +96,7 @@ class EsUserOptionsDialog(QWidget):
             if isinstance(self.options[i], MediaOptions):
                 self.options[i].select_id = widget.currentIndex()
             elif isinstance(self.options[i], MediaText):
-                self.options[i].value = str(widget.text())
+                self.options[i]._value = str(widget.text())
         return self.options
 
 dialog = None

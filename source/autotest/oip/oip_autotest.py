@@ -9,14 +9,7 @@ config["波特率"] = "9600"
 config["校验位"] = 'None'
 config["抄控器默认源地址"] = 1
 config["抄控器默认目的地址"] = 464148
-config["检查测试用例"] = False #True:只是显示，并不会运行测试用例。False：运行所有的测试用例
-config["测试过滤器"] = "*" #使用正则表达式选择执行的测试用例
 engine.config(config)
-
-#内置通用测试用例
-engine.add_test_case("设备软件版本", "ESSN-OIP-A(v1.1)-20200901")
-engine.add_test_case("PLC版本信息", "EASTSOFT(v1.0)")
-engine.add_test_case("设备类型", "FF FF 0B 00 01 00 00 00")
 
 
 def sensor_data_test():

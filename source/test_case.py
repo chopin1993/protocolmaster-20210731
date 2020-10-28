@@ -1,4 +1,5 @@
 #encoding:utf-8
+from autotest.resuse.basic_helper import PublicCase
 class TestCaseInfo(object):
     def __init__(self, name, func, brief):
         self.name = name
@@ -105,6 +106,10 @@ class TestCaseInfo(object):
     def config_dict(self):
         ret = {}
         ret["enable"] = self.enable
+        if isinstance(self.func, PublicCase):
+            ret["paras"] = self.func.get_config_value()
+        else:
+            ret["paras"] = {}
         subcase = {}
         for sub in self.subcases:
             subcase[sub.name] = sub.config_dict()
@@ -113,8 +118,17 @@ class TestCaseInfo(object):
 
     def load_config(self, config):
         self.enable = config['enable']
+        if isinstance(self.func, PublicCase):
+            self.func.load_config_value(config["paras"])
         subconfig = config['subcase']
         for sub in self.subcases:
             if sub.name in subconfig:
                 sub.load_config(subconfig[sub.name])
+
+
+    def get_para_widgets(self):
+        if isinstance(self.func, PublicCase):
+            return self.func.get_para_widgets()
+        else:
+            return []
 

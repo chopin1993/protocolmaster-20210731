@@ -3,7 +3,6 @@ import engine
 from register import Register
 from protocol.DataMetaType import *
 
-
 class PublicCase(Register):
     def __init__(self):
         self.units = []
@@ -14,26 +13,50 @@ class PublicCase(Register):
     def append_unit(self,unit):
         self.units.append(unit)
 
+    def get_para_widgets(self):
+        ask_widgets = [meta.get_widgets() for meta in self.units]
+        return ask_widgets
+
+    def get_config_value(self):
+        config = {}
+        for unit in self.units:
+            config[unit.name] = unit.value_str()
+        return config
+
+    def load_config_value(self, config):
+        for unit in self.units:
+            if unit.name in config:
+                unit.value = config[unit.name]
+
 
 class SoftwareCase(PublicCase):
-    def __init__(self,software_version):
-        "基本报文测试.软件版本"
+    "基本报文测试.软件版本"
+    def __init__(self):
         super(SoftwareCase, self).__init__()
-        self.software_version = software_version
         self.append_unit(DataCString("softwareVersion"))
 
-    def __call__(self, monitor):
-        monitor.send_1_did("READ", "DIDSoftversion")
-        monitor.expect_1_did("READ", "DIDSoftversion", self.software_version)
+    def __call__(self):
+        engine.send_1_did("READ", "DIDSoftversion")
+        engine.expect_1_did("READ", "DIDSoftversion", self.units[0].value)
 
 
-def plc_version_helper(monitor, plc_version):
+class PlcVersionCase(PublicCase):
     "_.PLC版本信息"
-    monitor.send_1_did("READ", "DIDPlcVersion")
-    monitor.expect_1_did("READ", "DIDPlcVersion", plc_version)
+    def __init__(self):
+        super(PlcVersionCase, self).__init__()
+        self.append_unit(DataCString("plcVersion"))
+
+    def __call__(self, *args, **kwargs):
+        engine.send_1_did("READ", "DIDPlcVersion")
+        engine.expect_1_did("READ", "DIDPlcVersion", self.units[0].value)
 
 
-def device_type_helper(monitor, device_type):
+class DeviceTypeCase(PublicCase):
     "_.设备类型"
-    monitor.send_1_did("READ", "DIDDeviceType")
-    monitor.expect_1_did("READ", "DIDDeviceType", device_type)
+    def __init__(self):
+        super(DeviceTypeCase, self).__init__()
+        self.append_unit(DataByteArray("deviceType"))
+
+    def __call__(self, *args, **kwargs):
+        engine.send_1_did("READ", "DIDDeviceType")
+        engine.expect_1_did("READ", "DIDDeviceType", self.units[0].value)

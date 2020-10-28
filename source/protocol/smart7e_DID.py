@@ -74,8 +74,8 @@ class DIDRemote(object):
 
     @classmethod
     def create_widgets(cls, cmd):
-        ask_widgets = [meta.create_widgets() for meta in cls.MEMBERS if cmd_filter(meta.name, cmd)]
-        reply_widgets = [meta.create_widgets() for meta in cls.MEMBERS if cmd_filter(meta.name, "d")]
+        ask_widgets = [meta.get_widgets() for meta in cls.MEMBERS if cmd_filter(meta.name, cmd)]
+        reply_widgets = [meta.get_widgets() for meta in cls.MEMBERS if cmd_filter(meta.name, "d")]
         return ask_widgets, reply_widgets
 
     @classmethod

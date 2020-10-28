@@ -56,7 +56,7 @@ def p_expression_byte_variable(t):
         t[0] = 0
 
 def p_error(t):
-    print("Syntax error at '%s'" % t.value)
+    print("Syntax error at '%s'" % t._value)
 
 parser = yacc.yacc()
 

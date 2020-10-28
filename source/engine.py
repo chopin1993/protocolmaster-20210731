@@ -15,6 +15,9 @@ from case_editor import CaseEditor
 from PyQt5.QtWidgets import *
 from copy import deepcopy
 import json
+import re
+from autotest.resuse.basic_helper import PublicCase
+
 logging.basicConfig(format='%(asctime)s - %(levelname)s: %(message)s', level=logging.DEBUG)
 
 
@@ -86,13 +89,12 @@ class TestEngine(object):
         total, passed, failes = self.summary(valids)
         self.doc_engine.write_summary(total, passed, failes, valids)
         self.doc_engine.write_detail(valids)
-        self.doc_engine.save_doc()
+        self.doc_engine.save_doc(self.output_dir)
 
     def get_valid_infos(self):
         valids = []
         for group in self.all_infos:
             if group.is_enable():
-                group = deepcopy(group)
                 valids.append(group)
         return valids
 
@@ -141,11 +143,12 @@ class TestEngine(object):
 
     def load_config(self):
         file_path = os.path.join(self.output_dir, "config.json")
-        with open(file_path, "r", encoding="utf-8") as handle:
-            config = json.load(handle)
-            for group in self.all_infos:
-                if group.name in config:
-                    group.load_config(config[group.name])
+        if os.path.exists(file_path):
+            with open(file_path, "r", encoding="utf-8") as handle:
+                config = json.load(handle)
+                for group in self.all_infos:
+                    if group.name in config:
+                        group.load_config(config[group.name])
 
     def set_output_dir(self, path):
         self.output_dir = path
@@ -316,6 +319,50 @@ def expect_1_did(cmd, did, value=bytes(), **kwargs):
     role = TestEngine.instance().get_default_role()
     role.expect_1_did(cmd, did, value=value, **kwargs)
 
+def _parse_doc_string(doc_string):
+    if doc_string is None:
+        doc_string = "默认"
+    doc_string = doc_string.strip()
+    names = doc_string.split("\n")
+    brief = None
+    if len(names) >= 2:
+        brief = "".join(names[1:])
+    doc_string = names[0]
+    names = doc_string.split(".")
+    if len(names) >= 2: #表示有测试用例
+        if len(names[0]) >=2: # 组名称不变
+            group_brief = None
+            if brief is not None:
+                search = re.search(r"group:(.*)case:(.*)", brief, re.S)
+                if search is not None:
+                    group_brief = search.group(1)
+                    brief = search.group(2)
+            return True, names[0], group_brief, True, names[1], brief
+        else:
+            return False, None, None, True, names[1], brief
+    else:
+        return True, names[0], brief,False, None, None
+
+def _parse_user_testcase(tests):
+    for test in tests:
+        has_group, group_name,group_brief,has_case,case_name,case_brief = _parse_doc_string(test.__doc__)
+        if has_group:
+            func = None if has_case else test
+            TestEngine.instance().group_begin(group_name, func, group_brief)
+        if has_case:
+            TestEngine.instance().test_begin(case_name, test, case_brief)
+
+
+def _parse_public_test_case():
+    cls_dict = PublicCase.get_sub_class_instances()
+    for key, value in cls_dict.items():
+        has_group, group_name, group_brief, has_case, case_name, case_brief = _parse_doc_string(value.__doc__)
+        if has_group:
+            func = None if has_case else value
+            TestEngine.instance().group_begin(group_name, func, group_brief)
+        if has_case:
+            TestEngine.instance().test_begin(case_name, value, case_brief)
+
 
 def run_all_tests(funcs, gui=False):
     inits = []
@@ -329,31 +376,14 @@ def run_all_tests(funcs, gui=False):
     for init in inits:
         init()
 
-    for test in tests:
-            doc_string = test.__doc__
-            if doc_string is None:
-                doc_string = "默认"
-            doc_string = doc_string.strip()
-            names = doc_string.split("\n")
-            brief = None
-            if len(names) >= 2:
-                brief = "".join(names[1:])
-            doc_string = names[0]
-            names = doc_string.split(".")
-            if len(names) >= 2:
-                import re
-                search = re.search(r"group:(.*)case:(.*)", brief, re.S)
-                group_brief = None
-                if search is not None:
-                    group_brief = search.group(1)
-                    brief = search.group(2)
-                if len(names[0]) >= 2:
-                    TestEngine.instance().group_begin(names[0], None, group_brief)
-                TestEngine.instance().test_begin(names[1], test, brief)
-            else:
-                TestEngine.instance().group_begin(names[0], test, brief)
+    _parse_public_test_case()
+    _parse_user_testcase(tests)
 
-    TestEngine.instance().load_config()
+    try:
+        TestEngine.instance().load_config()
+    except Exception as e:
+        logging.exception(e)
+        exit(0)
     if gui:
        app = QApplication(sys.argv)
        ui = CaseEditor(TestEngine.instance())
