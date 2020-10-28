@@ -61,7 +61,7 @@ def status_step_sync_test():
 
 
 
-def para_save_test1():
+def para_save_test():
     "断电参数保存"
     engine.add_doc_info("设置确认参数信息")
     engine.send_1_did("WRITE", "DIDReportStep", "10 00")
@@ -81,5 +81,5 @@ def para_save_test1():
 
 if __name__ == "__main__":
     import os
-    engine.set_output_dir(os.path.dirname(__file__) )
-    engine.run_all_tests(locals(), gui=True)
+    engine.set_output_dir(os.path.dirname(__file__))
+    engine.run_all_tests(locals(), gui=False)

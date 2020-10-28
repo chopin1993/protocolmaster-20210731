@@ -154,6 +154,15 @@ class TestEngine(object):
         self.output_dir = path
 
 def set_output_dir(path):
+    import os
+    def to_source_dir(path):
+        ret = re.search(r"(.*)autotest.*",path)
+        if ret is None:
+            return None
+        return ret.group(1)
+    source_path = to_source_dir(path)
+    if source_path is not None:
+        os.chdir(source_path)
     TestEngine.instance().set_output_dir(path)
 
 class MockDevice(object):
@@ -306,9 +315,6 @@ def config(infos):
         com.create_device("monitor", infos["抄控器默认源地址"], infos["抄控器默认目的地址"])
     TestEngine.instance().group_begin("测试配置信息", init_func,None)
 
-
-def add_test_case(name, *args, **kwargs):
-    pass
 
 def send_1_did(cmd, did, value=bytes(), **kwargs):
     role = TestEngine.instance().get_default_role()
