@@ -21,7 +21,6 @@ from autotest.resuse.basic_helper import PublicCase
 logging.basicConfig(format='%(asctime)s - %(levelname)s: %(message)s', level=logging.DEBUG)
 
 
-
 class TestEngine(object):
     _instance = None
 
@@ -98,7 +97,10 @@ class TestEngine(object):
                 valids.append(group)
         return valids
 
-    def run_all_test(self):
+    def run_single_case(self,case):
+        return self.run_all_test([self.all_infos[0], case])
+
+    def run_all_test(self, valids=None):
         def run_test(case):
             func = case.func
             case.clear()
@@ -109,8 +111,8 @@ class TestEngine(object):
                 msg += "  linenumber:{0}".format(e.__traceback__.tb_lineno)
                 self.add_fail_test("engine", "exception", "测试运行异常_" + msg)
                 logging.exception(e)
-
-        valids = self.get_valid_infos()
+        if valids is None:
+            valids = self.get_valid_infos()
         for group in valids:
             self.current_group = group
             self.current_test = group
@@ -332,7 +334,8 @@ def _parse_doc_string(doc_string):
     names = doc_string.split("\n")
     brief = None
     if len(names) >= 2:
-        brief = "".join(names[1:])
+        briefs = [data.lstrip() for data in names[1:]]
+        brief = "\n".join(briefs)
     doc_string = names[0]
     names = doc_string.split(".")
     if len(names) >= 2: #表示有测试用例
@@ -371,16 +374,10 @@ def _parse_public_test_case():
 
 
 def run_all_tests(funcs, gui=False):
-    inits = []
     tests = []
     for key, value in funcs.items():
-        if key.endswith("init"):
-            inits.append(value)
         if key.endswith("test"):
             tests.append(value)
-
-    for init in inits:
-        init()
 
     _parse_public_test_case()
     _parse_user_testcase(tests)

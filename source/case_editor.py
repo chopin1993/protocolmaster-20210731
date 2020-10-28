@@ -21,6 +21,20 @@ class CaseEditor(QMainWindow, Ui_MainWindow):
         self.para_widgets = []
         layout = QVBoxLayout()
         self.paraContainerWidget.setLayout(layout)
+        self.testCaseView.setContextMenuPolicy(Qt.CustomContextMenu)
+        self.testCaseView.customContextMenuRequested.connect(self.show_case_menu)
+
+    def show_case_menu(self,pos):
+        menu = QMenu()
+        run_test = menu.addAction("运行此测试")
+        action = menu.exec_(self.testCaseView.mapToGlobal(pos))
+        if action == run_test:
+            cur_item = self.testCaseView.itemAt(pos)
+            case = cur_item.case
+            self.engine.run_single_case(case)
+            return
+        else:
+            return
 
     def filter(self):
         regs = self.filterLineEdit.text()
