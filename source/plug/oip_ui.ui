@@ -104,6 +104,16 @@
            <widget class="QComboBox" name="cmdComboBox"/>
           </item>
           <item>
+           <widget class="QComboBox" name="typeComboBox">
+            <property name="minimumSize">
+             <size>
+              <width>30</width>
+              <height>0</height>
+             </size>
+            </property>
+           </widget>
+          </item>
+          <item>
            <widget class="QLabel" name="didLabel">
             <property name="text">
              <string>DID</string>
@@ -117,7 +127,7 @@
             </property>
             <property name="minimumSize">
              <size>
-              <width>140</width>
+              <width>100</width>
               <height>0</height>
              </size>
             </property>

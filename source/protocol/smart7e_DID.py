@@ -44,8 +44,16 @@ class DIDRemote(Register):
     REPLY_MEMBERS = []
     READ_MEMBERS = []
     WRITE_MEMBERS = []
+    TYPE_NAME=""
     INIT = False
     _all_did = None
+
+    @classmethod
+    def get_all_types(cls):
+        all_types = set()
+        for key,value in  cls.get_sub_class_dict().items():
+            all_types.add(value.TYPE_NAME)
+        return list(all_types)
 
     @classmethod
     def get_members(cls, cmd):
@@ -190,48 +198,11 @@ class DIDRemote(Register):
                                                         name)
         return txt
 
-
-class DIDSoftversion(DIDRemote):
-    DID=0x0003
-    MEMBERS = [DataCString("softVersion_d")]
-
-
-class DIDDebug(DIDRemote):
-    DID=0xff00
-    MEMBERS = [DataU8("choice_d")]
-
-
-def encode_func(value, encoder, **kwargs):
-    ctx = kwargs['ctx']
-    if ctx[0] == SensorType.ILLUMINACE.value:
-        encoder.encode_bcd_u16(value)
-    else:
-        encoder.encode_bcd_u8(value)
-
-
-def decode_func(decoder,  **kwargs):
-    ctx = kwargs['ctx']
-    if ctx[0] == SensorType.ILLUMINACE.value:
-       value = decoder.decode_bcd_u16()
-    else:
-       value = decoder.decode_bcd_u8()
-    return value
-
-
-class DIDReportStep(DIDRemote):
-    DID = 0xd103
-    MEMBERS = [DataU8Enum("SensorType_wrd", cls=SensorType),
-               ContextBaseValue("stepValue_wd", encoder_func=encode_func, decoder_func=decode_func)]
-
-class DIDSensorValue(DIDRemote):
-    DID = 0xb701
-    MEMBERS = [DataU8Enum("SensorType_rd", cls=SensorType),
-               ContextBaseValue("Value_d", encoder_func=encode_func, decoder_func=decode_func)]
-
-def create_remote_class(name, did, member):
+def create_remote_class(name, did, member,type_name=""):
     cls = type(name, (DIDRemote,), {})
     cls.DID = did
     cls.MEMBERS = member
+    cls.TYPE_NAME = type_name
     return cls
 
 
@@ -247,8 +218,6 @@ def sync_xls_dids():
         did_infos.append((type, did, member_patterns, name))
 
     for did_type, did, member_patterns, did_name in did_infos:
-        if did_type != "基础":
-            continue
         cls = DIDRemote.find_class_by_name(name, refresh=True)
         if cls is None:
             member_configs = re.findall(r"[(（](\w*)[,，](\w*)[,，](\w*)[)）]", member_patterns)
@@ -258,7 +227,7 @@ def sync_xls_dids():
                 paras = {}
                 paras[name] = meta_type
                 members.append(DataMetaType.create(paras))
-            create_remote_class(did_name, int(did, base=16), members)
+            create_remote_class(did_name, int(did, base=16), members,did_type)
 
 sync_xls_dids()
 

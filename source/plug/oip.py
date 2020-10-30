@@ -1,6 +1,5 @@
 # encoding:utf-8
 from PyQt5.QtWidgets import QHBoxLayout
-
 from .application_plug import plug_register,ApplicationPlug
 from .oip_ui import Ui_Form
 from PyQt5.QtGui import QImage,QPixmap
@@ -27,6 +26,10 @@ class OIPPlug(ApplicationPlug, Ui_Form):
         self.devieAddrLineEdit.textChanged.connect(self.save_plug_config)
         self.sendPushButton.clicked.connect(self.send_message)
         self.syncDIDPushButton.clicked.connect(self.sync_json_dids)
+        for name in DIDRemote.get_all_types():
+            self.typeComboBox.addItem(name)
+        self.typeComboBox.setCurrentText("基础")
+        self.typeComboBox.currentTextChanged.connect(self.sync_did_2_comboBox)
         self.sync_did_2_comboBox()
         self.didcomboBox.currentTextChanged.connect(self.did_changed)
         self.operation_widgets = []
@@ -37,6 +40,7 @@ class OIPPlug(ApplicationPlug, Ui_Form):
             self.cmdComboBox.addItem(cmd.name)
         self.cmdComboBox.currentTextChanged.connect(self.cmd_changed)
         self.cmd_changed(self.cmdComboBox.currentText())
+
 
     def send_message(self):
         cls = DIDRemote.find_class_by_name(self.didcomboBox.currentText())
@@ -74,7 +78,7 @@ class OIPPlug(ApplicationPlug, Ui_Form):
             return
         self.operation_widgets, self.reply_widgets = cls.create_widgets(cmd)
         for i,widget in enumerate(self.operation_widgets):
-            self.operationGroup.layout().insertWidget(3+i, widget)
+            self.operationGroup.layout().insertWidget(4+i, widget)
             widget.show()
         for widget in self.reply_widgets:
             self.reply_layout.addWidget(widget)
@@ -96,8 +100,9 @@ class OIPPlug(ApplicationPlug, Ui_Form):
     def sync_did_2_comboBox(self):
         self.didcomboBox.clear()
         dids = DIDRemote.get_did_dict()
-        for key,_ in dids.items():
-            self.didcomboBox.addItem(key)
+        for key, cls in dids.items():
+            if cls.TYPE_NAME == self.typeComboBox.currentText():
+                self.didcomboBox.addItem(key)
 
     def sync_json_dids(self):
         ret, msg = sync_json_dids()
