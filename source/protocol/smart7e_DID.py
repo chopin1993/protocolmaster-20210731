@@ -20,12 +20,6 @@ class ErrorCode(Enum):
     NO_RETURN = 0x10
 
 
-class SensorType(Enum):
-    PERSON_CAMERA = 0x10
-    PERSON_IR = 0x0d
-    ILLUMINACE = 0x0b
-
-
 def cmd_filter(name, cmd):
     from .smart7e_protocol import CMD
     ids = cmd
@@ -69,7 +63,6 @@ class DIDRemote(Register):
             return cls.WRITE_MEMBERS
         else:
             return cls.REPLY_MEMBERS
-
 
     @classmethod
     def get_did_dict(cls, refresh=False):
@@ -206,28 +199,49 @@ def create_remote_class(name, did, member,type_name=""):
     return cls
 
 
-def sync_xls_dids():
-    import xlrd
-    config_file = os.path.join("resource", "数据标识分类表格.xls")
-    workbook = xlrd.open_workbook(config_file)
-    sheet = workbook.sheets()[0]
+def _parse_dids(sheet, enum_dict):
     did_infos = []
     for row in range(1, sheet.nrows):
-        values = sheet.row_values(row, 0,)
-        type, did, member_patterns, name = values[1], values[2], values[5],values[11]
+        values = sheet.row_values(row, 0, )
+        type, did, member_patterns, name = values[1], values[2], values[5], values[11]
         did_infos.append((type, did, member_patterns, name))
 
     for did_type, did, member_patterns, did_name in did_infos:
-        cls = DIDRemote.find_class_by_name(name, refresh=True)
+        cls = DIDRemote.find_class_by_name(did_name, refresh=True)
         if cls is None:
             member_configs = re.findall(r"[(（](\w*)[,，](\w*)[,，](\w*)[)）]", member_patterns)
             members = []
             for meta_type, attr, name in member_configs:
-                name = name +"_"+ attr
+                name_used = name + "_" + attr
                 paras = {}
-                paras[name] = meta_type
-                members.append(DataMetaType.create(paras))
-            create_remote_class(did_name, int(did, base=16), members,did_type)
+                paras[name_used] = meta_type
+                data_meta = DataMetaType.create(paras)
+                if "enum" in meta_type:
+                    assert name in enum_dict, name
+                    data_meta.name_dict = enum_dict[name]
+                members.append(data_meta)
+            create_remote_class(did_name, int(did, base=16), members, did_type)
+
+
+def _parse_enum(sheet):
+    name_values = {}
+    for row in range(1, sheet.nrows):
+        values = sheet.row_values(row, 0, )
+        name_values[values[0]] = int(values[1], base=16)
+    return name_values
+
+
+def sync_xls_dids():
+    import xlrd
+    config_file = os.path.join("resource", "数据标识分类表格.xls")
+    workbook = xlrd.open_workbook(config_file)
+    enum_dict = {}
+    for name in workbook.sheet_names():
+        if name.startswith("enum"):
+            enum_dict[name[4:]] = _parse_enum(workbook.sheet_by_name(name))
+    sheet = workbook.sheet_by_name("dids")
+    _parse_dids(sheet,enum_dict)
+
 
 sync_xls_dids()
 

@@ -2,6 +2,7 @@
 import struct
 
 
+
 def hexstr2bytes(string):
     """
     >>> data = " 0x31  0x32  0x33 "

@@ -216,17 +216,17 @@ class DataU32(DataMetaType):
 
 
 class DataU8Enum(DataMetaType):
-    def __init__(self,name=None, value=None, decoder=None, cls=None):
+    def __init__(self, name=None, value=None, decoder=None, name_dict=None):
         super(DataU8Enum, self).__init__(name, value, decoder)
-        self.enum_cls = cls
+        self.name_dict = name_dict
 
     def get_widgets(self, *args, **kwargs):
         widget = QtWidgets.QWidget()
         layout = QHBoxLayout()
         name_widget = QLabel(self._get_pure_name())
         value_widget = QComboBox()
-        for e in self.enum_cls:
-            value_widget.addItem(e.name)
+        for key, value in self.name_dict.items():
+            value_widget.addItem(key)
         layout.addWidget(name_widget)
         layout.addWidget(value_widget)
         widget.setLayout(layout)
@@ -246,10 +246,12 @@ class DataU8Enum(DataMetaType):
         self._value = decoder.decode_u8()
 
     def value_str(self):
-       return self.enum_cls(value=self.value).name
+        for key, value in self.name_dict.items():
+            if value == self._value:
+                return key
 
     def str2value(self, str_value):
-        return self.enum_cls[str_value].value
+        return self.name_dict[str_value]
 
     def __str__(self):
         return self.value_str()
