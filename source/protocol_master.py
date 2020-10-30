@@ -10,7 +10,9 @@ import protocol
 import session
 import datetime
 from ESSetting import ESSetting
+import logging
 
+logging.basicConfig(format='%(asctime)s - %(levelname)s: %(message)s', level=logging.DEBUG)
 
 class ESMainWindow(QMainWindow, Ui_MainWindow):
     """

@@ -52,7 +52,7 @@ class MediaText(object):
         return self.key, self.value
 
     def load_save_value(self, saved):
-        self.value = saved._value
+        self.value = saved.value
 
     def set_value(self, option):
         self.value = option

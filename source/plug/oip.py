@@ -63,20 +63,22 @@ class OIPPlug(ApplicationPlug, Ui_Form):
             self.current_cmd_tmp = cmd
         for widget in self.operation_widgets:
             self.operationGroup.layout().removeWidget(widget)
-            sip.delete(widget)
+            widget.hide()
         for widget in self.reply_widgets:
             self.reply_layout.removeWidget(widget)
-            sip.delete(widget)
+            widget.hide()
         self.operation_widgets = []
         self.reply_widgets = []
         cls = DIDRemote.find_class_by_name(did)
         if cls is None:
             return
-        self.operation_widgets, self.reply_widgets = cls.get_widgets(cmd)
+        self.operation_widgets, self.reply_widgets = cls.create_widgets(cmd)
         for i,widget in enumerate(self.operation_widgets):
             self.operationGroup.layout().insertWidget(3+i, widget)
+            widget.show()
         for widget in self.reply_widgets:
             self.reply_layout.addWidget(widget)
+            widget.show()
 
     def cmd_changed(self, txt):
         self.sync_widget()

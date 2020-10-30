@@ -19,6 +19,7 @@ class DIDLocal(EsEnum):
     READ_APPLICATION_ADDR = 0x03
     ACTION_OK = 0x00
     ACTION_FAIL = 0xff
+    SET_PANID = 0x0c
 
 class CMD(EsEnum):
     READ = 0x02

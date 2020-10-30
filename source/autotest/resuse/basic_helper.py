@@ -4,8 +4,9 @@ from register import Register
 from protocol.DataMetaType import *
 
 class PublicCase(Register):
-    def __init__(self):
+    def __init__(self, default_enable=True):
         self.units = []
+        self.default_enable = default_enable
 
     def __call__(self, monitor):
         raise NotImplemented
@@ -33,7 +34,7 @@ class SoftwareCase(PublicCase):
     "基本报文测试.软件版本"
     def __init__(self):
         super(SoftwareCase, self).__init__()
-        self.append_unit(DataCString("softwareVersion"))
+        self.append_unit(DataCString("软件版本"))
 
     def __call__(self):
         engine.send_1_did("READ", "DIDSoftversion")
@@ -56,6 +57,17 @@ class DeviceTypeCase(PublicCase):
     def __init__(self):
         super(DeviceTypeCase, self).__init__()
         self.append_unit(DataByteArray("deviceType"))
+
+    def __call__(self, *args, **kwargs):
+        engine.send_1_did("READ", "DIDDeviceType")
+        engine.expect_1_did("READ", "DIDDeviceType", self.units[0].value)
+
+
+class PrintTypeCase(PublicCase):
+    "_.设备远程打印开关"
+    def __init__(self):
+        super(PrintTypeCase, self).__init__(False)
+        self.append_unit(DataByteArray("value"))
 
     def __call__(self, *args, **kwargs):
         engine.send_1_did("READ", "DIDDeviceType")

@@ -5,6 +5,9 @@ from json import JSONDecodeError
 from protocol.DataMetaType import *
 from copy import deepcopy
 from tools.converter import *
+import logging
+import os
+import re
 
 class ErrorCode(Enum):
     NO_ERROR = 0
@@ -26,19 +29,39 @@ class SensorType(Enum):
 def cmd_filter(name, cmd):
     from .smart7e_protocol import CMD
     ids = cmd
-    if cmd == CMD.READ.name:
+    if cmd == CMD.READ:
         ids = "r"
-    elif cmd == CMD.WRITE.name:
+    elif cmd == CMD.WRITE:
         ids = "w"
     suffixs = name.split("_")
     if len(suffixs) <= 1:
         return False
     return ids in suffixs[-1]
 
-class DIDRemote(object):
+class DIDRemote(Register):
     DID=0xff00
     MEMBERS = []
+    REPLY_MEMBERS = []
+    READ_MEMBERS = []
+    WRITE_MEMBERS = []
+    INIT = False
     _all_did = None
+
+    @classmethod
+    def get_members(cls, cmd):
+        from .smart7e_protocol import CMD
+        if cls.INIT is False:
+            cls.INIT = True
+            cls.READ_MEMBERS =  [deepcopy(meta) for meta in cls.MEMBERS if cmd_filter(meta.name, CMD.READ)]
+            cls.WRITE_MEMBERS = [deepcopy(meta) for meta in cls.MEMBERS if cmd_filter(meta.name, CMD.WRITE)]
+            cls.REPLY_MEMBERS = [deepcopy(meta) for meta in cls.MEMBERS if cmd_filter(meta.name, "d")]
+        if cmd == CMD.READ.name:
+            return cls.READ_MEMBERS
+        elif cmd == CMD.WRITE.name:
+            return cls.WRITE_MEMBERS
+        else:
+            return cls.REPLY_MEMBERS
+
 
     @classmethod
     def get_did_dict(cls, refresh=False):
@@ -74,14 +97,14 @@ class DIDRemote(object):
 
     @classmethod
     def create_widgets(cls, cmd):
-        ask_widgets = [meta.get_widgets() for meta in cls.MEMBERS if cmd_filter(meta.name, cmd)]
-        reply_widgets = [meta.get_widgets() for meta in cls.MEMBERS if cmd_filter(meta.name, "d")]
+        ask_widgets = [meta.get_widgets() for meta in cls.get_members(cmd)]
+        reply_widgets = [meta.get_widgets() for meta in cls.get_members("reply")]
         return ask_widgets, reply_widgets
 
     @classmethod
     def encode_widgets(cls, widgets, cmd):
         encoder = BinaryEncoder()
-        metas = [meta for meta in cls.MEMBERS if cmd_filter(meta.name, cmd.name)]
+        metas =  cls.get_members(cmd)
         for meta, widget in zip(metas, widgets):
             data = deepcopy(encoder.data)
             meta.encode_widget_value(widget, encoder, ctx=data)
@@ -89,14 +112,14 @@ class DIDRemote(object):
 
     @classmethod
     def sync_reply_value(cls, widgets, decoder):
-        metas = [meta for meta in cls.MEMBERS if cmd_filter(meta.name, "d")]
+        metas = cls.get_members("reply")
         data = deepcopy(decoder.data)
         for meta, widget in zip(metas, widgets):
             meta.set_widget_value(widget, decoder, ctx=data)
 
     @classmethod
     def is_value_string(cls, str1):
-        metas = [meta for meta in cls.MEMBERS if cmd_filter(meta.name, "d")]
+        metas = cls.get_members("reply")
         if len(metas) == 1 and  isinstance(metas[0], DataCString):
             return True
         else:
@@ -212,12 +235,38 @@ def create_remote_class(name, did, member):
     return cls
 
 
+def sync_xls_dids():
+    import xlrd
+    config_file = os.path.join("resource", "数据标识分类表格.xls")
+    workbook = xlrd.open_workbook(config_file)
+    sheet = workbook.sheets()[0]
+    did_infos = []
+    for row in range(1, sheet.nrows):
+        values = sheet.row_values(row, 0,)
+        type, did, member_patterns, name = values[1], values[2], values[5],values[11]
+        did_infos.append((type, did, member_patterns, name))
+
+    for did_type, did, member_patterns, did_name in did_infos:
+        if did_type != "基础":
+            continue
+        cls = DIDRemote.find_class_by_name(name, refresh=True)
+        if cls is None:
+            member_configs = re.findall(r"[(（](\w*)[,，](\w*)[,，](\w*)[)）]", member_patterns)
+            members = []
+            for meta_type, attr, name in member_configs:
+                name = name +"_"+ attr
+                paras = {}
+                paras[name] = meta_type
+                members.append(DataMetaType.create(paras))
+            create_remote_class(did_name, int(did, base=16), members)
+
+sync_xls_dids()
+
 def sync_json_dids():
-    import os
     ret = 0
     err1 = ""
     config_file = "smart7E.json"
-    with open(config_file, "r") as handle:
+    with open(config_file, "r", encoding="utf-8") as handle:
         dids = None
         try:
             dids = json.load(handle)
@@ -232,13 +281,10 @@ def sync_json_dids():
         except JSONDecodeError as err:
             ret = -1
             err1 = str(err)
-            print(err)
+            logging.exception(err)
         except Exception as err:
             ret = -1
             err1 = str(err)
-        print(dids)
+            logging.exception(err)
     DIDRemote.get_did_dict(refresh=True)
     return ret, err1
-
-
-sync_json_dids()

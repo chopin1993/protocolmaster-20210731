@@ -124,11 +124,19 @@ class TestCaseInfo(object):
         for sub in self.subcases:
             if sub.name in subconfig:
                 sub.load_config(subconfig[sub.name])
+            else:
+                sub.load_default()
 
+    def load_default(self):
+        if isinstance(self.func, PublicCase):
+            self.enable= self.func.default_enable
+            for sub in self.subcases:
+                sub.load_default()
 
     def get_para_widgets(self):
         if isinstance(self.func, PublicCase):
             return self.func.get_para_widgets()
         else:
             return []
+
 

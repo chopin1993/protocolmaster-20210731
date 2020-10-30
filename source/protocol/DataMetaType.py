@@ -20,10 +20,18 @@ class DataMetaType(Register):
     @classmethod
     def create(cls, member):
         '''
-          利用字符串从json中创建DataMetaType
+        利用字符串从json中创建DataMetaType
         '''
-        for key,value in member.items():
-            cls = DataMetaType.find_sub_class_by_name(value)
+        type_dict = {}
+        type_dict["string"] = "cstring"
+        type_dict["bytes"] = "ByteArray"
+        for key, value in member.items():
+            if value in type_dict:
+                value = type_dict[value]
+            cls = DataMetaType.find_sub_class_by_name("Data"+value)
+            if cls is None:
+                print("no meta type:",value)
+                raise NotImplemented
             return cls(name=key)
         return None
 
@@ -192,6 +200,19 @@ class DataU16(DataMetaType):
     def str2value(self, str_value):
         return to_number(str_value)
 
+
+class DataU32(DataMetaType):
+    def __init__(self,name=None, value=None, decoder=None):
+        super(DataU32, self).__init__(name, value, decoder)
+
+    def encode(self, encoder, **kwargs):
+        encoder.encode_u32(self.value)
+
+    def decode(self, decoder, **kwargs):
+        self.value = decoder.decode_u32()
+
+    def str2value(self, str_value):
+        return to_number(str_value)
 
 
 class DataU8Enum(DataMetaType):

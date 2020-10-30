@@ -1,0 +1,38 @@
+{
+  "DIDS": [
+    { "did": "0x0002",
+      "name": "DIDPlcVersion",
+      "member":[
+        {"value_d": "CString"}
+      ]
+    },
+    { "did": "0x0001",
+      "name": "DIDDeviceType",
+      "member":[
+         {"value_d": "ByteArray"}
+      ]
+    },
+    { "did": "0xd702",
+      "name": "DIDSensorInvalidTime",
+      "member":[
+         {"value_wd": "U16"}
+      ]
+    }
+    ,
+    { "did": "0x0603",
+      "name": "载波芯片注册信息",
+      "member":[
+         {"aid_wd": "U32"},
+         {"panid_wd": "U16"},
+         {"pw_wd": "U16"},
+         {"gid_wd": "U32"},
+         {"sid_wd": "U16"}
+      ]
+    }
+  ]
+}
+
+
+
+
+

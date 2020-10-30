@@ -59,8 +59,6 @@ def status_step_sync_test():
     engine.send_1_did("WRITE", "DIDReportStep", "10 01")
     engine.expect_1_did("WRITE", "DIDReportStep", "10 01")
 
-
-
 def para_save_test():
     "断电参数保存"
     engine.add_doc_info("设置确认参数信息")
@@ -68,17 +66,23 @@ def para_save_test():
     engine.expect_1_did("WRITE", "DIDReportStep", "10 00")
 
     engine.add_doc_info("设备复位")
-    # 00： 复位  01： 恢复出厂设置
+    engine.add_doc_info(" 00： 复位  01： 恢复出厂设置")
     engine.send_1_did("WRITE", "DIDDebug", "00")
     engine.expect_1_did("WRITE", "DIDDebug", "00")
     engine.wait(90)
-    # 读取参数，确保参数保持一致
+    engine.add_doc_info("读取参数，确保参数保持一致")
     engine.send_1_did("READ", "DIDReportStep","10")
     engine.expect_1_did("READ", "DIDReportStep", "10 00")
-    # 恢复默认参数
+    engine.add_doc_info("恢复默认参数")
     engine.send_1_did("WRITE", "DIDReportStep", "10 01")
     engine.expect_1_did("WRITE", "DIDReportStep", "10 01")
 
+
+def report_test():
+    "上报测试"
+    "55013"
+    r"4aid+2panid+2pw+4gid+2sid"
+    pass
 
 
 if __name__ == "__main__":

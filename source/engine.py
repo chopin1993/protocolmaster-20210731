@@ -151,6 +151,8 @@ class TestEngine(object):
                 for group in self.all_infos:
                     if group.name in config:
                         group.load_config(config[group.name])
+                    else:
+                        group.load_default()
 
     def set_output_dir(self, path):
         self.output_dir = path
@@ -222,7 +224,7 @@ class Role(object):
         did_cls = DIDRemote.find_class_by_name(did)
 
         if isinstance(value, str):
-            if  did_cls.is_value_string(value):
+            if did_cls.is_value_string(value):
                 value = str2bytearray(value)
             else:
                 value = BytesCompare(value)
