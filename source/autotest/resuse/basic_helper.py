@@ -10,8 +10,8 @@ class SoftwareCase(PublicCase):
         self.append_unit(DataCString("软件版本"))
 
     def __call__(self):
-        engine.send_1_did("READ", "DIDSoftversion")
-        engine.expect_1_did("READ", "DIDSoftversion", self.units[0].value)
+        engine.send_1_did("READ", "设备描述信息、设备制造商")
+        engine.expect_1_did("READ", "设备描述信息、设备制造商", self.units[0].value)
 
 
 class PlcVersionCase(PublicCase):
@@ -21,8 +21,8 @@ class PlcVersionCase(PublicCase):
         self.append_unit(DataCString("plcVersion"))
 
     def __call__(self, *args, **kwargs):
-        engine.send_1_did("READ", "DIDPlcVersion")
-        engine.expect_1_did("READ", "DIDPlcVersion", self.units[0].value)
+        engine.send_1_did("READ", r"应用层通讯协议及版本")
+        engine.expect_1_did("READ", r"应用层通讯协议及版本", self.units[0].value)
 
 
 class DeviceTypeCase(PublicCase):
@@ -32,16 +32,6 @@ class DeviceTypeCase(PublicCase):
         self.append_unit(DataByteArray("deviceType"))
 
     def __call__(self, *args, **kwargs):
-        engine.send_1_did("READ", "DIDDeviceType")
-        engine.expect_1_did("READ", "DIDDeviceType", self.units[0].value)
+        engine.send_1_did("READ", "设备类型")
+        engine.expect_1_did("READ", "设备类型", self.units[0].value)
 
-
-class PrintTypeCase(PublicCase):
-    "_.设备远程打印开关"
-    def __init__(self):
-        super(PrintTypeCase, self).__init__(False)
-        self.append_unit(DataByteArray("value"))
-
-    def __call__(self, *args, **kwargs):
-        engine.send_1_did("READ", "DIDDeviceType")
-        engine.expect_1_did("READ", "DIDDeviceType", self.units[0].value)

@@ -200,6 +200,7 @@ def create_remote_class(name, did, member,type_name=""):
 
 
 def _parse_dids(sheet, enum_dict):
+    from .smart7e_DID_user import get_user_fun
     did_infos = []
     for row in range(1, sheet.nrows):
         values = sheet.row_values(row, 0, )
@@ -219,6 +220,12 @@ def _parse_dids(sheet, enum_dict):
                 if "enum" in meta_type:
                     assert name in enum_dict, name
                     data_meta.name_dict = enum_dict[name]
+                elif "vs" == meta_type:
+                    encoder_func, decode_func, to_value_func, value_str_func = get_user_fun(name)
+                    data_meta.encode_func = encoder_func
+                    data_meta.decoder_func = decode_func
+                    data_meta.to_value_func = to_value_func
+                    data_meta.value_str_func = value_str_func
                 members.append(data_meta)
             create_remote_class(did_name, int(did, base=16), members, did_type)
 
@@ -230,9 +237,11 @@ def _parse_enum(sheet):
         name_values[values[0]] = int(values[1], base=16)
     return name_values
 
+enum_dict={}
 
 def sync_xls_dids():
     import xlrd
+    global enum_dict
     config_file = os.path.join("resource", "数据标识分类表格.xls")
     workbook = xlrd.open_workbook(config_file)
     enum_dict = {}
@@ -242,6 +251,11 @@ def sync_xls_dids():
     sheet = workbook.sheet_by_name("dids")
     _parse_dids(sheet,enum_dict)
 
+def get_value_txt(enum_key, value):
+    value_dict = enum_dict[enum_key]
+    for key,value1 in value_dict.items():
+        if value1 == value:
+            return  key
 
 sync_xls_dids()
 

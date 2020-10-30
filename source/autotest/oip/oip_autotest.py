@@ -21,10 +21,10 @@ def sensor_data_test():
     # PERSON_CAMERA = 0x10
     # PERSON_IR = 0x0d
     # ILLUMINACE = 0x0b
-    engine.send_1_did("READ", "DIDSensorValue", "10") #人体存在数据读取
-    engine.expect_1_did("READ", "DIDSensorValue", "10 **") #10 + 任意一个字节
-    engine.send_1_did("READ", "DIDSensorValue", "0d") #红外数据读取
-    engine.expect_1_did("READ", "DIDSensorValue", "0d ** **") #0d + 任意一个字节
+    engine.send_1_did("READ", "读传感器数据", "10") #人体存在数据读取
+    engine.expect_1_did("READ", "读传感器数据", "10 **") #10 + 任意一个字节
+    engine.send_1_did("READ", "读传感器数据", "0d") #红外数据读取
+    engine.expect_1_did("READ", "读传感器数据", "0d ** **") #0d + 任意一个字节
 
 def sensor_data2_test():
     """
@@ -34,8 +34,8 @@ def sensor_data2_test():
     # PERSON_CAMERA = 0x10
     # PERSON_IR = 0x0d
     # ILLUMINACE = 0x0b
-    engine.send_1_did("READ", "DIDSensorValue", "0b") #照度数据读取读取
-    engine.expect_1_did("READ", "DIDSensorValue", "0b ** **") #0b +任意两个字节
+    engine.send_1_did("READ", "读传感器数据", "0b") #照度数据读取读取
+    engine.expect_1_did("READ", "读传感器数据", "0b ** **") #0b +任意两个字节
 
 
 def status_step_sync_test():
@@ -46,36 +46,36 @@ def status_step_sync_test():
     3. 读取步长，确认步长被改变
     """
     engine.add_doc_info("读取人体存在上报步长，确认默认开启")
-    engine.send_1_did("READ", "DIDReportStep","10")
-    engine.expect_1_did("READ", "DIDReportStep", "10 01")
+    engine.send_1_did("READ", "上报步长","10")
+    engine.expect_1_did("READ", "上报步长", "10 01")
 
     engine.add_doc_info("修改默认步长为0，并读取确认修改成功")
-    engine.send_1_did("WRITE", "DIDReportStep", "10 00")
-    engine.expect_1_did("WRITE", "DIDReportStep", "10 00")
-    engine.send_1_did("READ", "DIDReportStep","10")
-    engine.expect_1_did("READ", "DIDReportStep", "10 00")
+    engine.send_1_did("WRITE", "上报步长", "10 00")
+    engine.expect_1_did("WRITE", "上报步长", "10 00")
+    engine.send_1_did("READ", "上报步长","10")
+    engine.expect_1_did("READ", "上报步长", "10 00")
 
     engine.add_doc_info("恢复设备默认状态")
-    engine.send_1_did("WRITE", "DIDReportStep", "10 01")
-    engine.expect_1_did("WRITE", "DIDReportStep", "10 01")
+    engine.send_1_did("WRITE", "上报步长", "10 01")
+    engine.expect_1_did("WRITE", "上报步长", "10 01")
 
 def para_save_test():
     "断电参数保存"
     engine.add_doc_info("设置确认参数信息")
-    engine.send_1_did("WRITE", "DIDReportStep", "10 00")
-    engine.expect_1_did("WRITE", "DIDReportStep", "10 00")
+    engine.send_1_did("WRITE", "上报步长", "10 00")
+    engine.expect_1_did("WRITE", "上报步长", "10 00")
 
     engine.add_doc_info("设备复位")
     engine.add_doc_info(" 00： 复位  01： 恢复出厂设置")
-    engine.send_1_did("WRITE", "DIDDebug", "00")
-    engine.expect_1_did("WRITE", "DIDDebug", "00")
+    engine.send_1_did("WRITE", "测试命令", "00")
+    engine.expect_1_did("WRITE", "测试命令", "00")
     engine.wait(90)
     engine.add_doc_info("读取参数，确保参数保持一致")
-    engine.send_1_did("READ", "DIDReportStep","10")
-    engine.expect_1_did("READ", "DIDReportStep", "10 00")
+    engine.send_1_did("READ", "上报步长","10")
+    engine.expect_1_did("READ", "上报步长", "10 00")
     engine.add_doc_info("恢复默认参数")
-    engine.send_1_did("WRITE", "DIDReportStep", "10 01")
-    engine.expect_1_did("WRITE", "DIDReportStep", "10 01")
+    engine.send_1_did("WRITE", "上报步长", "10 01")
+    engine.expect_1_did("WRITE", "上报步长", "10 01")
 
 
 def report_test():

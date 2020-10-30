@@ -25,6 +25,7 @@ class DataMetaType(Register):
         type_dict = {}
         type_dict["string"] = "cstring"
         type_dict["bytes"] = "ByteArray"
+        type_dict['vs'] = "ContextBaseValue"
         for key, value in member.items():
             if value in type_dict:
                 value = type_dict[value]
@@ -126,10 +127,10 @@ class DataMetaType(Register):
         widget.value_widget.setText(self.value_str())
 
 
-class ContextBaseValue(DataMetaType):
+class DataContextBaseValue(DataMetaType):
     def __init__(self,  name=None, value=None, decoder=None,
                  encoder_func=None, decoder_func=None, to_value_func=None, value_str_func=None):
-        super(ContextBaseValue, self).__init__(name=name, value=value, decoder=decoder)
+        super(DataContextBaseValue, self).__init__(name=name, value=value, decoder=decoder)
         self.encode_func = encoder_func
         self.decoder_func = decoder_func
         self.to_value_func = to_value_func
