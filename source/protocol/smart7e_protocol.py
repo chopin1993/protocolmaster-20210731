@@ -24,6 +24,7 @@ class DIDLocal(EsEnum):
 class CMD(EsEnum):
     READ = 0x02
     WRITE = 0x7
+    REPORT = 0x01
 
 
 class LocalFBD(DataFragment):
@@ -48,15 +49,15 @@ class LocalFBD(DataFragment):
 class RemoteFBD(DataFragment):
 
     @staticmethod
-    def create(cmd, did_name, data):
+    def create(cmd, did_name, data, **kwargs):
         did_class = DIDRemote.find_class_by_name(did_name)
         if did_class is None:
             return None
-        did = did_class(data)
+        did = did_class(data, **kwargs)
         cmd = CMD.to_enum(cmd)
         return RemoteFBD(cmd, did)
 
-    def __init__(self, cmd=None, didunit=None, decoder=None):
+    def __init__(self, cmd=None, didunit=None, decoder=None, **kwargs):
         self.didunits = []
         if decoder is None:
             self.cmd = cmd
@@ -65,7 +66,7 @@ class RemoteFBD(DataFragment):
             self.cmd = CMD(value=decoder.decode_u8())
             while decoder.left_bytes() >= 3:
                 did = decoder.decode_u16()
-                didunit = decoder.decoder_for_object(DIDRemote.find_class_by_did(did))
+                didunit = decoder.decoder_for_object(DIDRemote.find_class_by_did(did),**kwargs)
                 self.didunits.append(didunit)
 
     def encode(self, encoder):
@@ -95,7 +96,7 @@ class Smart7EData(DataFragment):
             if self.is_local():
                 self.fbd = fbd_decoder.decoder_for_object(LocalFBD)
             else:
-                self.fbd = fbd_decoder.decoder_for_object(RemoteFBD)
+                self.fbd = fbd_decoder.decoder_for_object(RemoteFBD, ctx=self)
         else:
             self.said = src
             self.taid = dst
@@ -105,6 +106,9 @@ class Smart7EData(DataFragment):
             if Smart7EData.SEQ > 127:
                 Smart7EData.SEQ = 0
             self.len = self.get_fbd_len()
+
+    def is_reply(self):
+        return self.seq&0x80==0x80
 
     def is_local(self):
         return self.said ==0 and self.taid == 0

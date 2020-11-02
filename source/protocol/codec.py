@@ -96,8 +96,8 @@ class BinaryDecoder(Decoder):
     def left_bytes(self):
         return len(self.data)
 
-    def decoder_for_object(self, cls):
-        protocol = cls(decoder=self)
+    def decoder_for_object(self, cls, **kwargs):
+        protocol = cls(decoder=self, **kwargs)
         return protocol
 
     def decode_bytes(self, length):

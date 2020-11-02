@@ -43,13 +43,23 @@ class BytesCompare(Validator):
         return True
 
 
+class UnitCompare(Validator):
+    def __init__(self, **kwargs):
+        self.kwarges = kwargs
+
+    def __call__(self, data):
+        for key, value in self.kwarges:
+            pass
+        return True
+
 class SmartOneDidValidator(Validator):
-    def __init__(self, src, dst, cmd, did, value):
+    def __init__(self, src, dst, cmd, did, value,**kwargs):
         self.cmd = cmd
         self.did = did
         self.value = value
         self.src = src
         self.dst = dst
+        self.kwargs = kwargs
 
     def __call__(self, smartData):
         def compare_data(expect_value,target_value):

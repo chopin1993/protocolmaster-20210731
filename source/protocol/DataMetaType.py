@@ -90,9 +90,9 @@ class DataMetaType(Register):
             return str(self._value)
 
     def __str__(self):
-        return "{0}:{1}".format(self._get_pure_name(), self.value_str())
+        return "{0}:{1}".format(self.get_pure_name(), self.value_str())
 
-    def _get_pure_name(self):
+    def get_pure_name(self):
         name = self.name
         return name.split("_")[0]
 
@@ -100,7 +100,7 @@ class DataMetaType(Register):
         if self.widget is None:
             widget = QtWidgets.QWidget()
             layout = QHBoxLayout()
-            name_widget = QLabel(self._get_pure_name())
+            name_widget = QLabel(self.get_pure_name())
             value_widget = QLineEdit()
             if self._value is not None:
                 value_widget.setText(self.value_str())
@@ -224,7 +224,7 @@ class DataU8Enum(DataMetaType):
     def get_widgets(self, *args, **kwargs):
         widget = QtWidgets.QWidget()
         layout = QHBoxLayout()
-        name_widget = QLabel(self._get_pure_name())
+        name_widget = QLabel(self.get_pure_name())
         value_widget = QComboBox()
         for key, value in self.name_dict.items():
             value_widget.addItem(key)
@@ -250,6 +250,7 @@ class DataU8Enum(DataMetaType):
         for key, value in self.name_dict.items():
             if value == self._value:
                 return key
+        return "no txt for {0}".format(self._value)
 
     def str2value(self, str_value):
         return self.name_dict[str_value]

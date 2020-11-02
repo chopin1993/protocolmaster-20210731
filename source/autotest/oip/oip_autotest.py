@@ -8,7 +8,9 @@ config["串口"] = "COM9"
 config["波特率"] = "9600"
 config["校验位"] = 'None'
 config["抄控器默认源地址"] = 1
-config["抄控器默认目的地址"] = 464148
+config["测试设备地址"] = 464148
+config["设备密码"] = 55013
+
 engine.config(config)
 
 
@@ -79,10 +81,11 @@ def para_save_test():
 
 
 def report_test():
-    "上报测试"
-    "55013"
+    "上报测试.频率上报"
     r"4aid+2panid+2pw+4gid+2sid"
-    pass
+    engine.send_1_did("WRITE", "载波芯片注册信息", aid=config["测试设备地址"],  panid=22, pw=config["设备密码"],gid=1,sid=1)
+    engine.expect_1_did("WRITE","载波芯片注册信息", "** ** ** ** ** **")
+
 
 
 if __name__ == "__main__":

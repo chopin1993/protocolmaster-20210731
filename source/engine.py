@@ -209,11 +209,11 @@ class Role(object):
         self.session.write(data)
         self.expect_local_message([DIDLocal.ACTION_OK, DIDLocal.ACTION_FAIL], timeout=2)
 
-    def send_1_did(self, cmd, did, value=bytes(), **kwargs):
+    def send_1_did(self, cmd, did, value=None, **kwargs):
         did_cls = DIDRemote.find_class_by_name(did)
         if isinstance(value, str):
             value = hexstr2bytes(value)
-        fbd = RemoteFBD.create(cmd, did, value)
+        fbd = RemoteFBD.create(cmd, did, value, **kwargs)
         data = Smart7EData(self.default_device.src, self.default_device.dst, fbd)
         self.session.write(data)
 
@@ -226,9 +226,16 @@ class Role(object):
         if isinstance(value, str):
             if did_cls.is_value_string(value):
                 value = str2bytearray(value)
+            elif value is None:
+                value = BytesCompare(did_cls.encode_reply(**kwargs))
             else:
                 value = BytesCompare(value)
-        self.validate = SmartOneDidValidator(src=self.default_device.dst, dst= self.default_device.src, cmd=cmd, did=did_cls.DID, value=value)
+        self.validate = SmartOneDidValidator(src=self.default_device.dst,
+                                             dst= self.default_device.src,
+                                             cmd=cmd,
+                                             did=did_cls.DID,
+                                             value=value,
+                                             **kwargs)
         while self.waiting:
             QCoreApplication.instance().processEvents()
 
@@ -316,16 +323,16 @@ def config(infos):
     def init_func():
         nonlocal com
         com.config_com(port=infos["串口"], baudrate=infos["波特率"], parity=infos["校验位"])
-        com.create_device("monitor", infos["抄控器默认源地址"], infos["抄控器默认目的地址"])
+        com.create_device("monitor", infos["抄控器默认源地址"], infos["测试设备地址"])
     TestEngine.instance().group_begin("测试配置信息", init_func,None)
 
 
-def send_1_did(cmd, did, value=bytes(), **kwargs):
+def send_1_did(cmd, did, value=None, **kwargs):
     role = TestEngine.instance().get_default_role()
     role.send_1_did(cmd, did, value=value, **kwargs)
 
 
-def expect_1_did(cmd, did, value=bytes(), **kwargs):
+def expect_1_did(cmd, did, value=None, **kwargs):
     role = TestEngine.instance().get_default_role()
     role.expect_1_did(cmd, did, value=value, **kwargs)
 

@@ -8,6 +8,7 @@ from tools.converter import *
 import logging
 import os
 import re
+from collections import OrderedDict
 
 class ErrorCode(Enum):
     NO_ERROR = 0
@@ -45,7 +46,7 @@ class DIDRemote(Register):
     @classmethod
     def get_all_types(cls):
         all_types = set()
-        for key,value in  cls.get_sub_class_dict().items():
+        for key,value in cls.get_sub_class_dict().items():
             all_types.add(value.TYPE_NAME)
         return list(all_types)
 
@@ -57,6 +58,8 @@ class DIDRemote(Register):
             cls.READ_MEMBERS =  [deepcopy(meta) for meta in cls.MEMBERS if cmd_filter(meta.name, CMD.READ)]
             cls.WRITE_MEMBERS = [deepcopy(meta) for meta in cls.MEMBERS if cmd_filter(meta.name, CMD.WRITE)]
             cls.REPLY_MEMBERS = [deepcopy(meta) for meta in cls.MEMBERS if cmd_filter(meta.name, "d")]
+        if isinstance(cmd, CMD):
+            cmd = cmd.name
         if cmd == CMD.READ.name:
             return cls.READ_MEMBERS
         elif cmd == CMD.WRITE.name:
@@ -126,10 +129,17 @@ class DIDRemote(Register):
         else:
             return False
 
-    def __init__(self, data=None, decoder=None):
+    def __init__(self, data=None, decoder=None, **kwargs):
         self.units = []
         self.is_error = False
         self.data = bytes()
+        self.reply = False
+        if 'ctx' in kwargs:
+            self.ctx = kwargs["ctx"]
+            self.reply = self.ctx.is_reply()
+        else:
+            self.ctx = None
+            self.reply = False
         for member in self.MEMBERS:
             if isinstance(member, DataMetaType):
                 self.declare_metadata(member)
@@ -146,6 +156,14 @@ class DIDRemote(Register):
                 self.error_code = decoder.decode_u16()
             else:
                 self.data = decoder.decode_bytes(self.len)
+        if len(kwargs)>=0 and self.data is None:
+            encoder = BinaryEncoder()
+            for member in self.MEMBERS:
+                if member.get_pure_name() in kwargs:
+                    member.value = kwargs[member.get_pure_name()]
+                    member.encode(encoder)
+            self.data = encoder.get_data()
+
 
     def declare_metadata(self, metadata):
         self.units.append(metadata)
@@ -165,20 +183,35 @@ class DIDRemote(Register):
         else:
             self.data = bytes()
 
+    def decode_units(self):
+        from .smart7e_protocol import CMD
+        outputs = OrderedDict()
+        decoder = BinaryDecoder(self.data)
+        data = deepcopy(decoder.data)
+        if self.reply:
+            metas = self.get_members("reply")
+        else:
+            metas = self.get_members(CMD.WRITE)
+        if len(metas) == 1 and decoder.left_bytes():
+            unit = metas[0]
+            unit.decode(decoder)
+            outputs[unit.meta.get_pure_name()] = unit
+        elif len(metas) > 0:
+            for unit in metas:
+                if decoder.left_bytes() > 0:
+                    unit.decode(decoder, ctx=data)
+                    outputs[unit.get_pure_name()] = unit
+        return outputs
+
     def __str__(self):
         if not self.is_error:
             txt = "{0}-0x{1:0>4x}".format(self.__class__.__name__,self.DID)
-            decoder = BinaryDecoder(self.data)
-            data = deepcopy(decoder.data)
-            if len(self.units) == 1 and decoder.left_bytes():
-                unit = self.units[0]
-                unit.decode(decoder)
-                txt +=" " + unit.value_str()
-            elif len(self.units) > 0:
-                for unit in self.units:
-                    if decoder.left_bytes() > 0:
-                        unit.decode(decoder, ctx=data)
-                        txt +=" " + str(unit)
+            units = self.decode_units()
+            if len(units) == 1:
+                txt += " " + list(units.values())[0].value_str()
+            elif len(units) > 1:
+                for key,value in units.items():
+                    txt += " " + str(value)
             elif len(self.data) > 0:
                 txt += " " + str2hexstr(self.data)
             else:
