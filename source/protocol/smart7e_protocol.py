@@ -4,7 +4,6 @@ from .protocol import Protocol
 from .protocol import find_head
 from .data_fragment import *
 import time
-from .smart7e_DID import DIDRemote
 from .codec import BinaryEncoder, BinaryDecoder
 from tools.converter import str2hexstr,hexstr2bytes
 from esenum import EsEnum
@@ -13,13 +12,12 @@ from .data_fragment import DataFragment
 SMART_7e_HEAD = bytes([0x7e])
 
 
-class DIDLocal(EsEnum):
-    ASK_APPLICATION_ADDR = 0x05
-    SET_APPLICATION_ADDR = 0x01
-    READ_APPLICATION_ADDR = 0x03
-    ACTION_OK = 0x00
-    ACTION_FAIL = 0xff
-    SET_PANID = 0x0c
+class DIDLocal(object):
+    def __init__(self, cmd, units, name):
+        self.cmd = cmd
+        self.units = units
+        self.name = name
+
 
 class CMD(EsEnum):
     READ = 0x02
@@ -28,22 +26,63 @@ class CMD(EsEnum):
 
 
 class LocalFBD(DataFragment):
-    def __init__(self, cmd=None, data=None, decoder=None):
+    CMDS = []
+
+    @staticmethod
+    def append_cmd(cmd ,units, txt):
+        LocalFBD.CMDS.append(DIDLocal(cmd, units, txt))
+
+    @staticmethod
+    def find_cmd(data):
+        for cmd in LocalFBD.CMDS:
+            if isinstance(data, str):
+                if cmd.name == data:
+                    return cmd
+            elif isinstance(data,int):
+                if cmd.cmd == data:
+                    return cmd
+            else:
+                raise ValueError
+        print("no proper cmd",data)
+        raise NotImplemented
+
+    def __init__(self, cmd=None, data=None, decoder=None, **kwargs):
         if decoder is None:
-            self.cmd = cmd
+            self.cmd = self.find_cmd(cmd).cmd
             self.data = data
+            self.kwargs = kwargs
         else:
-            self.cmd = DIDLocal(value=decoder.decode_u8())
-            self.data = decoder.decode_left_bytes()
+            self.decode(decoder)
 
     def encode(self, encoder):
-        encoder.encode_u8(self.cmd.value)
-        if self.cmd == DIDLocal.SET_APPLICATION_ADDR:
-            encoder.encode_u32(self.data)
+        encoder.encode_u8(self.cmd)
+        if len(self.kwargs) == 0:
+            if isinstance(self.data, str):
+                value = hexstr2bytes(self.data)
+                encoder.encode_str(value)
+            elif self.data is not None:
+                local_cmd = self.find_cmd(self.cmd)
+                if len(local_cmd.units) == 1:
+                    unit = local_cmd.units[0]
+                    unit.value = self.data
+                    unit.encode(encoder)
+        else:
+            local_cmd = self.find_cmd(self.cmd)
+            for unit in local_cmd.units:
+                if unit.name in self.kwargs:
+                    unit.value = self.kwargs[unit.name]
+                    unit.encode(encoder)
+
+    def decode(self, decoder):
+        self.cmd = decoder.decode_u8()
+        self.data = decoder.decode_left_bytes()
 
     def __str__(self):
-        return str(self.cmd.name)
-
+        cmd_info = self.find_cmd(self.cmd)
+        if len(cmd_info.units) == 0  or self.data is None :
+            return cmd_info.name
+        else:
+            return cmd_info.name + " " + str(self.data)
 
 
 class RemoteFBD(DataFragment):
@@ -149,6 +188,11 @@ class Smart7EData(DataFragment):
                                                                   str(self.fbd))
         return text
 
+    def ack_message(self):
+        msg = Smart7EData(self.taid, self.said, self.fbd)
+        msg.seq = self.seq|0x80
+        return msg
+
 
 class Smart7eProtocol(Protocol):
 
@@ -200,3 +244,5 @@ class Smart7eProtocol(Protocol):
         if(show_time):
             print("time const:" ,time.time()-start,"data length",total_len)
         return False, 0, 0
+
+from .smart7e_DID import DIDRemote

@@ -1,6 +1,8 @@
 #encoding:utf-8
 import os
 import logging
+logging.basicConfig(format='%(asctime)s - %(levelname)s: %(message)s', level=logging.DEBUG)
+
 from docx_engine import DocxEngine
 from media import Media
 from protocol import Protocol
@@ -18,7 +20,7 @@ import json
 import re
 from autotest.resuse.basic_helper import PublicCase
 
-logging.basicConfig(format='%(asctime)s - %(levelname)s: %(message)s', level=logging.DEBUG)
+
 
 
 class TestEngine(object):
@@ -192,9 +194,8 @@ class Role(object):
         self.default_device = None
 
     def timeout_handle(self):
-        self.waiting = False
-        self.timer.stop()
-        TestEngine.instance().add_fail_test(self.name, "fail", "no return")
+        self.handle_rcv_msg(None)
+
 
     def config_com(self, **kwargs):
         self.media.config(**kwargs)
@@ -204,10 +205,20 @@ class Role(object):
         self.devices.append(device)
         if self.default_device is None:
             self.default_device = device
-        fbd = LocalFBD(DIDLocal.SET_APPLICATION_ADDR, src)
+        self.send_local_msg("设置应用层地址", src)
+        self.expect_local_msg(["确认", "否认"], timeout=2)
+
+    def send_local_msg(self, cmd, value, **kwargs):
+        fbd = LocalFBD(cmd, value)
         data = Smart7EData(0, 0, fbd)
         self.session.write(data)
-        self.expect_local_message([DIDLocal.ACTION_OK, DIDLocal.ACTION_FAIL], timeout=2)
+
+    def expect_local_msg(self, cmd, value=None, timeout=2, **kwargs):
+        self.waiting = True
+        self.validate = SmartLocalValidator(cmd=cmd)
+        self.timer.start(timeout * 1000)
+        while self.waiting:
+            QCoreApplication.instance().processEvents()
 
     def send_1_did(self, cmd, did, value=None, **kwargs):
         did_cls = DIDRemote.find_class_by_name(did)
@@ -217,7 +228,7 @@ class Role(object):
         data = Smart7EData(self.default_device.src, self.default_device.dst, fbd)
         self.session.write(data)
 
-    def expect_1_did(self, cmd, did, value=None, timeout=2, **kwargs):
+    def expect_1_did(self, cmd, did, value=None, timeout=2, ack=False, **kwargs):
         self.waiting = True
         self.timer.start(timeout*1000)
         cmd = CMD.to_enum(cmd)
@@ -235,28 +246,40 @@ class Role(object):
                                              cmd=cmd,
                                              did=did_cls.DID,
                                              value=value,
+                                             ack =ack,
                                              **kwargs)
         while self.waiting:
             QCoreApplication.instance().processEvents()
 
-    def expect_local_message(self, cmd, timeout=2):
-        self.waiting = True
-        self.validate = SmartLocalValidator(cmd=cmd)
-        self.timer.start(timeout * 1000)
-        while self.waiting:
-            QCoreApplication.instance().processEvents()
-
     def handle_rcv_msg(self, data):
-        self.log_rcv_frame(data)
+        if data is not None:
+            self.log_rcv_frame(data)
         if self.validate is not None:
             valid, msg = self.validate(data)
             if valid:
                 TestEngine.instance().add_normal_operation(self.name, "expect success", msg)
             else:
                 TestEngine.instance().add_fail_test(self.name, "expect fail", msg)
+            if self.validate.ack:
+                self.ack_report_message(data)
             self.waiting = False
             self.validate = None
             self.timer.stop()
+
+    def wait(self, seconds, expect_no_message):
+        self.waiting = True
+        self.validate = NoMessage(expect_no_message)
+        self.timer.start(seconds * 1000)
+        current = self.timer.remainingTime()
+        while self.waiting:
+            if current - self.timer.remainingTime() > 2000:
+                current = self.timer.remainingTime()
+                logging.info("\rleft %ds",current//1000)
+            QCoreApplication.instance().processEvents()
+
+    def ack_report_message(self, data):
+        data = data.ack_message()
+        self.session.write(data)
 
     def log_snd_frame(self, data):
         TestEngine.instance().add_normal_operation(self.name, "snd", str(data))
@@ -302,12 +325,11 @@ def test_end(name):
 def generate_test_report():
     TestEngine.instance().generate_test_report()
 
-def wait(seconds, msg=""):
-    import time
-    while seconds >=0 :
-        seconds -= 1
-        time.sleep(1)
-        logging.info("we will wait  %d s, %s", seconds, msg)
+def wait(seconds, expect_no_message=False, tips=""):
+    msg ="we will wait {0}s, {1}".format(seconds, tips)
+    add_doc_info(msg)
+    role = TestEngine.instance().get_default_role()
+    role.wait(seconds, expect_no_message)
 
 
 def create_test_case(fun, *args, **kwargs):
@@ -332,9 +354,17 @@ def send_1_did(cmd, did, value=None, **kwargs):
     role.send_1_did(cmd, did, value=value, **kwargs)
 
 
-def expect_1_did(cmd, did, value=None, **kwargs):
+def expect_1_did(cmd, did, value=None,timeout=2,ack=False,**kwargs):
     role = TestEngine.instance().get_default_role()
-    role.expect_1_did(cmd, did, value=value, **kwargs)
+    role.expect_1_did(cmd, did, value=value, timeout=timeout,ack=ack, **kwargs)
+
+def send_local_msg(cmd, value=None, **kwargs):
+    role = TestEngine.instance().get_default_role()
+    role.send_local_msg(cmd, value, **kwargs)
+
+def expect_local_msg(cmd, value=None, **kwargs):
+    role = TestEngine.instance().get_default_role()
+    role.expect_local_msg(cmd, value, **kwargs)
 
 def _parse_doc_string(doc_string):
     if doc_string is None:

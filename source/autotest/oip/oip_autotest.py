@@ -10,6 +10,7 @@ config["校验位"] = 'None'
 config["抄控器默认源地址"] = 1
 config["测试设备地址"] = 464148
 config["设备密码"] = 55013
+config["panid"] = 22
 
 engine.config(config)
 
@@ -81,14 +82,30 @@ def para_save_test():
 
 
 def report_test():
-    "上报测试.频率上报"
+    """
+    上报测试.组网上报测试"
+    """
     r"4aid+2panid+2pw+4gid+2sid"
-    engine.send_1_did("WRITE", "载波芯片注册信息", aid=config["测试设备地址"],  panid=22, pw=config["设备密码"],gid=1,sid=1)
+    engine.send_local_msg("设置PANID", config["panid"])
+    engine.expect_local_msg("确认")
+
+    engine.send_1_did("WRITE", "载波芯片注册信息", aid=config["测试设备地址"],  panid=config["panid"], pw=config["设备密码"],gid=1,sid=1)
     engine.expect_1_did("WRITE","载波芯片注册信息", "** ** ** ** ** **")
 
+    engine.add_doc_info("设备组网会启动组网上报，上报一次，重发三次，总共四次")
+    engine.expect_1_did("REPORT","读传感器数据","10 **", timeout=3)
+    engine.expect_1_did("REPORT", "读传感器数据", "10 **", timeout=3)
+    engine.expect_1_did("REPORT", "读传感器数据", "10 **", timeout=10)
+    engine.expect_1_did("REPORT", "读传感器数据", "10 **", timeout=15)
+
+    engine.add_doc_info("上报收到回复之后，便不会重发")
+    engine.send_1_did("WRITE", "载波芯片注册信息", aid=config["测试设备地址"],  panid=config["panid"], pw=config["设备密码"],gid=1,sid=1)
+    engine.expect_1_did("WRITE","载波芯片注册信息", "** ** ** ** ** **")
+    engine.expect_1_did("REPORT", "读传感器数据", "10 **", timeout=3, ack=True)
+    engine.wait(20, expect_no_message=True,tips="确保20s之内不会收到上报信息")
 
 
 if __name__ == "__main__":
     import os
     engine.set_output_dir(os.path.dirname(__file__))
-    engine.run_all_tests(locals(), gui=True)
+    engine.run_all_tests(locals(), gui=False)

@@ -89,7 +89,7 @@ class DIDRemote(Register):
                 return cls.find_class_by_did(did)
             except ValueError as error:
                 return None
-            return None
+            raise NotImplemented
 
     @classmethod
     def find_class_by_did(cls, did):
@@ -195,7 +195,7 @@ class DIDRemote(Register):
         if len(metas) == 1 and decoder.left_bytes():
             unit = metas[0]
             unit.decode(decoder)
-            outputs[unit.meta.get_pure_name()] = unit
+            outputs[unit.get_pure_name()] = unit
         elif len(metas) > 0:
             for unit in metas:
                 if decoder.left_bytes() > 0:
@@ -266,11 +266,26 @@ def _parse_dids(sheet, enum_dict):
 def _parse_enum(sheet):
     name_values = {}
     for row in range(1, sheet.nrows):
-        values = sheet.row_values(row, 0, )
+        values = sheet.row_values(row, 0)
         name_values[values[0]] = int(values[1], base=16)
     return name_values
 
 enum_dict={}
+
+
+def _parse_local_cmd(sheet):
+    from .smart7e_protocol import LocalFBD
+    for row in range(1, sheet.nrows):
+        values = sheet.row_values(row, 0)
+        value, format, cmd_name = int(str(values[0]), base=16), values[1], values[4]
+        member_configs = re.findall(r"[(（](\w*)[,，](\w*)[)）]", format)
+        units = []
+        for meta_type,  name in member_configs:
+            paras = {}
+            paras[name] = meta_type
+            data_meta = DataMetaType.create(paras)
+            units.append(data_meta)
+        LocalFBD.append_cmd(value, units, cmd_name)
 
 def sync_xls_dids():
     import xlrd
@@ -281,8 +296,9 @@ def sync_xls_dids():
     for name in workbook.sheet_names():
         if name.startswith("enum"):
             enum_dict[name[4:]] = _parse_enum(workbook.sheet_by_name(name))
-    sheet = workbook.sheet_by_name("dids")
-    _parse_dids(sheet,enum_dict)
+    _parse_dids(workbook.sheet_by_name("dids"), enum_dict)
+    _parse_local_cmd(workbook.sheet_by_name("localcmd"))
+    logging.info("load dids ok!!!!!")
 
 def get_value_txt(enum_key, value):
     value_dict = enum_dict[enum_key]

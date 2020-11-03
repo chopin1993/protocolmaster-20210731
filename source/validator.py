@@ -2,31 +2,49 @@ from register import Register
 from protocol.smart7e_protocol import *
 
 class Validator(Register):
-    def __int__(self):
+    def __init__(self):
+        self.ack = False
         pass
 
     def __call__(self, data):
         raise NotImplemented
 
+class NoMessage(Validator):
+    def __init__(self,expect_no_message=False):
+        super(NoMessage, self).__init__()
+        self.expect_no_message = expect_no_message
+
+    def __call__(self, data):
+        if data is None or not self.expect_no_message:
+            return True, "验证成功"
+        else:
+            return False,"验证失败,收到异常报文"
+
 
 class SmartLocalValidator(Validator):
 
     def __init__(self, **kwargs):
+        super(SmartLocalValidator, self).__init__()
         self.kwargs = kwargs
+        self.cmd = self.kwargs['cmd']
+        if not isinstance(self.cmd, list):
+            self.cmd = [self.cmd]
+        self.cmd =[LocalFBD.find_cmd(cmd).cmd for cmd in self.cmd]
 
     def __call__(self, data):
+        if data is None:
+            return False, "验证失败, 没有收到回复报文"
         is_local = data.is_local()
         fbd = data.fbd
-        values = self.kwargs['cmd']
         cmd = fbd.cmd
-        if isinstance(values, list):
-            cmd_valid = cmd in values
+        if isinstance(self.cmd , list):
+            cmd_valid = cmd in self.cmd
         else:
             cmd_valid = (cmd == fbd.cmd)
         if is_local and cmd_valid:
-            return True, "expect success"
+            return True, "验证成功"
         else:
-            return False, "expect fail"
+            return False, "验证失败"
 
 class BytesCompare(Validator):
     def __init__(self, placeholder):
@@ -53,13 +71,15 @@ class UnitCompare(Validator):
         return True
 
 class SmartOneDidValidator(Validator):
-    def __init__(self, src, dst, cmd, did, value,**kwargs):
+    def __init__(self, src, dst, cmd, did, value,ack=False,**kwargs):
+        super(SmartOneDidValidator, self).__init__()
         self.cmd = cmd
         self.did = did
         self.value = value
         self.src = src
         self.dst = dst
         self.kwargs = kwargs
+        self.ack = ack
 
     def __call__(self, smartData):
         def compare_data(expect_value,target_value):
@@ -73,6 +93,6 @@ class SmartOneDidValidator(Validator):
             self.dst == smartData.taid and \
             self.did == did.DID and \
             compare_data(self.value, did.data):
-            return True, "expect success"
+            return True, "验证成功"
         else:
-            return False, "expect fail,cmd src dst or did data not match"
+            return False, "验证失败,cmd src dst or did data not match"
