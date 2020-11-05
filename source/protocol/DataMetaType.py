@@ -29,14 +29,19 @@ class DataMetaType(Register):
         for key, value in member.items():
             if value in type_dict:
                 value = type_dict[value]
-            cls = DataMetaType.find_sub_class_by_name("Data"+value)
+            if not value.startswith("Data"):
+                value = "Data"+value
+            cls = DataMetaType.find_sub_class_by_name(value)
             if cls is None:
                 print("no meta type:",value)
                 raise NotImplemented
-            return cls(name=key)
+            ob = cls(name=key)
+            if "attr" in member:
+                ob.attr = member["attr"]
+            return ob
         return None
 
-    def __init__(self, name=None, value=None, decoder=None):
+    def __init__(self, name=None, value=None, attr="", decoder=None):
         '''
         数据显示的基本单元，主要作用如下：
         1. 创建对应的wdiget
@@ -46,6 +51,7 @@ class DataMetaType(Register):
         '''
         self.name = name
         self._value = value
+        self.attr = attr
         if decoder is not None:
             self.decode(decoder)
         self.widget = None
@@ -90,17 +96,13 @@ class DataMetaType(Register):
             return str(self._value)
 
     def __str__(self):
-        return "{0}:{1}".format(self.get_pure_name(), self.value_str())
-
-    def get_pure_name(self):
-        name = self.name
-        return name.split("_")[0]
+        return "{0}:{1}".format(self.name, self.value_str())
 
     def get_widgets(self, *args, **kwargs):
         if self.widget is None:
             widget = QtWidgets.QWidget()
             layout = QHBoxLayout()
-            name_widget = QLabel(self.get_pure_name())
+            name_widget = QLabel(self.name)
             value_widget = QLineEdit()
             if self._value is not None:
                 value_widget.setText(self.value_str())
@@ -224,7 +226,7 @@ class DataU8Enum(DataMetaType):
     def get_widgets(self, *args, **kwargs):
         widget = QtWidgets.QWidget()
         layout = QHBoxLayout()
-        name_widget = QLabel(self.get_pure_name())
+        name_widget = QLabel(self.name)
         value_widget = QComboBox()
         for key, value in self.name_dict.items():
             value_widget.addItem(key)

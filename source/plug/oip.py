@@ -16,7 +16,7 @@ from protocol.smart7e_DID import sync_json_dids
 class OIPPlug(ApplicationPlug, Ui_Form):
     TAID_KEY= "TAID_KEY"
     def __init__(self):
-        super(OIPPlug, self).__init__("智能视觉传感器")
+        super(OIPPlug, self).__init__("oip")
         self.current_did_tmp = None
         self.current_cmd_tmp = None
         self.setupUi(self)

@@ -21,14 +21,13 @@ class ErrorCode(Enum):
     NO_RETURN = 0x10
 
 
-def cmd_filter(name, cmd):
+def cmd_filter(suffixs, cmd):
     from .smart7e_protocol import CMD
     ids = cmd
     if cmd == CMD.READ:
         ids = "r"
     elif cmd == CMD.WRITE:
         ids = "w"
-    suffixs = name.split("_")
     if len(suffixs) <= 1:
         return False
     return ids in suffixs[-1]
@@ -55,7 +54,7 @@ class DIDRemote(Register):
         from .smart7e_protocol import CMD
         if cls.INIT is False:
             cls.INIT = True
-            cls.READ_MEMBERS =  [deepcopy(meta) for meta in cls.MEMBERS if cmd_filter(meta.name, CMD.READ)]
+            cls.READ_MEMBERS =  [deepcopy(meta) for meta in cls.MEMBERS if cmd_filter(meta.attr, CMD.READ)]
             cls.WRITE_MEMBERS = [deepcopy(meta) for meta in cls.MEMBERS if cmd_filter(meta.name, CMD.WRITE)]
             cls.REPLY_MEMBERS = [deepcopy(meta) for meta in cls.MEMBERS if cmd_filter(meta.name, "d")]
         if isinstance(cmd, CMD):
@@ -159,8 +158,8 @@ class DIDRemote(Register):
         if len(kwargs)>=0 and self.data is None:
             encoder = BinaryEncoder()
             for member in self.MEMBERS:
-                if member.get_pure_name() in kwargs:
-                    member.value = kwargs[member.get_pure_name()]
+                if member.name in kwargs:
+                    member.value = kwargs[member.name]
                     member.encode(encoder)
             self.data = encoder.get_data()
 
@@ -195,12 +194,12 @@ class DIDRemote(Register):
         if len(metas) == 1 and decoder.left_bytes():
             unit = metas[0]
             unit.decode(decoder)
-            outputs[unit.get_pure_name()] = unit
+            outputs[unit.name] = unit
         elif len(metas) > 0:
             for unit in metas:
                 if decoder.left_bytes() > 0:
                     unit.decode(decoder, ctx=data)
-                    outputs[unit.get_pure_name()] = unit
+                    outputs[unit.name] = unit
         return outputs
 
     def __str__(self):
@@ -239,16 +238,16 @@ def _parse_dids(sheet, enum_dict):
         values = sheet.row_values(row, 0, )
         type, did, member_patterns, name = values[1], values[2], values[5], values[11]
         did_infos.append((type, did, member_patterns, name))
-
-    for did_type, did, member_patterns, did_name in did_infos:
+    logging.info("did rows %d, rows %d", sheet.nrows-1, len(did_infos))
+    for idx,(did_type, did, member_patterns, did_name) in enumerate(did_infos):
         cls = DIDRemote.find_class_by_name(did_name, refresh=True)
         if cls is None:
             member_configs = re.findall(r"[(（](\w*)[,，](\w*)[,，](\w*)[)）]", member_patterns)
             members = []
             for meta_type, attr, name in member_configs:
-                name_used = name + "_" + attr
                 paras = {}
-                paras[name_used] = meta_type
+                paras[name] = meta_type
+                paras['attr'] = attr
                 data_meta = DataMetaType.create(paras)
                 if "enum" in meta_type:
                     assert name in enum_dict, name
@@ -261,6 +260,12 @@ def _parse_dids(sheet, enum_dict):
                     data_meta.value_str_func = value_str_func
                 members.append(data_meta)
             create_remote_class(did_name, int(did, base=16), members, did_type)
+        else:
+            logging.warning("repeat did:%d name:%s", did, did_name)
+    did_dict = DIDRemote.get_did_dict(True)
+    for idx, (did_type, did, member_patterns, did_name) in enumerate(did_infos):
+        if did_name not in did_dict:
+            logging.error("%s class fail", did_name)
 
 
 def _parse_enum(sheet):
@@ -298,7 +303,7 @@ def sync_xls_dids():
             enum_dict[name[4:]] = _parse_enum(workbook.sheet_by_name(name))
     _parse_dids(workbook.sheet_by_name("dids"), enum_dict)
     _parse_local_cmd(workbook.sheet_by_name("localcmd"))
-    logging.info("load dids ok!!!!!")
+    logging.info("load  %d dids ok!!!!!",len(DIDRemote.get_did_dict()))
 
 def get_value_txt(enum_key, value):
     value_dict = enum_dict[enum_key]

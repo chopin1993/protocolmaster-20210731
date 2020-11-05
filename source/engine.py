@@ -2,25 +2,23 @@
 import os
 import logging
 logging.basicConfig(format='%(asctime)s - %(levelname)s: %(message)s', level=logging.DEBUG)
-
 from docx_engine import DocxEngine
 from media import Media
 from protocol import Protocol
 from session import SessionSuit
 from protocol.smart7e_protocol import *
 from PyQt5.QtCore import *
+from PyQt5.QtWidgets import *
 import sys
 from validator import *
 from tools.converter import *
 from test_case import TestCaseInfo
 from case_editor import CaseEditor
-from PyQt5.QtWidgets import *
 from copy import deepcopy
 import json
 import re
-from autotest.resuse.basic_helper import PublicCase
-
-
+from public_case import PublicCase,FunCaseAdapter
+import types
 
 
 class TestEngine(object):
@@ -237,10 +235,17 @@ class Role(object):
         if isinstance(value, str):
             if did_cls.is_value_string(value):
                 value = str2bytearray(value)
-            elif value is None:
-                value = BytesCompare(did_cls.encode_reply(**kwargs))
             else:
                 value = BytesCompare(value)
+        elif isinstance(value, types.FunctionType):
+            value = FunctionCompare(value)
+        elif isinstance(value,Validator):
+            pass
+        elif value is None:
+            value = BytesCompare(did_cls.encode_reply(**kwargs))
+        else:
+            raise ValueError
+
         self.validate = SmartOneDidValidator(src=self.default_device.dst,
                                              dst= self.default_device.src,
                                              cmd=cmd,
@@ -327,7 +332,7 @@ def generate_test_report():
 
 def wait(seconds, expect_no_message=False, tips=""):
     msg ="we will wait {0}s, {1}".format(seconds, tips)
-    add_doc_info(msg)
+    logging.info(msg)
     role = TestEngine.instance().get_default_role()
     role.wait(seconds, expect_no_message)
 
@@ -349,14 +354,14 @@ def config(infos):
     TestEngine.instance().group_begin("测试配置信息", init_func,None)
 
 
-def send_1_did(cmd, did, value=None, **kwargs):
+def send_did(cmd, did, value=None, **kwargs):
     role = TestEngine.instance().get_default_role()
-    role.send_1_did(cmd, did, value=value, **kwargs)
+    role.send_did(cmd, did, value=value, **kwargs)
 
 
-def expect_1_did(cmd, did, value=None,timeout=2,ack=False,**kwargs):
+def expect_did(cmd, did, value=None, timeout=2, ack=False, **kwargs):
     role = TestEngine.instance().get_default_role()
-    role.expect_1_did(cmd, did, value=value, timeout=timeout,ack=ack, **kwargs)
+    role.expect_did(cmd, did, value=value, timeout=timeout, ack=ack, **kwargs)
 
 def send_local_msg(cmd, value=None, **kwargs):
     role = TestEngine.instance().get_default_role()
@@ -381,7 +386,7 @@ def _parse_doc_string(doc_string):
         if len(names[0]) >=2: # 组名称不变
             group_brief = None
             if brief is not None:
-                search = re.search(r"group:(.*)case:(.*)", brief, re.S)
+                search = re.search(r"group[:：](.*)case[:：](.*)", brief, re.S)
                 if search is not None:
                     group_brief = search.group(1)
                     brief = search.group(2)
@@ -391,9 +396,11 @@ def _parse_doc_string(doc_string):
     else:
         return True, names[0], brief,False, None, None
 
-def _parse_user_testcase(tests):
+
+def _parse_func_testcase(tests):
     for test in tests:
-        has_group, group_name,group_brief,has_case,case_name,case_brief = _parse_doc_string(test.__doc__)
+        has_group, group_name, group_brief, has_case, case_name, case_brief = _parse_doc_string(test.__doc__)
+        test = FunCaseAdapter(test)
         if has_group:
             func = None if has_case else test
             TestEngine.instance().group_begin(group_name, func, group_brief)
@@ -402,7 +409,7 @@ def _parse_user_testcase(tests):
 
 
 def _parse_public_test_case():
-    cls_dict = PublicCase.get_sub_class_instances()
+    cls_dict = PublicCase.get_valid_cases()
     for key, value in cls_dict.items():
         has_group, group_name, group_brief, has_case, case_name, case_brief = _parse_doc_string(value.__doc__)
         if has_group:
@@ -419,7 +426,7 @@ def run_all_tests(funcs, gui=False):
             tests.append(value)
 
     _parse_public_test_case()
-    _parse_user_testcase(tests)
+    _parse_func_testcase(tests)
 
     try:
         TestEngine.instance().load_config()

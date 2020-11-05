@@ -52,6 +52,8 @@ class BytesCompare(Validator):
 
     def __call__(self, data):
         place_holders = self.placeholder.split(" ")
+        if len(place_holders) != len(data):
+            return False
         for i,holder in enumerate(place_holders):
             if "*" in holder:
                 continue
@@ -59,6 +61,14 @@ class BytesCompare(Validator):
             if value != data[i]:
                 return False
         return True
+
+
+class FunctionCompare(Validator):
+    def __init__(self, func):
+        self.func = func
+
+    def __call__(self, data):
+        return self.func(data)
 
 
 class UnitCompare(Validator):

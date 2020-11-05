@@ -1,5 +1,5 @@
 #encoding:utf-8
-from autotest.resuse.basic_helper import PublicCase
+from autotest.resuse.基本报文测试 import PublicCase
 class TestCaseInfo(object):
     def __init__(self, name, func, brief):
         self.name = name
