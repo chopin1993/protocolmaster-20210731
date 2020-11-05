@@ -92,6 +92,8 @@ class SmartOneDidValidator(Validator):
         self.ack = ack
 
     def __call__(self, smartData):
+        if smartData is None:
+            return False, "没有回复"
         def compare_data(expect_value,target_value):
             if isinstance(expect_value, Validator):
                 return expect_value(did.data)

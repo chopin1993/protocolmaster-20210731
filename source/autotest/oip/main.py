@@ -51,7 +51,6 @@ def status_step_sync_test():
     engine.add_doc_info("读取人体存在上报步长，确认默认开启")
     engine.send_did("READ", "上报步长", "10")
     engine.expect_did("READ", "上报步长", "10 01")
-
     engine.add_doc_info("修改默认步长为0，并读取确认修改成功")
     engine.send_did("WRITE", "上报步长", "10 00")
     engine.expect_did("WRITE", "上报步长", "10 00")
@@ -95,13 +94,11 @@ def report_test():
                     gid=1,
                     sid=1)
     engine.expect_did("WRITE", "载波芯片注册信息", "** ** ** ** ** **")
-    def test_data(data):
-        return True
 
     engine.add_doc_info("设备组网会启动组网上报，上报一次，重发三次，总共四次")
     engine.expect_did("REPORT", "读传感器数据", "10 **", timeout=3)
     engine.expect_did("REPORT", "读传感器数据", "10 **", timeout=3)
-    engine.expect_did("REPORT", "读传感器数据", test_data, timeout=10)
+    engine.expect_did("REPORT", "读传感器数据", "10 **", timeout=10)
     engine.expect_did("REPORT", "读传感器数据", "10 **", timeout=15)
 
     engine.add_doc_info("上报收到回复之后，便不会重发")
@@ -109,9 +106,6 @@ def report_test():
     engine.expect_did("WRITE", "载波芯片注册信息", "** ** ** ** ** **")
     engine.expect_did("REPORT", "读传感器数据", "10 **", timeout=3, ack=True)
     engine.wait(20, expect_no_message=True,tips="确保20s之内不会收到上报信息")
-
-
-
 
 # def master_test():
 #     """

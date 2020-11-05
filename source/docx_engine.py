@@ -6,16 +6,19 @@ import os
 __version__ = "V1.0"
 
 
+def get_config_file(name):
+    return os.path.join(os.path.dirname(__file__), "resource", name)
+
 class DocxEngine(object):
     def __init__(self, name=None):
         self.name = None
-        self.document = docx.Document("resource/template_test.docx")
+        self.document = docx.Document(get_config_file("template_test.docx"))
         styles = [s for s in self.document.styles]
         if name is not None:
             self.write_doc_head(name)
 
     def write_doc_head(self, name):
-        self.document = docx.Document("resource/template_test.docx")
+        self.document = docx.Document(get_config_file("template_test.docx"))
         self.name = name
         self.document.add_heading("\n\n\n", 0)
         self.document.add_heading("自动测试", 0)

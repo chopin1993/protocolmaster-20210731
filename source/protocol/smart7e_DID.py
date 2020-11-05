@@ -30,7 +30,7 @@ def cmd_filter(suffixs, cmd):
         ids = "w"
     if len(suffixs) <= 1:
         return False
-    return ids in suffixs[-1]
+    return ids in suffixs
 
 class DIDRemote(Register):
     DID=0xff00
@@ -55,8 +55,8 @@ class DIDRemote(Register):
         if cls.INIT is False:
             cls.INIT = True
             cls.READ_MEMBERS =  [deepcopy(meta) for meta in cls.MEMBERS if cmd_filter(meta.attr, CMD.READ)]
-            cls.WRITE_MEMBERS = [deepcopy(meta) for meta in cls.MEMBERS if cmd_filter(meta.name, CMD.WRITE)]
-            cls.REPLY_MEMBERS = [deepcopy(meta) for meta in cls.MEMBERS if cmd_filter(meta.name, "d")]
+            cls.WRITE_MEMBERS = [deepcopy(meta) for meta in cls.MEMBERS if cmd_filter(meta.attr, CMD.WRITE)]
+            cls.REPLY_MEMBERS = [deepcopy(meta) for meta in cls.MEMBERS if cmd_filter(meta.attr, "d")]
         if isinstance(cmd, CMD):
             cmd = cmd.name
         if cmd == CMD.READ.name:
@@ -107,7 +107,7 @@ class DIDRemote(Register):
     @classmethod
     def encode_widgets(cls, widgets, cmd):
         encoder = BinaryEncoder()
-        metas =  cls.get_members(cmd)
+        metas = cls.get_members(cmd)
         for meta, widget in zip(metas, widgets):
             data = deepcopy(encoder.data)
             meta.encode_widget_value(widget, encoder, ctx=data)
@@ -224,7 +224,8 @@ class DIDRemote(Register):
         return txt
 
 def create_remote_class(name, did, member,type_name=""):
-    cls = type(name, (DIDRemote,), {})
+    from types import new_class
+    cls = new_class(name, (DIDRemote,), {})
     cls.DID = did
     cls.MEMBERS = member
     cls.TYPE_NAME = type_name
@@ -263,9 +264,13 @@ def _parse_dids(sheet, enum_dict):
         else:
             logging.warning("repeat did:%d name:%s", did, did_name)
     did_dict = DIDRemote.get_did_dict(True)
+    all_load =True
     for idx, (did_type, did, member_patterns, did_name) in enumerate(did_infos):
         if did_name not in did_dict:
             logging.error("%s class fail", did_name)
+            all_load = False
+    if not all_load:
+        exit(-1)
 
 
 def _parse_enum(sheet):
@@ -292,10 +297,15 @@ def _parse_local_cmd(sheet):
             units.append(data_meta)
         LocalFBD.append_cmd(value, units, cmd_name)
 
+
+def get_config_file(name):
+    return os.path.join(os.path.dirname(__file__), ".." , "resource", name)
+
+
 def sync_xls_dids():
     import xlrd
     global enum_dict
-    config_file = os.path.join("resource", "数据标识分类表格.xls")
+    config_file = get_config_file("数据标识分类表格.xls")
     workbook = xlrd.open_workbook(config_file)
     enum_dict = {}
     for name in workbook.sheet_names():

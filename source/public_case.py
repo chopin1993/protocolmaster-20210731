@@ -44,6 +44,11 @@ class PublicCase(Register):
             if unit.name in config:
                 unit.value = config[unit.name]
 
+    def get_para_value(self, name):
+        for unit in self.units:
+            if unit.name==name:
+                return unit.value
+
 
 class FunCaseAdapter(PublicCase):
     def __init__(self, func):
@@ -51,7 +56,7 @@ class FunCaseAdapter(PublicCase):
         self.func = func
         for key,value in func.__annotations__.items():
             paras ={}
-            paras[key]= value
+            paras[key]= value.__name__
             self.append_unit(DataMetaType.create(paras))
 
     def __call__(self, *args, **kwargs):

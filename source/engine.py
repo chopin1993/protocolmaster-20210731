@@ -19,7 +19,8 @@ import json
 import re
 from public_case import PublicCase,FunCaseAdapter
 import types
-
+from tools.filetool import get_file_list
+import importlib
 
 class TestEngine(object):
     _instance = None
@@ -218,7 +219,7 @@ class Role(object):
         while self.waiting:
             QCoreApplication.instance().processEvents()
 
-    def send_1_did(self, cmd, did, value=None, **kwargs):
+    def send_did(self, cmd, did, value=None, **kwargs):
         did_cls = DIDRemote.find_class_by_name(did)
         if isinstance(value, str):
             value = hexstr2bytes(value)
@@ -226,7 +227,7 @@ class Role(object):
         data = Smart7EData(self.default_device.src, self.default_device.dst, fbd)
         self.session.write(data)
 
-    def expect_1_did(self, cmd, did, value=None, timeout=2, ack=False, **kwargs):
+    def expect_did(self, cmd, did, value=None, timeout=2, ack=False, **kwargs):
         self.waiting = True
         self.timer.start(timeout*1000)
         cmd = CMD.to_enum(cmd)
@@ -241,11 +242,12 @@ class Role(object):
             value = FunctionCompare(value)
         elif isinstance(value,Validator):
             pass
-        elif value is None:
+        elif value is None and len(kwargs) > 0:
             value = BytesCompare(did_cls.encode_reply(**kwargs))
+        elif value is not None:
+            self.value = value
         else:
             raise ValueError
-
         self.validate = SmartOneDidValidator(src=self.default_device.dst,
                                              dst= self.default_device.src,
                                              cmd=cmd,
@@ -380,54 +382,45 @@ def _parse_doc_string(doc_string):
     if len(names) >= 2:
         briefs = [data.lstrip() for data in names[1:]]
         brief = "\n".join(briefs)
-    doc_string = names[0]
-    names = doc_string.split(".")
-    if len(names) >= 2: #表示有测试用例
-        if len(names[0]) >=2: # 组名称不变
-            group_brief = None
-            if brief is not None:
-                search = re.search(r"group[:：](.*)case[:：](.*)", brief, re.S)
-                if search is not None:
-                    group_brief = search.group(1)
-                    brief = search.group(2)
-            return True, names[0], group_brief, True, names[1], brief
-        else:
-            return False, None, None, True, names[1], brief
-    else:
-        return True, names[0], brief,False, None, None
+    return names[0],brief
 
+
+
+def gather_all_test(variables):
+    tests = []
+    for key, value in variables.items():
+        if key.endswith("test"):
+            tests.append(value)
+    return tests
 
 def _parse_func_testcase(tests):
     for test in tests:
-        has_group, group_name, group_brief, has_case, case_name, case_brief = _parse_doc_string(test.__doc__)
+        case_name, case_brief = _parse_doc_string(test.__doc__)
         test = FunCaseAdapter(test)
-        if has_group:
-            func = None if has_case else test
-            TestEngine.instance().group_begin(group_name, func, group_brief)
-        if has_case:
-            TestEngine.instance().test_begin(case_name, test, case_brief)
+        TestEngine.instance().test_begin(case_name, test, case_brief)
 
 
 def _parse_public_test_case():
-    cls_dict = PublicCase.get_valid_cases()
-    for key, value in cls_dict.items():
-        has_group, group_name, group_brief, has_case, case_name, case_brief = _parse_doc_string(value.__doc__)
-        if has_group:
-            func = None if has_case else value
-            TestEngine.instance().group_begin(group_name, func, group_brief)
-        if has_case:
-            TestEngine.instance().test_begin(case_name, value, case_brief)
+    public_dir = os.path.join(TestEngine.instance().output_dir, "..", "公共用例")
+    files = get_file_list(public_dir)
+    for name in files:
+        name = os.path.splitext(name)[0]
+        if name.startswith("__"):
+            continue
+        mod = importlib.import_module("autotest.公共用例." + name)
+        group_brief = getattr(mod, "测试组说明", None)
+        tests = gather_all_test(mod.__dict__)
+        TestEngine.instance().group_begin(name, None, group_brief)
+        for test in tests:
+            case_name, case_brief = _parse_doc_string(test.__doc__)
+            test = FunCaseAdapter(test)
+            TestEngine.instance().test_begin(case_name, test, case_brief)
 
 
 def run_all_tests(funcs, gui=False):
-    tests = []
-    for key, value in funcs.items():
-        if key.endswith("test"):
-            tests.append(value)
-
+    tests = gather_all_test(funcs)
     _parse_public_test_case()
     _parse_func_testcase(tests)
-
     try:
         TestEngine.instance().load_config()
     except Exception as e:
@@ -442,5 +435,3 @@ def run_all_tests(funcs, gui=False):
         app = QCoreApplication(sys.argv)
         TestEngine.instance().run_all_test()
     exit(0)
-
-
