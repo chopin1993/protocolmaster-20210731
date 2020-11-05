@@ -1,7 +1,9 @@
 #encoding:utf-8
 import os
 import logging
+
 logging.basicConfig(format='%(asctime)s - %(levelname)s: %(message)s', level=logging.DEBUG)
+
 from docx_engine import DocxEngine
 from media import Media
 from protocol import Protocol
@@ -347,6 +349,7 @@ def create_test_case(fun, *args, **kwargs):
 
 
 def config(infos):
+    TestEngine.instance().config = infos
     TestEngine.instance().config_test_program_name(infos["测试程序名称"])
     com = TestEngine.instance().create_com_device(infos["串口"])
     def init_func():
@@ -355,6 +358,8 @@ def config(infos):
         com.create_device("monitor", infos["抄控器默认源地址"], infos["测试设备地址"])
     TestEngine.instance().group_begin("测试配置信息", init_func,None)
 
+def get_config():
+    return TestEngine.instance().config
 
 def send_did(cmd, did, value=None, **kwargs):
     role = TestEngine.instance().get_default_role()

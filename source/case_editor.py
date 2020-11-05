@@ -3,6 +3,23 @@ from PyQt5.QtWidgets import *
 from PyQt5.QtCore import *
 import re
 import sip
+import logging
+
+class UIHandler(logging.Handler):
+    def __init__(self,txtBrower):
+        logging.Handler.__init__(self)
+        fmt = logging.Formatter('%(asctime)s - %(levelname)s: %(message)s')
+        self.setFormatter(fmt)
+        self.txtBrower = txtBrower
+
+    def emit(self, record):
+        try:
+            msg = self.format(record)
+            self.txtBrower.append(msg)
+        except RecursionError:  # See issue 36272
+            raise
+        except Exception:
+            self.handleError(record)
 
 class CaseEditor(QMainWindow, Ui_MainWindow):
     def __init__(self, engine):
@@ -23,6 +40,21 @@ class CaseEditor(QMainWindow, Ui_MainWindow):
         self.paraContainerWidget.setLayout(layout)
         self.testCaseView.setContextMenuPolicy(Qt.CustomContextMenu)
         self.testCaseView.customContextMenuRequested.connect(self.show_case_menu)
+        self.logTextBrowser.setContextMenuPolicy(Qt.CustomContextMenu)
+        self.logTextBrowser.customContextMenuRequested.connect(self.show_log_menu)
+        logger = logging.getLogger()
+        hander = UIHandler(self.logTextBrowser)
+        logger.addHandler(hander)
+
+    def show_log_menu(self,pos):
+        menu = QMenu()
+        run_test = menu.addAction("清空")
+        action = menu.exec_(self.logTextBrowser.mapToGlobal(pos))
+        if action == run_test:
+            self.logTextBrowser.clear()
+            return
+        else:
+            return
 
     def show_case_menu(self,pos):
         menu = QMenu()

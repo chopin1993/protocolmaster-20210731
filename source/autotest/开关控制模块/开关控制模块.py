@@ -15,7 +15,6 @@ config["panid"] = 22
 
 engine.config(config)
 
-
 if __name__ == "__main__":
     import os
     engine.set_output_dir(os.path.dirname(__file__))

@@ -4,6 +4,18 @@ import sqlite3
 import datetime
 
 
+class CursorConext(object):
+    def __init__(self, db):
+        self.db = db
+
+    def __enter__(self):
+        self.cursor = self.db.cursor()
+        return self.cursor
+
+    def __exit__(self):
+        self.cursor.close()
+
+
 class EsDatabase(object):
     def __init__(self,name):
         self.name = name
