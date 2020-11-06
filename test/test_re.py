@@ -19,3 +19,17 @@ def test_replce():
     x ="xxxxx:"
     y= x.replace(':','_')
     print(x,y)
+
+
+class V(object):
+    def __init__(self):
+        self._name111 = 111
+
+
+class VV(V):
+    def __init__(self):
+        super().__init__()
+        print(self._name111)
+
+def test_vv():
+    VV()

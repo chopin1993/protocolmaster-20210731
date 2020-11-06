@@ -1,5 +1,6 @@
 #encoding:utf-8
-from autotest.公共用例.基本报文测试 import PublicCase
+from public_case import PublicCase
+
 class TestCaseInfo(object):
     def __init__(self, name, func, brief):
         self.name = name
@@ -24,12 +25,12 @@ class TestCaseInfo(object):
     def set_enable(self, enable):
         self.enable = enable
 
-    def add_fail_test(self,role, tag, msg):
+    def add_fail_test(self,*args):
         self.passed = False
-        self.errors.append((role, tag, msg))
+        self.errors.append(args)
 
-    def add_normal_operation(self, role, tag, msg):
-        self.infos.append((role, tag, msg))
+    def add_normal_operation(self, *args):
+        self.infos.append(args)
 
     def add_sub_case(self, name, func, brief):
         case = TestCaseInfo(name, func, brief)

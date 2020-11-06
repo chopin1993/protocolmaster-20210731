@@ -80,31 +80,41 @@ class UnitCompare(Validator):
             pass
         return True
 
-class SmartOneDidValidator(Validator):
-    def __init__(self, src, dst, cmd, did, value,ack=False,**kwargs):
-        super(SmartOneDidValidator, self).__init__()
-        self.cmd = cmd
+class DIDValidtor(Validator):
+    def __init__(self,did, value):
         self.did = did
         self.value = value
-        self.src = src
-        self.dst = dst
-        self.kwargs = kwargs
-        self.ack = ack
 
-    def __call__(self, smartData):
-        if smartData is None:
-            return False, "没有回复"
+    def __call__(self, did):
         def compare_data(expect_value,target_value):
             if isinstance(expect_value, Validator):
                 return expect_value(did.data)
             else:
                 return  expect_value == target_value
-        did = smartData.fbd.didunits[0]
-        if  self.cmd == smartData.fbd.cmd and \
-            self.src == smartData.said and \
-            self.dst == smartData.taid and \
-            self.did == did.DID and \
-            compare_data(self.value, did.data):
-            return True, "验证成功"
-        else:
-            return False, "验证失败,cmd src dst or did data not match"
+        if self.did != did.DID:
+            return False
+        return  compare_data(self.value, did.data)
+
+
+class SmartDataValidator(Validator):
+    def __init__(self, src, dst, cmd, dids, ack=False):
+        super(SmartDataValidator, self).__init__()
+        self.cmd = cmd
+        self.dids = dids
+        self.src = src
+        self.dst = dst
+        self.ack = ack
+
+    def __call__(self, smartData):
+        if smartData is None:
+            return False, "没有回复"
+        if  self.cmd != smartData.fbd.cmd or \
+            self.src != smartData.said or \
+            self.dst != smartData.taid or \
+            self.cmd != smartData.fbd.cmd:
+            return False, "验证失败,cmd src dst  not match"
+
+        for validator, did in zip(self.dids, smartData.fbd.didunits):
+            if not validator(did):
+                return False, "验证失败,did {0} not match".format(str(did))
+        return True,"验证成功"

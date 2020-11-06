@@ -123,10 +123,19 @@ class DIDRemote(Register):
     @classmethod
     def is_value_string(cls, str1):
         metas = cls.get_members("reply")
-        if len(metas) == 1 and  isinstance(metas[0], DataCString):
+        if len(metas) == 1 and isinstance(metas[0], DataCString):
             return True
         else:
             return False
+
+    @classmethod
+    def encode_reply(cls, **kwargs):
+        encoder = BinaryEncoder()
+        for member in cls.get_members("reply"):
+            if member.name in kwargs:
+                member.value = kwargs[member.name]
+                member.encode(encoder)
+        return encoder.get_data()
 
     def __init__(self, data=None, decoder=None, **kwargs):
         self.units = []
@@ -272,15 +281,23 @@ def _parse_dids(sheet, enum_dict):
     if not all_load:
         exit(-1)
 
-
-def _parse_enum(sheet):
-    name_values = {}
-    for row in range(1, sheet.nrows):
-        values = sheet.row_values(row, 0)
-        name_values[values[0]] = int(values[1], base=16)
-    return name_values
-
 enum_dict={}
+def _parse_enums(sheet):
+    global enum_dict
+    name_values = {}
+    name = None
+    for row in range(0, sheet.nrows):
+        values = sheet.row_values(row, 0)
+        if name is None:
+            name = values[0]
+            name_values = {}
+        else:
+            if values[0] == "":
+                enum_dict[name] = name_values
+                name = None
+            else:
+                name_values[values[0]] = int(values[1], base=16)
+    enum_dict[name] = name_values
 
 
 def _parse_local_cmd(sheet):
@@ -308,9 +325,7 @@ def sync_xls_dids():
     config_file = get_config_file("数据标识分类表格.xls")
     workbook = xlrd.open_workbook(config_file)
     enum_dict = {}
-    for name in workbook.sheet_names():
-        if name.startswith("enum"):
-            enum_dict[name[4:]] = _parse_enum(workbook.sheet_by_name(name))
+    _parse_enums(workbook.sheet_by_name("enums"))
     _parse_dids(workbook.sheet_by_name("dids"), enum_dict)
     _parse_local_cmd(workbook.sheet_by_name("localcmd"))
     logging.info("load  %d dids ok!!!!!",len(DIDRemote.get_did_dict()))

@@ -84,14 +84,14 @@ class DocxEngine(object):
     def end_test(self, name):
         pass
 
-    def add_tag_msg(self, name, tag, msg):
+    def add_tag_msg(self, name, tag, msg, timestr=""):
         style = "code"
         if tag == "snd":
-            body = "{0}::{1} -> {2}".format(name, tag, msg)
+            body = "{0} {1}::{2} -> {3}".format(timestr, name, tag, msg)
             style = "code"
         elif tag in ["rcv","rev"]:
-            body = "{0}::{1} <- {2}".format(name, tag, msg)
-            style = "code"
+            body = "{0} {1}::{2} <- {3}".format(timestr, name, tag, msg)
+            style = "rcv"
         elif tag == "annotation":
             body = msg
             style = "annotation"

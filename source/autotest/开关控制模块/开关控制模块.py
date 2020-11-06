@@ -18,4 +18,4 @@ engine.config(config)
 if __name__ == "__main__":
     import os
     engine.set_output_dir(os.path.dirname(__file__))
-    engine.run_all_tests(locals(), gui=True)
+    engine.run_all_tests(gui=True)
