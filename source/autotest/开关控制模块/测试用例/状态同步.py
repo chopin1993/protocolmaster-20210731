@@ -1,5 +1,7 @@
 import engine
 
+测试组说明="测试状态同步代码"
+
 def start_report():
     r"4aid+2panid+2pw+4gid+2sid"
     config = engine.get_config()

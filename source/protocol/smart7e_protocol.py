@@ -23,6 +23,7 @@ class CMD(EsEnum):
     READ = 0x02
     WRITE = 0x7
     REPORT = 0x01
+    SEARCH = 0x03
 
 
 class LocalFBD(DataFragment):
@@ -85,6 +86,48 @@ class LocalFBD(DataFragment):
             return cmd_info.name + " " + str(self.data)
 
 
+class GID(DataFragment):
+    TYPE_U8 = 1
+    TYPE_U16 = 2
+    def __init__(self, type=None, gids=None,decoder=None):
+        if decoder is None:
+            self.type = type
+            if isinstance(gids, int):
+                gids = [gids]
+            self.gids = gids
+        else:
+            self.decode(decoder)
+
+    def encode(self, encoder):
+        data_encoder = BinaryEncoder()
+        if isinstance(self.gids, list):
+            if self.type == self.TYPE_U8:
+                [data_encoder.encode_u8(addr) for addr in self.gids]
+            else:
+                [data_encoder.encode_u16(addr) for addr in self.gids]
+        else:
+            data_encoder.encode_str(self.gids)
+        address = data_encoder.get_data()
+        encoder.encode_u8(self.type<<6|len(address))
+        encoder.encode_str(address)
+
+    def decode(self, decoder):
+        data = decoder.decode_u8()
+        self.type = ((data&0x3f)>>6)
+        len = data&0x3f
+        if self.type == self.TYPE_U8:
+            self.gids = [decoder.decode_u8()  for i in range(0,len)]
+        else:
+            self.gids = [decoder.decode_u16() for i in range(0, len, 2)]
+
+    def __str__(self):
+        str1 = "gid: type-"
+        str1 += "u8" if self.type == self.TYPE_U8 else "u16 "
+        str1 += str(self.gids)
+        str1 += " "
+        return str1
+
+
 class RemoteFBD(DataFragment):
 
     @staticmethod
@@ -96,13 +139,20 @@ class RemoteFBD(DataFragment):
         cmd = CMD.to_enum(cmd)
         return RemoteFBD(cmd, did)
 
-    def __init__(self, cmd=None, didunit=None, decoder=None, **kwargs):
+    def __init__(self, cmd=None, didunit=None, decoder=None, gid=None, **kwargs):
         self.didunits = []
         if decoder is None:
             self.cmd = cmd
             self.didunits.append(didunit)
+            self.gid = gid
         else:
             self.cmd = CMD(value=decoder.decode_u8())
+            self.gid = None
+            ctx = kwargs['ctx']
+            if ctx.is_boardcast():
+                self.gid = decoder.decoder_for_object(GID,**kwargs)
+            else:
+                self.gid = None
             while decoder.left_bytes() >= 3:
                 did = decoder.decode_u16()
                 didunit = decoder.decoder_for_object(DIDRemote.find_class_by_did(did),**kwargs)
@@ -110,11 +160,15 @@ class RemoteFBD(DataFragment):
 
     def encode(self, encoder):
         encoder.encode_u8(self.cmd.value)
+        if self.gid is not None:
+            encoder.encode_object(self.gid)
         for did in self.didunits:
             encoder.encode_object(did)
 
     def __str__(self):
        text = self.cmd.name
+       if self.gid is not None:
+           text += " " + str(self.gid)
        for did in self.didunits:
            text += " " + str(did)
        return text
@@ -152,15 +206,25 @@ class Smart7EData(DataFragment):
     def is_local(self):
         return self.said ==0 and self.taid == 0
 
+    def is_boardcast(self):
+        return  self.taid == 0xffffffff
+
     def encode(self, encoder):
         encoder.encode_bytes(SMART_7e_HEAD)
         encoder.encode_u32(self.said)
         encoder.encode_u32(self.taid)
         encoder.encode_u8(self.seq)
+
+        if self.is_boardcast():  #广播需要带有组地址
+            if isinstance(self.fbd, RemoteFBD):
+                if self.fbd.gid is None:
+                    gid = GID(GID.TYPE_U8,0)
+                    self.fbd.gid = gid
         if isinstance(self.fbd, bytes) or isinstance(self.fbd, bytearray):
             fbd_data = self.fbd
         else:
             fbd_data = encoder.object2data(self.fbd)
+
         encoder.encode_u8(len(fbd_data))
         encoder.encode_str(fbd_data)
         encoder.encode_u8(checksum(encoder.get_data()))

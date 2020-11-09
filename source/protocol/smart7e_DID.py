@@ -88,7 +88,6 @@ class DIDRemote(Register):
                 return cls.find_class_by_did(did)
             except ValueError as error:
                 return None
-            raise NotImplemented
 
     @classmethod
     def find_class_by_did(cls, did):
@@ -129,12 +128,17 @@ class DIDRemote(Register):
             return False
 
     @classmethod
-    def encode_reply(cls, **kwargs):
+    def encode_reply(cls, *args, **kwargs):
         encoder = BinaryEncoder()
+        idx = 0
         for member in cls.get_members("reply"):
             if member.name in kwargs:
                 member.value = kwargs[member.name]
                 member.encode(encoder)
+            elif len(args) > idx:
+                member.value = args[idx]
+                member.encode(encoder)
+                idx += 1
         return encoder.get_data()
 
     def __init__(self, data=None, decoder=None, **kwargs):

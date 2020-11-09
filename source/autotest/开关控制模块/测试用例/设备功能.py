@@ -1,5 +1,7 @@
 import engine
 
+测试组说明="设备功能测试，主要进行开关测试"
+
 def test_onoff():
     """
     设备开关测试

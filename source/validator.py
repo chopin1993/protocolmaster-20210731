@@ -51,6 +51,8 @@ class BytesCompare(Validator):
         self.placeholder = placeholder
 
     def __call__(self, data):
+        if len(self.placeholder) == 0 and len(data) == 0:
+            return True
         place_holders = self.placeholder.split(" ")
         if len(place_holders) != len(data):
             return False

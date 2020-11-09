@@ -242,11 +242,17 @@ class Device(object):
         data = Smart7EData(src, dst, fbd)
         self.session.write(data)
 
-    def send_multi_dids(self,src, cmd, *args):
-        pass
+    def send_multi_dids(self,src, cmd, *args, dst=None):
+        dids = [self._create_did_validtor(args[idx], args[idx + 1]) for idx, arg in enumerate(args) if idx % 2 == 0]
+        dst = self.get_dst_addr(dst)
+        data = Smart7EData(src, dst, fbd)
+        self.session.write(data)
 
     def _create_did_validtor(self,did, value, **kwargs):
         did_cls = DIDRemote.find_class_by_name(did)
+        if did_cls is None:
+            logging.error("%s cant not search in excel",did)
+            raise NotImplemented
         if isinstance(value, str):
             if did_cls.is_value_string(value):
                 value = str2bytearray(value)
@@ -259,7 +265,7 @@ class Device(object):
         elif value is None and len(kwargs) > 0:
             value = did_cls.encode_reply(**kwargs)
         elif value is not None:
-            value = value
+            value = did_cls.encode_reply(value)
         else:
             raise ValueError
         return DIDValidtor(did_cls.DID, value)
@@ -418,10 +424,17 @@ def get_config():
     return TestEngine.instance().config
 
 
-def send_did(cmd, did, value=None, **kwargs):
+def send_did(cmd, did, value=None,dst=None, **kwargs):
+    """
+    发送7e报文
+    :param cmd:支持“READ”,"WRITE","REPORT
+    :param did:可以使用数字，也可以使用《数据表示分类表格》的中文名称
+    :param value:可是数字,也可以是类似于“00 34 78”的字符串
+    :param dst:目标地址
+    :param kwargs:如果数据标识中有多个数据单元，可以使用key,value的方式赋值
+    """
     role = TestEngine.instance().get_default_role()
-    role.send_did(cmd, did, value=value, **kwargs)
-
+    role.send_did(cmd, did, value=value,dst=dst, **kwargs)
 
 def expect_multi_dids(cmd, *args, timeout=2, ack=False):
     role = TestEngine.instance().get_default_role()
@@ -433,8 +446,9 @@ def expect_did(cmd, did, value=None, timeout=2, ack=False, **kwargs):
     role.expect_did(cmd, did, value=value, timeout=timeout, ack=ack, **kwargs)
 
 
-def send_multi_dids(cmd, did, value=None, **kwargs):
-    pass
+def send_multi_dids(cmd, *args, dst=None):
+    role = TestEngine.instance().get_default_role()
+    role.send_multi_dids(cmd, *args, dst=dst)
 
 
 def send_local_msg(cmd, value=None, **kwargs):
@@ -503,6 +517,10 @@ def _parse_public_test_case():
 
 
 def run_all_tests(gui=False):
+    """
+    自动扫描公共用例和项目文件夹下测试用例中所有的测试用例，并执行。
+    :param gui: True: 显示gui界面 False：自动执行保存的配置
+    """
     _parse_public_test_case()
     _parse_func_testcase()
     try:

@@ -35,3 +35,16 @@ def test_dkey(dkey通配符:DataCString):
     """
     engine.send_did("READ", "DKEY")
     engine.expect_did("READ", "DKEY", dkey通配符)
+
+
+def test_multi_dids():
+    "多DID测试"
+    engine.send_multi_dids("READ", "DKEY", "", "SN", "", "设备类型", "")
+    engine.expect_multi_dids("READ",
+                             "DKEY", "** ** ** ** ** ** ** **",
+                             "SN", "** ** ** ** ** ** ** ** ** ** ** **",
+                             "设备类型","** ** ** ** ** ** ** **",
+                             timeout=3)
+
+
+
