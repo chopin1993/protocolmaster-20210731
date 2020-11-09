@@ -43,6 +43,15 @@ class DIDRemote(Register):
     _all_did = None
 
     @classmethod
+    def create_did(self,name, value=None, **kwargs):
+        did_class = DIDRemote.find_class_by_name(name)
+        assert did_class != None, name
+        if isinstance(value, str):
+            value = hexstr2bytes(value)
+        did = did_class(value, **kwargs)
+        return did
+
+    @classmethod
     def get_all_types(cls):
         all_types = set()
         for key,value in cls.get_sub_class_dict().items():

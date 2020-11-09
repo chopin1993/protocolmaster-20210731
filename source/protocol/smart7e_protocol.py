@@ -132,18 +132,17 @@ class RemoteFBD(DataFragment):
 
     @staticmethod
     def create(cmd, did_name, data, **kwargs):
-        did_class = DIDRemote.find_class_by_name(did_name)
-        if did_class is None:
-            return None
-        did = did_class(data, **kwargs)
-        cmd = CMD.to_enum(cmd)
+        did = DIDRemote.create_did(did_name, data, **kwargs)
         return RemoteFBD(cmd, did)
 
-    def __init__(self, cmd=None, didunit=None, decoder=None, gid=None, **kwargs):
+    def __init__(self, cmd=None, didunits=None, decoder=None, gid=None, **kwargs):
         self.didunits = []
         if decoder is None:
-            self.cmd = cmd
-            self.didunits.append(didunit)
+            self.cmd = CMD.to_enum(cmd)
+            if isinstance(didunits, list):
+                self.didunits.extend(didunits)
+            else:
+                self.didunits.append(didunits)
             self.gid = gid
         else:
             self.cmd = CMD(value=decoder.decode_u8())
@@ -155,8 +154,8 @@ class RemoteFBD(DataFragment):
                 self.gid = None
             while decoder.left_bytes() >= 3:
                 did = decoder.decode_u16()
-                didunit = decoder.decoder_for_object(DIDRemote.find_class_by_did(did),**kwargs)
-                self.didunits.append(didunit)
+                didunits = decoder.decoder_for_object(DIDRemote.find_class_by_did(did), **kwargs)
+                self.didunits.append(didunits)
 
     def encode(self, encoder):
         encoder.encode_u8(self.cmd.value)

@@ -235,15 +235,14 @@ class Device(object):
             return dst
 
     def send_did(self, src, cmd, did, value=None, dst=None, **kwargs):
-        if isinstance(value, str):
-            value = hexstr2bytes(value)
         fbd = RemoteFBD.create(cmd, did, value, **kwargs)
         dst = self.get_dst_addr(dst)
         data = Smart7EData(src, dst, fbd)
         self.session.write(data)
 
-    def send_multi_dids(self,src, cmd, *args, dst=None):
-        dids = [self._create_did_validtor(args[idx], args[idx + 1]) for idx, arg in enumerate(args) if idx % 2 == 0]
+    def send_multi_dids(self, src, cmd, *args, dst=None):
+        dids = [DIDRemote.create_did(args[idx], args[idx + 1]) for idx, arg in enumerate(args) if idx % 2 == 0]
+        fbd = RemoteFBD(cmd, dids)
         dst = self.get_dst_addr(dst)
         data = Smart7EData(src, dst, fbd)
         self.session.write(data)
@@ -351,8 +350,8 @@ class Role(object):
     def send_did(self, cmd, did, value=None, **kwargs):
         self.device.send_did(self.src, cmd, did, value=value, **kwargs)
 
-    def send_multi_dids(self,cmd, *args):
-        self.device.send_multi_dids(self.src, cmd, *args)
+    def send_multi_dids(self,cmd, *args, dst=None):
+        self.device.send_multi_dids(self.src, cmd, *args, dst=dst)
 
     def expect_did(self, cmd, did, value=None, timeout=2, ack=False, **kwargs):
         self.device.expect_did(self.src, cmd, did, value=value, timeout=timeout, ack=ack, **kwargs)
