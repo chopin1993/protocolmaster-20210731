@@ -43,7 +43,7 @@ def add_doc_info(msg):
 def wait(seconds, expect_no_message=False, tips=""):
     msg ="we will wait {0}s, {1}".format(seconds, tips)
     logging.info(msg)
-    role = TestEngine.instance().get_default_device()
+    role = TestEngine.instance().get_default_role()
     role.wait(seconds, expect_no_message)
 
 

@@ -11,10 +11,17 @@ import logging
 import os
 from PyQt5.QtCore import QTimer,QCoreApplication
 
+
 def get_current_time_str():
     return time.strftime('%H:%M:%S', time.localtime(time.time()))
 
+
 class TestEngine(object):
+    """
+    1. 统计测试信息
+    2. 运行测试
+    3. 生成测试报告
+    """
     _instance = None
 
     @classmethod
@@ -158,20 +165,34 @@ class TestEngine(object):
         self.output_dir = path
 
 
+def log_snd_frame(name, data):
+    TestEngine.instance().add_normal_operation(name, "snd", str(data))
+    TestEngine.instance().add_normal_operation(name, "annotation", data.to_readable_str())
+    logging.info("snd %s", str(data))
+    logging.info("txt %s", data.to_readable_str())
+
+def log_rcv_frame(name, data):
+    TestEngine.instance().add_normal_operation(name, "rcv", str(data))
+    TestEngine.instance().add_normal_operation(name, "annotation", data.to_readable_str())
+    logging.info("rcv %s", str(data))
+    logging.info("txt %s", data.to_readable_str())
+
 class Device(object):
+    """
+    串口相关的设备
+    """
     def __init__(self, name, media="SerialMedia", protocol="Smart7eProtocol"):
         self.name = name
         self.media = Media.create_sub_class(media)
         self.protocol = Protocol.create_sub_class(protocol)
         self.session = SessionSuit.create_binary_suit(self.media, self.protocol)
-        self.session.data_snd.connect(self.log_snd_frame)
         self.session.data_ready.connect(self.handle_rcv_msg)
         self.timer = QTimer()
         self.timer.timeout.connect(self.timeout_handle)
         self.waiting = False
-        self.validate = None
         self.roles = []
         self.default_role = None
+        self.rcv_func = None
 
     def timeout_handle(self):
         self.handle_rcv_msg(None)
@@ -192,6 +213,7 @@ class Device(object):
         fbd = LocalFBD(cmd, value)
         data = Smart7EData(0, 0, fbd)
         self.session.write(data)
+        log_snd_frame(self.name, data)
 
     def expect_local_msg(self, cmd, value=None, timeout=2, **kwargs):
         self.waiting = True
@@ -206,23 +228,57 @@ class Device(object):
         else:
             return dst
 
-    def send_did(self, src, cmd, did, value=None, dst=None, **kwargs):
-        fbd = RemoteFBD.create(cmd, did, value, **kwargs)
-        dst = self.get_dst_addr(dst)
-        data = Smart7EData(src, dst, fbd)
+    def waiting_event(self, timeout, rcv_func):
+        self.rcv_func = rcv_func
+        self.waiting = True
+        self.timer.start(timeout*1000)
+        current = self.timer.remainingTime()
+        while self.waiting:
+            if current - self.timer.remainingTime() > 10000:
+                current = self.timer.remainingTime()
+                logging.info("left %ds",current//1000)
+            QCoreApplication.instance().processEvents()
+
+    def write(self, data):
         self.session.write(data)
 
-    def send_multi_dids(self, src, cmd, *args, dst=None):
+    def handle_rcv_msg(self, data):
+        self.waiting = False
+        self.validate = None
+        self.timer.stop()
+        if self.rcv_func is not None:
+            self.rcv_func(data)
+        else:
+            log_rcv_frame(self.name, data)
+
+
+class Role(object):
+    """
+    did报文测试
+    """
+    def __init__(self, name, src, device:Device):
+        self.name = name
+        self.src = src
+        self.device = weakref.proxy(device)
+        self.validate = None
+
+    def send_did(self, cmd, did, value=None, dst=None,**kwargs):
+        fbd = RemoteFBD.create(cmd, did, value, **kwargs)
+        dst = self.device.get_dst_addr(dst)
+        data = Smart7EData(self.src, dst, fbd)
+        self.write(data)
+
+    def send_multi_dids(self, cmd, *args, dst=None):
         dids = [DIDRemote.create_did(args[idx], args[idx + 1]) for idx, arg in enumerate(args) if idx % 2 == 0]
         fbd = RemoteFBD(cmd, dids)
-        dst = self.get_dst_addr(dst)
-        data = Smart7EData(src, dst, fbd)
-        self.session.write(data)
+        dst = self.device.get_dst_addr(dst)
+        data = Smart7EData(self.src, dst, fbd)
+        self.write(data)
 
-    def _create_did_validtor(self,did, value, **kwargs):
+    def _create_did_validtor(self, did, value, **kwargs):
         did_cls = DIDRemote.find_class_by_name(did)
         if did_cls is None:
-            logging.error("%s cant not search in excel",did)
+            logging.error("%s cant not search in excel", did)
             raise NotImplementedError
         if isinstance(value, str):
             if did_cls.is_value_string(value):
@@ -241,49 +297,35 @@ class Device(object):
             raise ValueError
         return DIDValidtor(did_cls.DID, value)
 
-    def expect_did(self,src, cmd, did, value=None, timeout=2, ack=False, **kwargs):
+    def expect_did(self, cmd, did, value=None, timeout=2, ack=False, **kwargs):
         cmd = CMD.to_enum(cmd)
-        did = [self._create_did_validtor(did,value,**kwargs)]
-        self.validate = SmartDataValidator(src=self.get_dst_addr(),
-                                           dst= src,
+        did = [self._create_did_validtor(did, value, **kwargs)]
+        self.validate = SmartDataValidator(src=self.device.get_dst_addr(),
+                                           dst=self.src,
                                            cmd=cmd,
                                            dids=did,
-                                           ack =ack)
-
-        self._waiting_event(timeout)
-
-    def expect_multi_dids(self, src, cmd, *args,dst=None, timeout=2, ack=False):
-        cmd = CMD.to_enum(cmd)
-        dids = [self._create_did_validtor(args[idx], args[idx+1]) for idx,arg in enumerate(args) if idx%2==0]
-        dst = self.get_dst_addr(dst)
-        self.validate = SmartDataValidator(src=dst,
-                                           dst=src,
-                                           cmd=cmd,
-                                           dids=dids,
                                            ack=ack)
-        self._waiting_event(timeout)
+        self.device.waiting_event(timeout, self.handle_rcv_msg)
 
     def wait(self, seconds, expect_no_message):
         self.validate = NoMessage(expect_no_message)
-        self._waiting_event(seconds)
+        self.device.waiting_event(seconds, self.handle_rcv_msg)
 
-    def _waiting_event(self,timeout):
-        self.waiting = True
-        self.timer.start(timeout*1000)
-        current = self.timer.remainingTime()
-        while self.waiting:
-            if current - self.timer.remainingTime() > 10000:
-                current = self.timer.remainingTime()
-                logging.info("left %ds",current//1000)
-            QCoreApplication.instance().processEvents()
-
-    def update(self, file_name, func=None, expect_seqs=None):
-        pass
+    def expect_multi_dids(self, cmd, *args, dst=None, timeout=2, ack=False):
+        cmd = CMD.to_enum(cmd)
+        dids = [self._create_did_validtor(args[idx], args[idx + 1]) for idx, arg in enumerate(args) if idx % 2 == 0]
+        dst = self.device.get_dst_addr(dst)
+        self.validate = SmartDataValidator(src=dst,
+                                           dst=self.src,
+                                           cmd=cmd,
+                                           dids=dids,
+                                           ack=ack)
+        self.device.waiting_event(timeout, self.handle_rcv_msg)
 
     def handle_rcv_msg(self, data):
         if data is not None:
-            self.log_rcv_frame(data)
-        if data is not None and data.said != self.get_dst_addr() and data.said != 0:
+            log_rcv_frame(self.name, data)
+        if data is not None and data.said != self.device.get_dst_addr() and data.said != 0:
             return
         if self.validate is not None:
             valid, msg = self.validate(data)
@@ -293,43 +335,13 @@ class Device(object):
                 TestEngine.instance().add_fail_test(self.name, "expect fail", msg)
             if self.validate.ack:
                 self.ack_report_message(data)
-            self.waiting = False
-            self.validate = None
-            self.timer.stop()
 
     def ack_report_message(self, data):
         if data is None:
             return
         data = data.ack_message()
-        self.session.write(data)
+        self.write(data)
 
-    def log_snd_frame(self, data):
-        TestEngine.instance().add_normal_operation(self.name, "snd", str(data))
-        TestEngine.instance().add_normal_operation(self.name, "annotation", data.to_readable_str())
-        logging.info("snd %s", str(data))
-        logging.info("txt %s", data.to_readable_str())
-
-    def log_rcv_frame(self, data):
-        TestEngine.instance().add_normal_operation(self.name, "rcv", str(data))
-        TestEngine.instance().add_normal_operation(self.name, "annotation", data.to_readable_str())
-        logging.info("rcv %s", str(data))
-        logging.info("txt %s", data.to_readable_str())
-
-class Role(object):
-    def __init__(self, name, src, device:Device):
-        self.name = name
-        self.src = src
-        self.device = weakref.proxy(device)
-
-    def send_did(self, cmd, did, value=None, **kwargs):
-        self.device.send_did(self.src, cmd, did, value=value, **kwargs)
-
-    def send_multi_dids(self,cmd, *args, dst=None):
-        self.device.send_multi_dids(self.src, cmd, *args, dst=dst)
-
-    def expect_did(self, cmd, did, value=None, timeout=2, ack=False, **kwargs):
-        self.device.expect_did(self.src, cmd, did, value=value, timeout=timeout, ack=ack, **kwargs)
-
-    def expect_multi_dids(self, cmd, *args, timeout=2, ack=False):
-        role = TestEngine.instance().get_default_role()
-        self.device.expect_multi_dids(self.src, cmd,  *args, timeout=timeout, ack=ack)
+    def write(self,data):
+        log_snd_frame(self.name, data)
+        self.device.write(data)

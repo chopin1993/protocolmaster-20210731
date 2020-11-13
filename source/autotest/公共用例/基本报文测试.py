@@ -26,7 +26,6 @@ def test_sn_info(sn通配符:DataCString):
     """
     engine.send_did("READ", "SN")
     engine.expect_did("READ", "SN", sn通配符)
-    engine.send_did("WRITE", "上报步长", 400)
 
 def test_dkey(dkey通配符:DataCString):
     """
