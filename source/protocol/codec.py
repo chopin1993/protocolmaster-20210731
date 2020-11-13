@@ -1,34 +1,10 @@
 import struct
 import numpy as np
 from tools.converter import bytearray2str,str2bytearray
+
 class Encoder(object):
     def __init__(self):
         self.data = bytes([])
-
-    def encode_str(self, str):
-        pass
-
-    def encode_char(self, nb):
-        pass
-
-    def encode_s16(self, nb):
-        pass
-
-    def encode_u32(self, nb):
-        pass
-
-    def encode_s32(self, nb):
-       pass
-
-    def encode_object(self, nb):
-        pass
-
-    def object2data(self):
-        pass
-
-    def get_data(self):
-        return bytes([1,2,3])
-
 
 class Decoder(object):
     pass

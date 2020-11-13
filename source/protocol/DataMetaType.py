@@ -34,7 +34,7 @@ class DataMetaType(Register):
             cls = DataMetaType.find_sub_class_by_name(value)
             if cls is None:
                 print("no meta type:",value)
-                raise NotImplemented
+                raise NotImplementedError
             ob = cls(name=key)
             if "attr" in member:
                 ob.attr = member["attr"]

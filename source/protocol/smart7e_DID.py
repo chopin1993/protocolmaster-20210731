@@ -350,30 +350,3 @@ def get_value_txt(enum_key, value):
             return  key
 
 sync_xls_dids()
-
-def sync_json_dids():
-    ret = 0
-    err1 = ""
-    config_file = "smart7E.json"
-    with open(config_file, "r", encoding="utf-8") as handle:
-        dids = None
-        try:
-            dids = json.load(handle)
-            for did in dids['DIDS']:
-                cls = DIDRemote.find_class_by_name(did['name'], refresh=True)
-                if cls is not None:
-                    cls.DID = int(did["did"], base=16)
-                    cls.MEMBERS = [DataMetaType.create(mem) for mem in did['member']]
-                else:
-                    members = [DataMetaType.create(mem) for mem in did['member']]
-                    create_remote_class(did['name'], int(did["did"], base=16), members)
-        except JSONDecodeError as err:
-            ret = -1
-            err1 = str(err)
-            logging.exception(err)
-        except Exception as err:
-            ret = -1
-            err1 = str(err)
-            logging.exception(err)
-    DIDRemote.get_did_dict(refresh=True)
-    return ret, err1

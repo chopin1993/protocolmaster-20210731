@@ -18,5 +18,4 @@ if __name__ == "__main__":
     import os
     # 设置测试文档的输出目录，默认输出到 开关控制模块 文件夹下
     engine.set_output_dir(os.path.dirname(__file__))
-
     engine.run_all_tests(gui=True)

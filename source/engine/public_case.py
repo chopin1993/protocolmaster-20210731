@@ -24,7 +24,7 @@ class PublicCase(Register):
         self.default_enable = default_enable
 
     def __call__(self, monitor):
-        raise NotImplemented
+        raise NotImplementedError
 
     def append_unit(self,unit):
         self.units.append(unit)

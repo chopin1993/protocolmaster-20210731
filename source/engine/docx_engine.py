@@ -7,7 +7,7 @@ __version__ = "V1.0"
 
 
 def get_config_file(name):
-    return os.path.join(os.path.dirname(__file__), "resource", name)
+    return os.path.join(os.path.dirname(__file__), "../resource", name)
 
 class DocxEngine(object):
     def __init__(self, name=None):

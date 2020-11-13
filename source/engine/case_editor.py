@@ -1,8 +1,7 @@
-from case_editor_ui import Ui_MainWindow
+from engine.case_editor_ui import Ui_MainWindow
 from PyQt5.QtWidgets import *
 from PyQt5.QtCore import *
 import re
-import sip
 import logging
 
 class UIHandler(logging.Handler):

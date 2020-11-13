@@ -26,17 +26,16 @@ def test_gateway_report():
     4. 如果没有收到回复，设备会重发两次
     5. 收到回复时，设备便不再重发
     """
-    config = engine.get_config()
     engine.send_did("WRITE", "主动上报使能标志",传感器类型="开关", 上报命令="上报网关")
     engine.expect_did("WRITE", "主动上报使能标志", 传感器类型="开关", 上报命令="上报网关")
 
     start_report()
     engine.add_doc_info("设备会在65s内第一次上报")
     engine.expect_multi_dids("REPORT", "通断操作C012", "**","导致状态改变的控制设备AID", "** ** ** **", timeout=65)
-    engine.add_doc_info("设备会在100s内第二次上报")
+    engine.add_doc_info("设备会在200s内第二次上报")
     engine.wait(50, expect_no_message=True)
     engine.expect_multi_dids("REPORT", "通断操作C012", "**","导致状态改变的控制设备AID", "** ** ** **", timeout=200)
-    engine.add_doc_info("设备会在150s内第三次上报")
+    engine.add_doc_info("设备会在350s内第三次上报")
     engine.wait(50, expect_no_message=True)
     engine.expect_multi_dids("REPORT", "通断操作C012", "**", "导致状态改变的控制设备AID", "** ** ** **", timeout=300)
 

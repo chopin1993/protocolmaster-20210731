@@ -1,5 +1,5 @@
 #encoding:utf-8
-from public_case import PublicCase
+from engine.public_case import PublicCase
 
 class TestCaseInfo(object):
     def __init__(self, name, func, brief):

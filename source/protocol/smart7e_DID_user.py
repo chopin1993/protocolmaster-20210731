@@ -23,4 +23,4 @@ def sensor_value_decode(decoder, **kwargs):
 def get_user_fun(key):
     if key in ["传感器数据","步长"]:
         return sensor_value_encode, sensor_value_decode,None,None
-    raise  NotImplemented
+    raise  NotImplementedError

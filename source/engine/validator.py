@@ -7,7 +7,7 @@ class Validator(Register):
         pass
 
     def __call__(self, data):
-        raise NotImplemented
+        raise NotImplementedError
 
 class NoMessage(Validator):
     def __init__(self,expect_no_message=False):

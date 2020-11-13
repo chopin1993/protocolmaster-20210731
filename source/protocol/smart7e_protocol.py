@@ -1,12 +1,11 @@
 # encoding:utf-8
-from enum import Enum
 from .protocol import Protocol
 from .protocol import find_head
-from .data_fragment import *
+from tools.checker import checksum
 import time
 from .codec import BinaryEncoder, BinaryDecoder
 from tools.converter import str2hexstr,hexstr2bytes
-from esenum import EsEnum
+from tools.esenum import EsEnum
 from .data_fragment import DataFragment
 
 SMART_7e_HEAD = bytes([0x7e])
@@ -20,10 +19,16 @@ class DIDLocal(object):
 
 
 class CMD(EsEnum):
+    NOTIFY = 0x0 #不可靠上报
+    REPORT = 0x01 #可靠上报
     READ = 0x02
-    WRITE = 0x7
-    REPORT = 0x01
     SEARCH = 0x03
+    FILE = 0x04
+    UPDATE = 0x05 #升级
+    UPDATE_BIG = 0x06 #大文件升级
+    WRITE = 0x7
+
+
 
 
 class LocalFBD(DataFragment):
@@ -45,7 +50,7 @@ class LocalFBD(DataFragment):
             else:
                 raise ValueError
         print("no proper cmd",data)
-        raise NotImplemented
+        raise NotImplementedError
 
     def __init__(self, cmd=None, data=None, decoder=None, **kwargs):
         if decoder is None:
@@ -126,6 +131,22 @@ class GID(DataFragment):
         str1 += str(self.gids)
         str1 += " "
         return str1
+
+
+class UpdateFBD(DataFragment):
+    def __init__(self, seq, ack, crc):
+        self.cmd = CMD.UPDATE
+        self.seq = seq
+        self.ack = ack
+        self.crc = crc
+        self.length = 0
+        self.data = 0
+
+    def encode(self, encoder):
+        pass
+
+    def decode(self, decoder):
+        pass
 
 
 class RemoteFBD(DataFragment):
