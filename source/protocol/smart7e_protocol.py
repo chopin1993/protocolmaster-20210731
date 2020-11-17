@@ -158,15 +158,14 @@ class RemoteFBD(DataFragment):
 
     def __init__(self, cmd=None, didunits=None, decoder=None, gid=None, **kwargs):
         self.didunits = []
+        self.cmd = CMD.to_enum(cmd)
         if decoder is None:
-            self.cmd = CMD.to_enum(cmd)
             if isinstance(didunits, list):
                 self.didunits.extend(didunits)
             else:
                 self.didunits.append(didunits)
             self.gid = gid
         else:
-            self.cmd = CMD(value=decoder.decode_u8())
             self.gid = None
             ctx = kwargs['ctx']
             if ctx.is_boardcast():
@@ -199,17 +198,7 @@ class Smart7EData(DataFragment):
     def __init__(self, src=None, dst=None, fbd=None, decoder=None):
         self.data = None
         if decoder is not None:
-            self.data = decoder.data
-            decoder.decode_byte()
-            self.said = decoder.decode_u32()
-            self.taid = decoder.decode_u32()
-            self.seq = decoder.decode_u8()
-            self.len = decoder.decode_u8()
-            fbd_decoder = BinaryDecoder(decoder.decode_bytes(self.len))
-            if self.is_local():
-                self.fbd = fbd_decoder.decoder_for_object(LocalFBD)
-            else:
-                self.fbd = fbd_decoder.decoder_for_object(RemoteFBD, ctx=self)
+            self.decode(decoder)
         else:
             self.said = src
             self.taid = dst
@@ -228,6 +217,23 @@ class Smart7EData(DataFragment):
 
     def is_boardcast(self):
         return  self.taid == 0xffffffff
+
+    def decode(self, decoder):
+        self.data = decoder.data
+        decoder.decode_byte()
+        self.said = decoder.decode_u32()
+        self.taid = decoder.decode_u32()
+        self.seq = decoder.decode_u8()
+        self.len = decoder.decode_u8()
+        fbd_decoder = BinaryDecoder(decoder.decode_bytes(self.len))
+        if self.is_local():
+            self.fbd = fbd_decoder.decoder_for_object(LocalFBD)
+        else:
+            cmd = CMD.to_enum(fbd_decoder.decode_u8())
+            if cmd == CMD.UPDATE:
+                self.fbd = fbd_decoder.decoder_for_object(UpdateFBD, cmd=cmd, ctx=self)
+            else:
+                self.fbd = fbd_decoder.decoder_for_object(RemoteFBD, cmd=cmd, ctx=self)
 
     def encode(self, encoder):
         encoder.encode_bytes(SMART_7e_HEAD)

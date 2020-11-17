@@ -1,16 +1,13 @@
 from engine.docx_engine import DocxEngine
 from media import Media
 from session import SessionSuit
-from engine.validator import *
-from tools.converter import *
 from engine.test_case import TestCaseInfo
 import json
-import types
-import weakref
 import logging
 import os
 from PyQt5.QtCore import QTimer,QCoreApplication
-
+import time
+from engine.validator import *
 
 def get_current_time_str():
     return time.strftime('%H:%M:%S', time.localtime(time.time()))
@@ -43,6 +40,9 @@ class TestEngine(object):
     def get_default_role(self):
         return self.com_medias[0].default_role
 
+    def get_updater(self):
+        return self.com_medias[0].updater
+
     def get_default_device(self):
         return self.com_medias[0]
 
@@ -58,7 +58,7 @@ class TestEngine(object):
         return device
 
     def group_begin(self, name, func, brief=None):
-        logging.info("start test group %s", name)
+        #logging.info("start test group %s", name)
         self.current_group = TestCaseInfo(name,func,brief)
         self.all_infos.append(self.current_group)
         self.current_test = self.current_group
@@ -67,7 +67,7 @@ class TestEngine(object):
         self.current_group = None
 
     def test_begin(self, name, func, brief):
-        logging.info("start test case %s", name)
+        #logging.info("start test case %s", name)
         self.current_test = self.current_group.add_sub_case(name,func, brief)
 
     def test_end(self, name):
@@ -193,6 +193,7 @@ class Device(object):
         self.roles = []
         self.default_role = None
         self.rcv_func = None
+        self.updater = None
 
     def timeout_handle(self):
         self.handle_rcv_msg(None)
@@ -201,10 +202,13 @@ class Device(object):
         self.media.config(**kwargs)
 
     def create_role(self, name, src):
-        role = Role(name, src, self)
+        from .role_routine import RoleRoutine
+        role = RoleRoutine(name, src, self)
         self.roles.append(role)
         if self.default_role is None:
             self.default_role = role
+            from engine.updater import UpdateRoutine
+            self.updater = UpdateRoutine("updater", src, self)
         self.send_local_msg("设置应用层地址", src)
         self.expect_local_msg(["确认", "否认"], timeout=2)
         return role
@@ -216,15 +220,15 @@ class Device(object):
         log_snd_frame(self.name, data)
 
     def expect_local_msg(self, cmd, value=None, timeout=2, **kwargs):
-        self.waiting = True
-        self.validate = SmartLocalValidator(cmd=cmd)
-        self.timer.start(timeout * 1000)
-        while self.waiting:
-            QCoreApplication.instance().processEvents()
+        validate = SmartLocalValidator(cmd=cmd)
+        def rev_func(data):
+            nonlocal validate
+            validate(data)
+        self.waiting_event(timeout, rev_func)
 
     def get_dst_addr(self, dst=None):
         if dst is None:
-            return  TestEngine.instance().get_test_dev_addr()
+            return TestEngine.instance().get_test_dev_addr()
         else:
             return dst
 
@@ -243,105 +247,17 @@ class Device(object):
         self.session.write(data)
 
     def handle_rcv_msg(self, data):
-        self.waiting = False
-        self.validate = None
         self.timer.stop()
+        # 源地址既不是本地地址也不是目标设备，就跳过
+        if (data is not None) and \
+                (data.said != self.get_dst_addr()) and \
+                (data.said != 0):
+            return
+
+        # 远程消息处理
         if self.rcv_func is not None:
             self.rcv_func(data)
         else:
             log_rcv_frame(self.name, data)
-
-
-class Role(object):
-    """
-    did报文测试
-    """
-    def __init__(self, name, src, device:Device):
-        self.name = name
-        self.src = src
-        self.device = weakref.proxy(device)
-        self.validate = None
-
-    def send_did(self, cmd, did, value=None, dst=None,**kwargs):
-        fbd = RemoteFBD.create(cmd, did, value, **kwargs)
-        dst = self.device.get_dst_addr(dst)
-        data = Smart7EData(self.src, dst, fbd)
-        self.write(data)
-
-    def send_multi_dids(self, cmd, *args, dst=None):
-        dids = [DIDRemote.create_did(args[idx], args[idx + 1]) for idx, arg in enumerate(args) if idx % 2 == 0]
-        fbd = RemoteFBD(cmd, dids)
-        dst = self.device.get_dst_addr(dst)
-        data = Smart7EData(self.src, dst, fbd)
-        self.write(data)
-
-    def _create_did_validtor(self, did, value, **kwargs):
-        did_cls = DIDRemote.find_class_by_name(did)
-        if did_cls is None:
-            logging.error("%s cant not search in excel", did)
-            raise NotImplementedError
-        if isinstance(value, str):
-            if did_cls.is_value_string(value):
-                value = str2bytearray(value)
-            else:
-                value = BytesCompare(value)
-        elif isinstance(value, types.FunctionType):
-            value = FunctionCompare(value)
-        elif isinstance(value, Validator):
-            pass
-        elif value is None and len(kwargs) > 0:
-            value = did_cls.encode_reply(**kwargs)
-        elif value is not None:
-            value = did_cls.encode_reply(value)
-        else:
-            raise ValueError
-        return DIDValidtor(did_cls.DID, value)
-
-    def expect_did(self, cmd, did, value=None, timeout=2, ack=False, **kwargs):
-        cmd = CMD.to_enum(cmd)
-        did = [self._create_did_validtor(did, value, **kwargs)]
-        self.validate = SmartDataValidator(src=self.device.get_dst_addr(),
-                                           dst=self.src,
-                                           cmd=cmd,
-                                           dids=did,
-                                           ack=ack)
-        self.device.waiting_event(timeout, self.handle_rcv_msg)
-
-    def wait(self, seconds, expect_no_message):
-        self.validate = NoMessage(expect_no_message)
-        self.device.waiting_event(seconds, self.handle_rcv_msg)
-
-    def expect_multi_dids(self, cmd, *args, dst=None, timeout=2, ack=False):
-        cmd = CMD.to_enum(cmd)
-        dids = [self._create_did_validtor(args[idx], args[idx + 1]) for idx, arg in enumerate(args) if idx % 2 == 0]
-        dst = self.device.get_dst_addr(dst)
-        self.validate = SmartDataValidator(src=dst,
-                                           dst=self.src,
-                                           cmd=cmd,
-                                           dids=dids,
-                                           ack=ack)
-        self.device.waiting_event(timeout, self.handle_rcv_msg)
-
-    def handle_rcv_msg(self, data):
-        if data is not None:
-            log_rcv_frame(self.name, data)
-        if data is not None and data.said != self.device.get_dst_addr() and data.said != 0:
-            return
-        if self.validate is not None:
-            valid, msg = self.validate(data)
-            if valid:
-                TestEngine.instance().add_normal_operation(self.name, "expect success", msg)
-            else:
-                TestEngine.instance().add_fail_test(self.name, "expect fail", msg)
-            if self.validate.ack:
-                self.ack_report_message(data)
-
-    def ack_report_message(self, data):
-        if data is None:
-            return
-        data = data.ack_message()
-        self.write(data)
-
-    def write(self,data):
-        log_snd_frame(self.name, data)
-        self.device.write(data)
+        self.waiting = False
+        self.rcv_func = None

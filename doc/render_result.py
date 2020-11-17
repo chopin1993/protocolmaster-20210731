@@ -9,7 +9,9 @@ import sys
 def trim_code(code):
     code = code.strip()
     lines = code.split("\n")
-    lines = [line.lstrip() for line in lines]
+    if len(lines) > 0:
+        space = len(lines[0]) - len(lines[0].lstrip())
+        lines = [line[space:] for line in lines]
     return "\n".join(lines)
 
 def to_output(code, result):
@@ -37,6 +39,9 @@ def render(file_name):
                 sys.stdout.seek(0)
                 output = sys.stdout.read()
                 sys.stdout = save_std
+                print("****output start******")
+                print(output)
+                print("****output end******")
                 outputs.append((full_code, output))
 
     for code, output in outputs:
@@ -45,10 +50,11 @@ def render(file_name):
     prefix, name = os.path.split(file_name)
     name,ext = os.path.splitext(name)
     name = name+"_render"+ ext
-    file_name = os.path.join(prefix,name)
+    file_name = os.path.join(prefix, "render", name)
     with open(file_name,"w", encoding="utf-8") as handle:
         handle.write(content)
 
 
 if __name__ == "__main__":
-    render("python入门教程/2.基本数据类型和运算符.md")
+    render("python入门教程/3.基本控制语句.md")
+    sys.exit(0)

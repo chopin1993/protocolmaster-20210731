@@ -114,8 +114,9 @@ def update(file_name, func=None, expect_seqs=None):
     :param expect_seq:期望收到设备的seq。
     :return:
     """
-    add_doc_info("升级程序文件："+file_name)
-    role = TestEngine.instance().get_default_device()
+    updater = TestEngine.instance().get_updater()
+    file_name = os.path.join(TestEngine.instance().output_dir, file_name)
+    updater.update(file_name, func, expect_seqs)
 
 
 def _parse_doc_string(doc_string):
