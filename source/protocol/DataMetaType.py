@@ -41,7 +41,7 @@ class DataMetaType(Register):
             return ob
         return None
 
-    def __init__(self, name=None, value=None, attr="", decoder=None):
+    def __init__(self, name=None, value="", attr="", decoder=None):
         '''
         数据显示的基本单元，主要作用如下：
         1. 创建对应的wdiget
@@ -130,7 +130,7 @@ class DataMetaType(Register):
 
 
 class DataContextBaseValue(DataMetaType):
-    def __init__(self,  name=None, value=None, decoder=None,
+    def __init__(self,  name=None, value="", decoder=None,
                  encoder_func=None, decoder_func=None, to_value_func=None, value_str_func=None):
         super(DataContextBaseValue, self).__init__(name=name, value=value, decoder=decoder)
         self.encode_func = encoder_func
@@ -157,7 +157,7 @@ class DataContextBaseValue(DataMetaType):
 
 
 class DataCString(DataMetaType):
-    def __init__(self, name=None, value=None, decoder=None):
+    def __init__(self, name=None, value="", decoder=None):
         super(DataCString, self).__init__(name, value, decoder)
 
     def encode(self, encoder, **kwargs):
@@ -171,12 +171,12 @@ class DataCString(DataMetaType):
 
 
 class DataByteArray(DataMetaType):
-    def __init__(self, name=None, value=None, decoder=None):
+    def __init__(self, name=None, value=bytes(), decoder=None):
         super(DataByteArray, self).__init__(name, value, decoder)
 
 
 class DataU8(DataMetaType):
-    def __init__(self,name=None, value=None, decoder=None):
+    def __init__(self,name=None, value=0, decoder=None):
         super(DataU8, self).__init__(name, value, decoder)
 
     def encode(self, encoder, **kwargs):
@@ -191,7 +191,7 @@ class DataU8(DataMetaType):
 
 
 class DataU16(DataMetaType):
-    def __init__(self,name=None, value=None, decoder=None):
+    def __init__(self,name=None, value=0, decoder=None):
         super(DataU16, self).__init__(name, value, decoder)
 
     def encode(self, encoder, **kwargs):
@@ -205,7 +205,7 @@ class DataU16(DataMetaType):
 
 
 class DataU32(DataMetaType):
-    def __init__(self,name=None, value=None, decoder=None):
+    def __init__(self,name=None, value=0, decoder=None):
         super(DataU32, self).__init__(name, value, decoder)
 
     def encode(self, encoder, **kwargs):

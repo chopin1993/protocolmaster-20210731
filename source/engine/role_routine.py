@@ -47,7 +47,7 @@ class RoleRoutine(object):
         elif value is not None:
             value = did_cls.encode_reply(value)
         else:
-            raise ValueError
+            raise ValueError("cant not encode value for did {0}".format(did))
         return DIDValidtor(did_cls.DID, value)
 
     def expect_did(self, cmd, did, value=None, timeout=2, ack=False, **kwargs):

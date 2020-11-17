@@ -23,8 +23,8 @@ def render(file_name):
     outputs = []
     with open(file_name,"r", encoding="utf-8") as handle:
         content = handle.read(-1)
-        codes = re.findall(r"```(.*?)```", content, re.S)
-        codes1 = re.findall(r"(```.*?```)", content, re.S)
+        codes = re.findall(r"```python(.*?)```", content, re.S)
+        codes1 = re.findall(r"(```python.*?```)", content, re.S)
         assert len(codes1) == len(codes)
         if codes:
             for code,full_code in zip(codes,codes1):
