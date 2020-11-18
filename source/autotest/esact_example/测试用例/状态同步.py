@@ -57,9 +57,12 @@ def test_subscribe_report():
     engine.expect_did("WRITE", "主动上报使能标志", 传感器类型="开关", 上报命令="上报设备")
 
     engine.add_doc_info("面板控制设备之后，会自动成为设备的订阅者，其他设备在控制开关控制器，开关控制器回向面板上报")
+
     panel = engine.create_role("订阅者1", 3)
     panel.send_did("WRITE", "通断操作C012", "01")
     panel.expect_did("WRITE","通断操作C012","00")
+
     engine.send_did("WRITE", "通断操作C012", "81")
+
     engine.expect_did("WRITE", "通断操作C012", "01")
     panel.expect_did("REPORT", "通断操作C012","01",timeout=15,ack=True)

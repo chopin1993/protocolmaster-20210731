@@ -132,10 +132,38 @@ class GID(DataFragment):
         str1 += " "
         return str1
 
+class UpdateStartInfo(DataFragment):
+    def __init__(self, filesize=None,
+                       filecrc=None,
+                       blocksize=None,
+                       devicetype=None,
+                       software=None,
+                       decoder=None):
+        """
+        filesize filecrc blocksize 设备类型 软件版本
+        """
+        self.filesize = filesize
+        self.filecrc = filecrc
+        self.blocksize = blocksize
+        self.devicetype = devicetype
+        self.software = software
+        if decoder is not None:
+            self.decode(decoder)
+
+    def decode(self, decoder):
+        pass
+
+    def encode(self, encoder):
+        encoder.encode_u32(self.filesize)
+        encoder.encode_u16(self.filecrc)
+        encoder.encode_u8(self.blocksize)
+        encoder.encode_bytes(self.devicetype)
+        encoder.encode_str(self.software)
+
 
 class UpdateFBD(DataFragment):
-    def __init__(self, seq, ack, crc):
-        self.cmd = CMD.UPDATE
+    def __init__(self, cmd=None, seq=None, ack=None, crc=None):
+        self.cmd = CMD.to_enum(cmd)
         self.seq = seq
         self.ack = ack
         self.crc = crc
@@ -143,7 +171,12 @@ class UpdateFBD(DataFragment):
         self.data = 0
 
     def encode(self, encoder):
-        pass
+        encoder.encode_u8(self.cmd.value)
+        encoder.encoder_u16(self.seq)
+        encoder.encode_u8(self.ack)
+        encoder.encode_u16(self.crc)
+        encoder.encoder_u16(self.length)
+        encoder.encoder_bytes(self.data)
 
     def decode(self, decoder):
         pass

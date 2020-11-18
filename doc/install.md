@@ -16,3 +16,12 @@
 pip freeze > requirements.txt
 pip install -r requirements.txt
 ```
+
+# 常见问题
+serailExcepiton
+需要将serial和pyserial卸载，然后重新安装pyserial
+```shell script
+pip uninstall  serial 
+pip uninstall pyserial 
+pip install serial 
+```

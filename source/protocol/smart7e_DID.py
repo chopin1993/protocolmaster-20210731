@@ -88,12 +88,14 @@ class DIDRemote(Register):
 
     @classmethod
     def find_class_by_name(cls, name, refresh=False):
+        if isinstance(name, int):
+            return cls.find_class_by_did(name)
         all_did = cls.get_did_dict(refresh)
         if name in all_did.keys():
             return all_did[name]
         else:
             try:
-                did = int(name, base=16)
+                did =  int(name, base=16)
                 return cls.find_class_by_did(did)
             except ValueError as error:
                 return None

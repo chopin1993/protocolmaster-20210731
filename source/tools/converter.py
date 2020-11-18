@@ -31,8 +31,6 @@ def str2hexstr(string):
 
 def str2bytearray(string):
     out = bytes(string, encoding="utf-8")
-    # for x in string:
-    #     out += ord(x)
     return out
 
 
@@ -41,4 +39,8 @@ def bytearray2str(bytes):
     for x in bytes:
         out += chr(x)
     return out
+
+
+def toint(value):
+    pass
 

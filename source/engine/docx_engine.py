@@ -114,7 +114,8 @@ class DocxEngine(object):
         self.document.add_paragraph(body, style='fail')
 
     def save_doc(self,output_dir):
-       name = self.name + ".docx"
+       time_str = time.strftime('%Y-%m-%d-%H-%M-%S', time.localtime(time.time()))
+       name = self.name+"_"+time_str+".docx"
        name = os.path.join(output_dir,name)
        logging.info("generate doc %s",name)
        self.document.save(name)
