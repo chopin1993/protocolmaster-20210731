@@ -1,0 +1,78 @@
+{
+    "测试配置信息": {
+        "enable": true,
+        "paras": {},
+        "subcase": {}
+    },
+    "基本报文测试": {
+        "enable": true,
+        "paras": {},
+        "subcase": {
+            "软件版本": {
+                "enable": true,
+                "paras": {
+                    "软件版本": "ESSN-OIP-A(v1.1)-20200901"
+                },
+                "subcase": {}
+            },
+            "PLC版本信息": {
+                "enable": true,
+                "paras": {
+                    "plcVersion": "EASTSOFT(v1.0)"
+                },
+                "subcase": {}
+            },
+            "设备类型": {
+                "enable": true,
+                "paras": {
+                    "deviceType": "FF FF 0B 00 01 00 00 00"
+                },
+                "subcase": {}
+            },
+            "设备远程打印开关": {
+                "enable": false,
+                "paras": {
+                    "value": ""
+                },
+                "subcase": {}
+            }
+        }
+    },
+    "传感器数据测试": {
+        "enable": true,
+        "paras": {},
+        "subcase": {
+            "人体和红外数据读取": {
+                "enable": true,
+                "paras": {},
+                "subcase": {}
+            },
+            "照度数据读取": {
+                "enable": true,
+                "paras": {},
+                "subcase": {}
+            }
+        }
+    },
+    "状态同步": {
+        "enable": true,
+        "paras": {},
+        "subcase": {
+            "步长设置、读取": {
+                "enable": true,
+                "paras": {},
+                "subcase": {}
+            }
+        }
+    },
+    "断电参数保存": {
+        "enable": false,
+        "paras": {},
+        "subcase": {}
+    },
+    "上报测试": {
+        "enable": true,
+        "paras": {},
+        "subcase": {}
+    }
+}
