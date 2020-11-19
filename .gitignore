@@ -38,3 +38,5 @@
 /venv
 /source/protocol/parsetab.py
 /source/*.db
+*.render.md
+source/autotest/*.docx
