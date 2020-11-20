@@ -31,8 +31,8 @@ def create_role(name, address):
     return TestEngine.instance().get_default_device().create_role(name,address)
 
 
-def add_fail_test(tag, msg):
-    TestEngine.add_fail_test(msg)
+def add_fail_test(msg):
+    TestEngine.add_fail_test("", "fail" ,msg)
 
 
 def add_doc_info(msg):
@@ -41,7 +41,13 @@ def add_doc_info(msg):
 
 
 def wait(seconds, expect_no_message=False, tips=""):
-    msg ="we will wait {0}s, {1}".format(seconds, tips)
+    """
+    :param seconds:
+    :param expect_no_message:True:等待时收到报文测试失败，False：等待时无论是否收到报文测试都会成功
+    :param tips:
+    :return:
+    """
+    msg ="we will wait {0}s {1}".format(seconds, tips)
     logging.info(msg)
     role = TestEngine.instance().get_default_role()
     role.wait(seconds, expect_no_message)
@@ -85,6 +91,13 @@ def send_did(cmd, did, value=None,dst=None, **kwargs):
     role.send_did(cmd, did, value=value,dst=dst, **kwargs)
 
 def expect_multi_dids(cmd, *args, timeout=2, ack=False):
+    """
+    :param cmd:支持“READ”,"WRITE","REPORT
+    :param args:did1,value1,did2,value2...did和value交替排列
+    :param timeout:超时时间
+    :param ack:是否给与回复，主要在上报的时候使用
+    :return:
+    """
     role = TestEngine.instance().get_default_role()
     role.expect_multi_dids(cmd, *args, timeout=timeout, ack=ack)
 
@@ -96,36 +109,34 @@ def expect_did(cmd, did, value=None, timeout=2, ack=False, **kwargs):
 
 def send_multi_dids(cmd, *args, dst=None):
     """
-    :param cmd:
-    :param args:
-    :param dst:
-    :return:
+    :param cmd:支持“READ”,"WRITE","REPORT
+    :param args:did1,value1,did2,value2...did和value交替排列
+    :param dst:目的低点至，默认是被测设备
     """
     role = TestEngine.instance().get_default_role()
     role.send_multi_dids(cmd, *args, dst=dst)
 
 
 def send_local_msg(cmd, value=None, **kwargs):
-    role = TestEngine.instance().get_default_device()
+    role = TestEngine.instance().get_local_routine()
     role.send_local_msg(cmd, value, **kwargs)
 
 
 def expect_local_msg(cmd, value=None, **kwargs):
-    role = TestEngine.instance().get_default_device()
+    role = TestEngine.instance().get_local_routine()
     role.expect_local_msg(cmd, value, **kwargs)
 
 
-def update(file_name, func=None, expect_seqs=None):
+def update(file_name,  control_func=None, block_size=128):
     """
     升级程序
     :param file_name:程序升级名称
-    :param func:控制程序。func的参数是请求的包，返回的是要发送的包。返回None表示不予回复。
-    :param expect_seq:期望收到设备的seq。
-    :return:
+    :param control_func:控制程序。func的参数是请求的包，返回的是要发送的包。返回None表示不予回复。
+    :return 设备请求的seqs列表。
     """
     updater = TestEngine.instance().get_updater()
     file_name = os.path.join(TestEngine.instance().output_dir, file_name)
-    updater.update(file_name, func, expect_seqs)
+    return updater.update(file_name, block_size, control_func)
 
 
 def _parse_doc_string(doc_string):

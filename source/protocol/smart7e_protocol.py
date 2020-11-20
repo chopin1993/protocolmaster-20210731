@@ -7,6 +7,7 @@ from .codec import BinaryEncoder, BinaryDecoder
 from tools.converter import str2hexstr,hexstr2bytes
 from tools.esenum import EsEnum
 from .data_fragment import DataFragment
+from .DataMetaType import *
 
 SMART_7e_HEAD = bytes([0x7e])
 
@@ -27,8 +28,6 @@ class CMD(EsEnum):
     UPDATE = 0x05 #升级
     UPDATE_BIG = 0x06 #大文件升级
     WRITE = 0x7
-
-
 
 
 class LocalFBD(DataFragment):
@@ -94,7 +93,7 @@ class LocalFBD(DataFragment):
 class GID(DataFragment):
     TYPE_U8 = 1
     TYPE_U16 = 2
-    def __init__(self, type=None, gids=None,decoder=None):
+    def __init__(self, type=None, gids=None,decoder=None,**kwargs):
         if decoder is None:
             self.type = type
             if isinstance(gids, int):
@@ -132,54 +131,58 @@ class GID(DataFragment):
         str1 += " "
         return str1
 
+
 class UpdateStartInfo(DataFragment):
-    def __init__(self, filesize=None,
-                       filecrc=None,
-                       blocksize=None,
-                       devicetype=None,
-                       software=None,
-                       decoder=None):
+    def __init__(self, decoder=None, **kwargs):
         """
         filesize filecrc blocksize 设备类型 软件版本
         """
-        self.filesize = filesize
-        self.filecrc = filecrc
-        self.blocksize = blocksize
-        self.devicetype = devicetype
-        self.software = software
-        if decoder is not None:
-            self.decode(decoder)
-
-    def decode(self, decoder):
-        pass
-
-    def encode(self, encoder):
-        encoder.encode_u32(self.filesize)
-        encoder.encode_u16(self.filecrc)
-        encoder.encode_u8(self.blocksize)
-        encoder.encode_bytes(self.devicetype)
-        encoder.encode_str(self.software)
+        super(UpdateStartInfo, self).__init__()
+        self.declare_unit(DataU32("size"))
+        self.declare_unit(DataByteArray("crc",length=2))
+        self.declare_unit(DataU8("blocksize"))
+        self.declare_unit(DataByteArray("devicetype",length=8))
+        self.declare_unit(DataCString("softversion"))
+        self.load_args(decoder=decoder, **kwargs)
 
 
 class UpdateFBD(DataFragment):
-    def __init__(self, cmd=None, seq=None, ack=None, crc=None):
+    def __init__(self, decoder=None, cmd=None, seq=None, ack=None, data=bytes(),crc=None, **kwargs):
         self.cmd = CMD.to_enum(cmd)
         self.seq = seq
         self.ack = ack
         self.crc = crc
-        self.length = 0
-        self.data = 0
+        self.length = len(data)
+        self.data = data
+        if decoder is not None:
+            self.decode(decoder)
 
     def encode(self, encoder):
         encoder.encode_u8(self.cmd.value)
-        encoder.encoder_u16(self.seq)
+        encoder.encode_u16(self.seq)
         encoder.encode_u8(self.ack)
-        encoder.encode_u16(self.crc)
-        encoder.encoder_u16(self.length)
-        encoder.encoder_bytes(self.data)
+        encoder.encode_bytes(self.crc)
+        encoder.encode_u8(len(self.data))
+        encoder.encode_bytes(self.data)
 
     def decode(self, decoder):
-        pass
+        self.seq = decoder.decode_u16()
+        self.ack = decoder.decode_u8()
+        self.crc = decoder.decode_bytes(2)
+        self.length = decoder.decode_u8()
+        self.data = decoder.decode_bytes(self.length)
+
+    def __str__(self):
+        txt = "cmd:{0} seq:{1} ack:{2} crc:{3} length:{4:x}".format(
+            self.cmd,
+            self.seq,
+            self.ack,
+            str2hexstr(self.crc),
+            self.length)
+        if self.seq == 0 and len(self.data)>0:
+            decoder = BinaryDecoder(self.data)
+            txt += str(decoder.decoder_for_object(UpdateStartInfo))
+        return txt
 
 
 class RemoteFBD(DataFragment):
@@ -244,6 +247,9 @@ class Smart7EData(DataFragment):
 
     def is_reply(self):
         return self.seq&0x80==0x80
+
+    def is_update(self):
+        return self.fbd.cmd == CMD.UPDATE
 
     def is_local(self):
         return self.said ==0 and self.taid == 0

@@ -2,18 +2,17 @@ from tools.converter import *
 import types
 import weakref
 from engine.validator import *
-from .test_engine import TestEngine,Device,log_snd_frame,log_rcv_frame
+from .test_engine import TestEngine,Device,log_snd_frame,log_rcv_frame,Routine
 import logging
 
-class RoleRoutine(object):
+
+class RoleRoutine(Routine):
     """
     主要用来处理单个did，上报和联动测试
     """
     def __init__(self, name, src, device:Device):
-        self.name = name
+        super(RoleRoutine, self).__init__(name, device)
         self.src = src
-        self.device = weakref.proxy(device)
-        self.validate = None
 
     def send_did(self, cmd, did, value=None, dst=None,**kwargs):
         fbd = RemoteFBD.create(cmd, did, value, **kwargs)
@@ -58,11 +57,11 @@ class RoleRoutine(object):
                                            cmd=cmd,
                                            dids=did,
                                            ack=ack)
-        self.device.waiting_event(timeout, self.handle_rcv_msg)
+        self.wait_event(timeout)
 
     def wait(self, seconds, expect_no_message):
         self.validate = NoMessage(expect_no_message)
-        self.device.waiting_event(seconds, self.handle_rcv_msg)
+        self.wait_event(seconds)
 
     def expect_multi_dids(self, cmd, *args, dst=None, timeout=2, ack=False):
         cmd = CMD.to_enum(cmd)
@@ -73,12 +72,13 @@ class RoleRoutine(object):
                                            cmd=cmd,
                                            dids=dids,
                                            ack=ack)
-        self.device.waiting_event(timeout, self.handle_rcv_msg)
+        self.wait_event(timeout)
 
     def handle_rcv_msg(self, data):
         if data is not None:
             log_rcv_frame(self.name, data)
-
+        if data is not None and data.fbd.cmd == CMD.UPDATE:
+            return
         if self.validate is not None:
             valid, msg = self.validate(data)
             if valid:
@@ -87,6 +87,8 @@ class RoleRoutine(object):
                 TestEngine.instance().add_fail_test(self.name, "expect fail", msg)
             if self.validate.ack:
                 self.ack_report_message(data)
+            self.timer.stop()
+            self.validate = None
 
     def ack_report_message(self, data):
         if data is None:

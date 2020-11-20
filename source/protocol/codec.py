@@ -79,6 +79,8 @@ class BinaryDecoder(Decoder):
     def decode_bytes(self, length):
         if length == 0:
             return bytes()
+        elif length < 0:
+            return self.decode_left_bytes()
         data = self.data[0:length]
         self.data = self.data[length:]
         return data
@@ -134,6 +136,7 @@ class BinaryDecoder(Decoder):
         return data
 
     def decode_cstr(self):
+        i = 0
         for i in range(len(self.data)):
             if self.data[i] == 0:
                 break

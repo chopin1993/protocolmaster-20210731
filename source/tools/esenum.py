@@ -13,3 +13,10 @@ class EsEnum(Enum):
             return value
         else:
             raise ValueError()
+
+    @classmethod
+    def name_dict(cls):
+        outputs = {}
+        for e in cls:
+            outputs[e.name] = e.value
+        return outputs

@@ -19,30 +19,17 @@ def start_report():
 def test_gateway_report():
     """
     组网上报
-    测试设备组网上报功能。
-    1. 将设备上报模式设置为上报网关
-    2. 发起模拟设备组网命令。
-    3. 设备会在65s内上报开关状态
-    4. 如果没有收到回复，设备会重发两次
-    5. 收到回复时，设备便不再重发
     """
-    engine.send_did("WRITE", "主动上报使能标志",传感器类型="开关", 上报命令="上报网关")
-    engine.expect_did("WRITE", "主动上报使能标志", 传感器类型="开关", 上报命令="上报网关")
-
     start_report()
-    engine.add_doc_info("设备会在65s内第一次上报")
-    engine.expect_multi_dids("REPORT", "通断操作C012", "**","导致状态改变的控制设备AID", "** ** ** **", timeout=65)
-    engine.add_doc_info("设备会在200s内第二次上报")
-    engine.wait(50, expect_no_message=True)
-    engine.expect_multi_dids("REPORT", "通断操作C012", "**","导致状态改变的控制设备AID", "** ** ** **", timeout=200)
-    engine.add_doc_info("设备会在350s内第三次上报")
-    engine.wait(50, expect_no_message=True)
-    engine.expect_multi_dids("REPORT", "通断操作C012", "**", "导致状态改变的控制设备AID", "** ** ** **", timeout=300)
-
+    engine.add_doc_info("设备会在20s内第一次上报")
+    engine.expect_multi_dids("REPORT", "通断操作C012", "**","导致状态改变的控制设备AID", "** ** ** **", timeout=20)
+    engine.add_doc_info("设备会在40s内第二次上报")
+    engine.wait(10, expect_no_message=True)
+    engine.expect_multi_dids("REPORT", "通断操作C012", "**","导致状态改变的控制设备AID", "** ** ** **", timeout=30, ack=True)
     engine.add_doc_info("上报收到回复之后，便不会重发")
     start_report()
     engine.expect_multi_dids("REPORT", "通断操作C012", "**", "导致状态改变的控制设备AID", "** ** ** **", timeout=65, ack=True)
-    engine.wait(250, expect_no_message=True)
+    engine.wait(100, expect_no_message=True)
 
 
 def test_subscribe_report():
@@ -63,6 +50,6 @@ def test_subscribe_report():
     panel.expect_did("WRITE","通断操作C012","00")
 
     engine.send_did("WRITE", "通断操作C012", "81")
-
     engine.expect_did("WRITE", "通断操作C012", "01")
-    panel.expect_did("REPORT", "通断操作C012","01",timeout=15,ack=True)
+
+    panel.expect_did("NOTIFY", "通断操作C012","01",timeout=15,ack=True)

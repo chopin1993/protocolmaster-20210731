@@ -8,6 +8,8 @@ import os
 from PyQt5.QtCore import QTimer,QCoreApplication
 import time
 from engine.validator import *
+import weakref
+
 
 def get_current_time_str():
     return time.strftime('%H:%M:%S', time.localtime(time.time()))
@@ -43,6 +45,9 @@ class TestEngine(object):
     def get_updater(self):
         return self.com_medias[0].updater
 
+    def get_local_routine(self):
+        return self.com_medias[0].local_routine
+
     def get_default_device(self):
         return self.com_medias[0]
 
@@ -73,7 +78,7 @@ class TestEngine(object):
     def test_end(self, name):
         self.current_test = None
 
-    def add_fail_test(self,role, tag, msg):
+    def add_fail_test(self, role, tag, msg):
         self.current_test.add_fail_test(role, tag, msg, get_current_time_str())
         logging.info("case %s fail, %s %s ", self.current_test.name, tag, msg)
 
@@ -165,17 +170,57 @@ class TestEngine(object):
         self.output_dir = path
 
 
-def log_snd_frame(name, data):
-    TestEngine.instance().add_normal_operation(name, "snd", str(data))
-    TestEngine.instance().add_normal_operation(name, "annotation", data.to_readable_str())
+def log_snd_frame(name, data, only_log=False):
+    if not only_log:
+        TestEngine.instance().add_normal_operation(name, "snd", str(data))
+        TestEngine.instance().add_normal_operation(name, "annotation", data.to_readable_str())
     logging.info("snd %s", str(data))
     logging.info("txt %s", data.to_readable_str())
 
-def log_rcv_frame(name, data):
-    TestEngine.instance().add_normal_operation(name, "rcv", str(data))
-    TestEngine.instance().add_normal_operation(name, "annotation", data.to_readable_str())
+
+def log_rcv_frame(name, data, only_log=False):
+    if not only_log:
+        TestEngine.instance().add_normal_operation(name, "rcv", str(data))
+        TestEngine.instance().add_normal_operation(name, "annotation", data.to_readable_str())
     logging.info("rcv %s", str(data))
     logging.info("txt %s", data.to_readable_str())
+
+
+class Routine(object):
+
+    def __init__(self, name, device):
+        self.name = name
+        self.device = weakref.proxy(device)
+        self.validate = None
+        self.timer = QTimer()
+        self.timer.timeout.connect(self.timeout_handle)
+        self.validate = None
+        self.name = name
+
+    def timeout_handle(self):
+        self.handle_rcv_msg(None)
+
+    def get_remaining_time(self):
+        if self.timer.isActive():
+            return max(1,self.timer.remainingTime()//1000)
+        return 0
+
+    def wait_event(self, timeout):
+        self.timer.start(timeout*1000)
+        self.device.wait_event()
+
+    def handle_rcv_msg(self, msg):
+        if msg is not None:
+            log_rcv_frame(self.name,msg)
+        if self.validate is not None:
+            valid, msg = self.validate(msg)
+            if valid:
+                TestEngine.instance().add_normal_operation(self.name, "expect success", msg)
+            else:
+                TestEngine.instance().add_fail_test(self.name, "expect fail", msg)
+            self.timer.stop()
+
+
 
 class Device(object):
     """
@@ -187,44 +232,30 @@ class Device(object):
         self.protocol = Protocol.create_sub_class(protocol)
         self.session = SessionSuit.create_binary_suit(self.media, self.protocol)
         self.session.data_ready.connect(self.handle_rcv_msg)
-        self.timer = QTimer()
-        self.timer.timeout.connect(self.timeout_handle)
-        self.waiting = False
         self.roles = []
         self.default_role = None
-        self.rcv_func = None
         self.updater = None
-
-    def timeout_handle(self):
-        self.handle_rcv_msg(None)
+        self.local_routine = None
+        self.legal_devices = set()
 
     def config_com(self, **kwargs):
         self.media.config(**kwargs)
 
     def create_role(self, name, src):
         from .role_routine import RoleRoutine
+        from .local_routine import LocalRoutine
         role = RoleRoutine(name, src, self)
         self.roles.append(role)
         if self.default_role is None:
             self.default_role = role
             from engine.updater import UpdateRoutine
             self.updater = UpdateRoutine("updater", src, self)
-        self.send_local_msg("设置应用层地址", src)
-        self.expect_local_msg(["确认", "否认"], timeout=2)
+            self.local_routine = LocalRoutine("local", self)
+            self.roles.append(self.local_routine)
+            self.roles.append(self.updater)
+        self.local_routine.send_local_msg("设置应用层地址", src)
+        self.local_routine.expect_local_msg(["确认", "否认"], timeout=2)
         return role
-
-    def send_local_msg(self, cmd, value, **kwargs):
-        fbd = LocalFBD(cmd, value)
-        data = Smart7EData(0, 0, fbd)
-        self.session.write(data)
-        log_snd_frame(self.name, data)
-
-    def expect_local_msg(self, cmd, value=None, timeout=2, **kwargs):
-        validate = SmartLocalValidator(cmd=cmd)
-        def rev_func(data):
-            nonlocal validate
-            validate(data)
-        self.waiting_event(timeout, rev_func)
 
     def get_dst_addr(self, dst=None):
         if dst is None:
@@ -232,32 +263,49 @@ class Device(object):
         else:
             return dst
 
-    def waiting_event(self, timeout, rcv_func):
-        self.rcv_func = rcv_func
-        self.waiting = True
-        self.timer.start(timeout*1000)
-        current = self.timer.remainingTime()
-        while self.waiting:
-            if current - self.timer.remainingTime() > 10000:
-                current = self.timer.remainingTime()
-                logging.info("left %ds",current//1000)
+    def get_waiting_time(self):
+        left_time = 0
+        cnt = 0
+        for role in self.roles:
+            remaining = role.get_remaining_time()
+            if remaining > 0:
+                cnt += 1
+                left_time = max(remaining, left_time)
+        return left_time, cnt
+
+    def wait_event(self):
+        current,cnt = self.get_waiting_time()
+        if cnt > 1:
+            return
+        while True:
+            time,cnt = self.get_waiting_time()
+            if current - time >= 10:
+                current = time
+                logging.info("left %ds", current)
+            if time == 0:
+                break
             QCoreApplication.instance().processEvents()
 
     def write(self, data):
+        self.legal_devices.add(data.taid)
         self.session.write(data)
 
     def handle_rcv_msg(self, data):
-        self.timer.stop()
-        # 源地址既不是本地地址也不是目标设备，就跳过
-        if (data is not None) and \
-                (data.said != self.get_dst_addr()) and \
-                (data.said != 0):
+
+        if data.is_local():
+            self.local_routine.handle_rcv_msg(data)
             return
 
-        # 远程消息处理
-        if self.rcv_func is not None:
-            self.rcv_func(data)
-        else:
-            log_rcv_frame(self.name, data)
-        self.waiting = False
-        self.rcv_func = None
+        if data.said not in self.legal_devices:
+            log_rcv_frame(self.name, data, only_log=True)
+            return
+
+        if data.is_update():
+            self.updater.handle_rcv_msg(data)
+            return
+
+        for role in self.roles:
+            from .role_routine import RoleRoutine
+            if isinstance(role, RoleRoutine):
+                if data.taid == role.src:
+                    role.handle_rcv_msg(data)

@@ -171,8 +171,12 @@ class DataCString(DataMetaType):
 
 
 class DataByteArray(DataMetaType):
-    def __init__(self, name=None, value=bytes(), decoder=None):
+    def __init__(self, name=None, value=bytes(),length=-1 ,decoder=None):
         super(DataByteArray, self).__init__(name, value, decoder)
+        self.length = length
+
+    def decode(self, decoder, **kwargs):
+        self._value = decoder.decode_bytes(self.length)
 
 
 class DataU8(DataMetaType):
