@@ -24,7 +24,7 @@ def test_device_search():
 
     config = engine.get_config()
 
-    engine.send_did("SEARCH", "APP设备搜索",dst=0xffffffff, 搜索类型="未注册节点", 搜索时间=14, 设备类型="ff ff ff ff")
+    engine.send_did("SEARCH", "APP设备搜索",taid=0xffffffff, 搜索类型="未注册节点", 搜索时间=14, 设备类型="ff ff ff ff")
     engine.expect_multi_dids("SEARCH", "SN","32 01 10 10 ** ** ** ** ** ** ** **",
                                        "DKEY", "** ** ** ** ** ** ** **",
                                        "设备PWD",config["设备密码"],

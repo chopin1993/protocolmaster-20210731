@@ -177,8 +177,9 @@ class DataCString(DataMetaType):
             return False
 
     def encode(self, encoder, **kwargs):
+        value = self.value
         if self.reverse:
-            value = self.value[::-1]
+            value = value[::-1]
         encoder.encode_str(value)
 
     def decode(self, decoder, **kwargs):
