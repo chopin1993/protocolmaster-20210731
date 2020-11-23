@@ -74,6 +74,20 @@ class RoleRoutine(Routine):
                                            ack=ack)
         self.wait_event(timeout)
 
+    def send_raw(self, fbd, taid=None):
+        if isinstance(fbd, str):
+            fbd = hexstr2bytes(fbd)
+        dst = self.device.get_dst_addr(taid)
+        data = Smart7EData(self.src, dst, fbd)
+        self.write(data)
+
+    def expect_raw(self, fbd, said=None, timeout=2):
+        fbd = BytesCompare(fbd)
+        self.validate = SmartDataValidator(src=self.device.get_dst_addr(said),
+                                           dst=self.src,
+                                           fbd = fbd)
+        self.wait_event(timeout)
+
     def handle_rcv_msg(self, data):
         if data is not None:
             log_rcv_frame(self.name, data)

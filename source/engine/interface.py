@@ -82,6 +82,27 @@ def expect_multi_dids(cmd, *args, timeout=2, ack=False,said=None):
     role = TestEngine.instance().get_default_role()
     role.expect_multi_dids(cmd, *args, timeout=timeout, ack=ack, said=said)
 
+
+def send_raw(fbd, taid=None):
+    """
+    发送组织帧
+    :param fbd: 自组fbd帧
+    :taid: 目标地址
+    """
+    role = TestEngine.instance().get_default_role()
+    role.send_raw(fbd, taid=taid)
+
+
+def expect_raw(fbd, said=None, timeout=2):
+    """
+    发送组织帧
+    :param fbd: 自组fbd帧
+    :param said: 源地址
+    """
+    role = TestEngine.instance().get_default_role()
+    role.expect_raw(fbd, said, timeout=timeout)
+
+
 def send_local_msg(cmd, value=None, **kwargs):
     """
     :param cmd: 查询数据标识分类.xls中中的localcmd数据表。

@@ -66,6 +66,9 @@ class BytesCompare(Validator):
                 return False
         return True
 
+    def __str__(self):
+        return self.placeholder
+
 
 class FunctionCompare(Validator):
     def __init__(self, func):
@@ -99,26 +102,37 @@ class DIDValidtor(Validator):
             return False
         return  compare_data(self.value, did.data)
 
+def error_msg(filed, expected, rcv):
+    return f"{filed} error, expect:{expected} rcv:{rcv}".format(filed=filed, expected=expected, rcv=rcv)
+
 
 class SmartDataValidator(Validator):
-    def __init__(self, src, dst, cmd, dids, ack=False):
+    def __init__(self, src, dst, cmd=None, dids=None, fbd=None, seq=None, ack=False):
         super(SmartDataValidator, self).__init__()
         self.cmd = cmd
         self.dids = dids
         self.src = src
         self.dst = dst
         self.ack = ack
+        self.fbd = fbd
+        self.seq = seq
 
     def __call__(self, smartData):
         if smartData is None:
             return False, "没有回复"
-        if  self.cmd != smartData.fbd.cmd or \
-            self.src != smartData.said or \
-            self.dst != smartData.taid or \
-            self.cmd != smartData.fbd.cmd:
-            return False, "验证失败,cmd src dst  not match"
 
-        for validator, did in zip(self.dids, smartData.fbd.didunits):
-            if not validator(did):
-                return False, "验证失败,did {0} not match".format(str(did))
-        return True,"验证成功"
+        if  self.src != smartData.said:
+            return False,error_msg("said",self.src, smartData.said)
+        if self.dst != smartData.taid:
+            return False,error_msg("taid", self.dst, smartData.taid)
+
+        if self.fbd is None:
+            if self.cmd != smartData.fbd.cmd:
+                return False, error_msg("cmd",self.cmd, smartData.fbd.cmd)
+            for validator, did in zip(self.dids, smartData.fbd.didunits):
+                if not validator(did):
+                    return False, error_msg("did error", str(validator), str(did))
+        else:
+            if self.fbd(smartData.fbd.data):
+                return False, error_msg("fbd error", self.fbd,  smartData.fbd.data)
+        return True, "验证成功"

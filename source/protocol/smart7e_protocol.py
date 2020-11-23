@@ -202,6 +202,7 @@ class RemoteFBD(DataFragment):
                 self.didunits.append(didunits)
             self.gid = gid
         else:
+            self.data = bytes(self.cmd.value)+decoder.data
             self.gid = None
             ctx = kwargs['ctx']
             if ctx.is_boardcast():

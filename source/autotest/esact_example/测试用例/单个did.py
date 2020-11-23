@@ -33,9 +33,6 @@ def test_did_para():
     engine.expect_did("WRITE", "主动上报使能标志", 传感器类型=0, 上报命令=0)
 
 
-
-
-
 def test_r_string():
     """
     字符串反转
