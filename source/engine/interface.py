@@ -6,61 +6,14 @@ from PyQt5.QtCore import QCoreApplication
 from PyQt5.QtWidgets import QApplication
 import sys
 from engine.case_editor import CaseEditor
-import re
-from engine.public_case import FunCaseAdapter
-from tools.filetool import get_file_list
-import importlib
-import time
-from .test_engine import TestEngine
-
-
-def set_output_dir(path):
-    import os
-    def to_source_dir(path):
-        ret = re.search(r"(.*)autotest.*",path)
-        if ret is None:
-            return None
-        return ret.group(1)
-    source_path = to_source_dir(path)
-    if source_path is not None:
-        os.chdir(source_path)
-    TestEngine.instance().set_output_dir(path)
-
-
-def create_role(name, address):
-    return TestEngine.instance().get_default_device().create_role(name,address)
-
-
-def add_fail_test(msg):
-    TestEngine.add_fail_test("", "fail" ,msg)
-
-
-def add_doc_info(msg):
-    TestEngine.instance().add_normal_operation("", "doc", msg)
-    logging.info(msg)
-
-
-def wait(seconds, expect_no_message=False, tips=""):
-    """
-    :param seconds:
-    :param expect_no_message:True:等待时收到报文测试失败，False：等待时无论是否收到报文测试都会成功
-    :param tips:
-    :return:
-    """
-    msg ="we will wait {0}s {1}".format(seconds, tips)
-    logging.info(msg)
-    role = TestEngine.instance().get_default_role()
-    role.wait(seconds, expect_no_message)
-
-
-def create_test_case(fun, *args, **kwargs):
-    from functools import partial
-    test_case = partial(fun, *args, **kwargs)
-    test_case.__doc__ = fun.__doc__
-    return test_case
+from .interface_helper import *
 
 
 def config(infos):
+    """
+    配置项目基本信息
+    :param infos:字典，项目信息
+    """
     TestEngine.instance().config = infos
     TestEngine.instance().config_test_program_name(infos["测试程序名称"])
     com = TestEngine.instance().create_com_device(infos["串口"])
@@ -75,13 +28,17 @@ def config(infos):
 
 
 def get_config():
+    """
+    获取全局项目配置信息
+    :return 字典
+    """
     return TestEngine.instance().config
 
 
 def send_did(cmd, did, value=None,dst=None, **kwargs):
     """
     发送7e报文
-    :param cmd:支持“READ”,"WRITE","REPORT
+    :param cmd:支持“READ”,"WRITE","REPORT","NOTIFY"
     :param did:可以使用数字，也可以使用《数据表示分类表格》的中文名称
     :param value:可是数字,也可以是类似于“00 34 78”的字符串
     :param dst:目标地址
@@ -92,7 +49,7 @@ def send_did(cmd, did, value=None,dst=None, **kwargs):
 
 def expect_multi_dids(cmd, *args, timeout=2, ack=False):
     """
-    :param cmd:支持“READ”,"WRITE","REPORT
+    :param cmd:支持“READ”,"WRITE","REPORT","NOTIFY"
     :param args:did1,value1,did2,value2...did和value交替排列
     :param timeout:超时时间
     :param ack:是否给与回复，主要在上报的时候使用
@@ -103,13 +60,21 @@ def expect_multi_dids(cmd, *args, timeout=2, ack=False):
 
 
 def expect_did(cmd, did, value=None, timeout=2, ack=False, **kwargs):
+    """
+    :param cmd: 支持“READ”,"WRITE","REPORT","NOTIFY""
+    :param did: 可以使用数字，也可以使用《数据表示分类表格》的中文名称
+    :param value:可是数字,也可以是类似于“00 34 78”的字符串, 可以使用*作为占位符"** **",可以传入函数
+    :param timeout:
+    :param ack: 是否给与回复
+    :param kwargs: 如果did有多个数据项，可以使用key,vlaue的方式传递数据
+    """
     role = TestEngine.instance().get_default_role()
     role.expect_did(cmd, did, value=value, timeout=timeout, ack=ack, **kwargs)
 
 
 def send_multi_dids(cmd, *args, dst=None):
     """
-    :param cmd:支持“READ”,"WRITE","REPORT
+    :param cmd:支持“READ”,"WRITE","REPORT","NOTIFY"
     :param args:did1,value1,did2,value2...did和value交替排列
     :param dst:目的低点至，默认是被测设备
     """
@@ -118,11 +83,19 @@ def send_multi_dids(cmd, *args, dst=None):
 
 
 def send_local_msg(cmd, value=None, **kwargs):
+    """
+    :param cmd: 查询数据标识分类.xls中中的localcmd数据表。
+    :param value: 发送数据
+    """
     role = TestEngine.instance().get_local_routine()
     role.send_local_msg(cmd, value, **kwargs)
 
 
 def expect_local_msg(cmd, value=None, **kwargs):
+    """
+    :param cmd: 查询数据标识分类.xls中中的localcmd数据表。
+    :param value：期望收到数据
+    """
     role = TestEngine.instance().get_local_routine()
     role.expect_local_msg(cmd, value, **kwargs)
 
@@ -139,68 +112,13 @@ def update(file_name,  control_func=None, block_size=128):
     return updater.update(file_name, block_size, control_func)
 
 
-def _parse_doc_string(doc_string):
-    if doc_string is None:
-        doc_string = "默认"
-    doc_string = doc_string.strip()
-    names = doc_string.split("\n")
-    brief = None
-    if len(names) >= 2:
-        briefs = [data.lstrip() for data in names[1:]]
-        brief = "\n".join(briefs)
-    return names[0],brief
-
-
-def gather_all_test(variables):
-    tests = []
-    for key, value in variables.items():
-        if key.startswith("test"):
-            tests.append(value)
-    return tests
-
-
-def _parse_func_testcase():
-    public_dir = os.path.join(TestEngine.instance().output_dir, "测试用例")
-    files = get_file_list(public_dir)
-    for name in files:
-        name = os.path.splitext(name)[0]
-        if name.startswith("__"):
-            continue
-        file = os.path.split(TestEngine.instance().output_dir)[-1]
-        mod = importlib.import_module("autotest." + file +".测试用例." + name)
-        group_brief = getattr(mod, "测试组说明", None)
-        tests = gather_all_test(mod.__dict__)
-        TestEngine.instance().group_begin(name, None, group_brief)
-        for test in tests:
-            case_name, case_brief = _parse_doc_string(test.__doc__)
-            test = FunCaseAdapter(test)
-            TestEngine.instance().test_begin(case_name, test, case_brief)
-
-
-def _parse_public_test_case():
-    public_dir = os.path.join(TestEngine.instance().output_dir, "..", "公共用例")
-    files = get_file_list(public_dir)
-    for name in files:
-        name = os.path.splitext(name)[0]
-        if name.startswith("__"):
-            continue
-        mod = importlib.import_module("autotest.公共用例." + name)
-        group_brief = getattr(mod, "测试组说明", None)
-        tests = gather_all_test(mod.__dict__)
-        TestEngine.instance().group_begin(name, None, group_brief)
-        for test in tests:
-            case_name, case_brief = _parse_doc_string(test.__doc__)
-            test = FunCaseAdapter(test)
-            TestEngine.instance().test_begin(case_name, test, case_brief)
-
-
 def run_all_tests(gui=False):
     """
     自动扫描公共用例和项目文件夹下测试用例中所有的测试用例，并执行。
     :param gui: True: 显示gui界面 False：自动执行保存的配置
     """
-    _parse_public_test_case()
-    _parse_func_testcase()
+    parse_public_test_case()
+    parse_func_testcase()
     try:
         TestEngine.instance().load_config()
     except Exception as e:
@@ -215,3 +133,42 @@ def run_all_tests(gui=False):
         app = QCoreApplication(sys.argv)
         TestEngine.instance().run_all_test()
     exit(0)
+
+
+def create_role(name, address):
+    """
+    创建陪测设备
+    :param name:陪测设备名称
+    :param address: 陪测设备地址
+    """
+    return TestEngine.instance().get_default_device().create_role(name,address)
+
+
+def add_fail_test(msg):
+    """
+    手动设置测试失败
+    :param msg: 测试失败的提示信息。
+    """
+    TestEngine.instance().add_fail_test("user",  "fail", msg=msg)
+
+
+def add_doc_info(msg):
+    """
+    手动增加测试帮助信息
+    :param msg: 测试辅助信息
+    """
+    TestEngine.instance().add_normal_operation("", "doc", msg)
+    logging.info(msg)
+
+
+def wait(seconds, allowed_message=True, tips=""):
+    """
+    :param seconds:等待时间
+    :param allowed_message:True:等待时无论是否收到报文测试都会成功  False:等待时收到报文测试失败，：
+    :param tips:等待显示的提示信息
+    :return:
+    """
+    msg ="we will wait {0}s {1}".format(seconds, tips)
+    logging.info(msg)
+    role = TestEngine.instance().get_default_role()
+    role.wait(seconds, allowed_message)

@@ -59,8 +59,8 @@ class RoleRoutine(Routine):
                                            ack=ack)
         self.wait_event(timeout)
 
-    def wait(self, seconds, expect_no_message):
-        self.validate = NoMessage(expect_no_message)
+    def wait(self, seconds, allowed_message):
+        self.validate = NoMessage(allowed_message)
         self.wait_event(seconds)
 
     def expect_multi_dids(self, cmd, *args, dst=None, timeout=2, ack=False):

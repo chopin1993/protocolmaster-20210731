@@ -75,13 +75,13 @@ def test_pwoeroff_start():
             return None
     engine.update("ESACT-1S1A(v1.5)-20200808.bin",controller_fun)
 
-    engine.wait(50,tips="请给设备断电")
+    engine.wait(20,tips="请给设备断电")
     # 断电
     reqs = engine.update("ESACT-1S1A(v1.5)-20200808.bin")
 
-    engine.wait(50, tips="设备升级完成，校验版本")
     if reqs[0] != 1:
         engine.add_fail_test("断电重传失败")
+    engine.wait(30, tips="设备升级完成，校验版本")
     assert_version2()
 
 def test_update_control():

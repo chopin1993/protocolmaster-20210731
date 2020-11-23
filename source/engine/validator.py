@@ -9,16 +9,18 @@ class Validator(Register):
     def __call__(self, data):
         raise NotImplementedError
 
+
 class NoMessage(Validator):
-    def __init__(self,expect_no_message=False):
+    def __init__(self,allowed_message=False):
         super(NoMessage, self).__init__()
-        self.expect_no_message = expect_no_message
+        self.allowed_message = allowed_message
 
     def __call__(self, data):
-        if data is None or not self.expect_no_message:
-            return True, "验证成功"
+        if not self.allowed_message and data is not None:
+            return False, "验证失败,等待是收到异常报文"
         else:
-            return False,"验证失败,收到异常报文"
+            return True, "验证成功"
+
 
 
 class SmartLocalValidator(Validator):

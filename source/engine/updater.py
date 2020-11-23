@@ -126,7 +126,7 @@ class UpdateRoutine(Routine):
                 self.timer.start(4000)
                 return
              else:
-                TestEngine.instance().add_fail_test(self.name, "expect fail", "没有回复")
+                add_fail_test("没有回复")
                 self.updating = False
                 self.timer.stop()
                 return
