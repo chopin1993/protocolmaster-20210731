@@ -206,7 +206,7 @@ class Routine(object):
         return 0
 
     def wait_event(self, timeout):
-        self.timer.start(timeout*1000)
+        self.timer.start(int(timeout*1000))
         self.device.wait_event()
 
     def handle_rcv_msg(self, msg):

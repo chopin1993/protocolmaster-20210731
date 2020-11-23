@@ -42,3 +42,4 @@ def test_r_string():
     """
     engine.send_did("READ", "0004")
     engine.expect_did("READ", "0004", "SSC1663-ADPT-V30A014")
+

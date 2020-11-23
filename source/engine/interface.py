@@ -35,7 +35,7 @@ def get_config():
     return TestEngine.instance().config
 
 
-def send_did(cmd, did, value=None,dst=None, **kwargs):
+def send_did(cmd, did, value=None, taid=None, **kwargs):
     """
     发送7e报文
     :param cmd:支持“READ”,"WRITE","REPORT","NOTIFY"
@@ -45,21 +45,10 @@ def send_did(cmd, did, value=None,dst=None, **kwargs):
     :param kwargs:如果数据标识中有多个数据单元，可以使用key,value的方式赋值
     """
     role = TestEngine.instance().get_default_role()
-    role.send_did(cmd, did, value=value,dst=dst, **kwargs)
-
-def expect_multi_dids(cmd, *args, timeout=2, ack=False):
-    """
-    :param cmd:支持“READ”,"WRITE","REPORT","NOTIFY"
-    :param args:did1,value1,did2,value2...did和value交替排列
-    :param timeout:超时时间
-    :param ack:是否给与回复，主要在上报的时候使用
-    :return:
-    """
-    role = TestEngine.instance().get_default_role()
-    role.expect_multi_dids(cmd, *args, timeout=timeout, ack=ack)
+    role.send_did(cmd, did, value=value, taid=taid, **kwargs)
 
 
-def expect_did(cmd, did, value=None, timeout=2, ack=False, **kwargs):
+def expect_did(cmd, did, value=None, timeout=2, ack=False, said=None, **kwargs):
     """
     :param cmd: 支持“READ”,"WRITE","REPORT","NOTIFY""
     :param did: 可以使用数字，也可以使用《数据表示分类表格》的中文名称
@@ -69,18 +58,29 @@ def expect_did(cmd, did, value=None, timeout=2, ack=False, **kwargs):
     :param kwargs: 如果did有多个数据项，可以使用key,vlaue的方式传递数据
     """
     role = TestEngine.instance().get_default_role()
-    role.expect_did(cmd, did, value=value, timeout=timeout, ack=ack, **kwargs)
+    role.expect_did(cmd, did, value=value, timeout=timeout, ack=ack, said=said,**kwargs)
 
 
-def send_multi_dids(cmd, *args, dst=None):
+def send_multi_dids(cmd, *args, taid=None):
     """
     :param cmd:支持“READ”,"WRITE","REPORT","NOTIFY"
     :param args:did1,value1,did2,value2...did和value交替排列
     :param dst:目的低点至，默认是被测设备
     """
     role = TestEngine.instance().get_default_role()
-    role.send_multi_dids(cmd, *args, dst=dst)
+    role.send_multi_dids(cmd, *args, taid=taid)
 
+
+def expect_multi_dids(cmd, *args, timeout=2, ack=False,said=None):
+    """
+    :param cmd:支持“READ”,"WRITE","REPORT","NOTIFY"
+    :param args:did1,value1,did2,value2...did和value交替排列
+    :param timeout:超时时间
+    :param ack:是否给与回复，主要在上报的时候使用
+    :return:
+    """
+    role = TestEngine.instance().get_default_role()
+    role.expect_multi_dids(cmd, *args, timeout=timeout, ack=ack, said=said)
 
 def send_local_msg(cmd, value=None, **kwargs):
     """

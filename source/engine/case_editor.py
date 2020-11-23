@@ -69,18 +69,16 @@ class CaseEditor(QMainWindow, Ui_MainWindow):
 
     def filter(self):
         regs = self.filterLineEdit.text()
-        if regs is "":
-            regs = ".*"
         for top_widget in self.all_tree_widgets:
             top_status = False
             case = top_widget.case
             child_cnt = top_widget.childCount()
-            if re.match(regs, case.name):
+            if regs in case.name:
                 top_status = True
             for idx in range(child_cnt):
                 child = top_widget.child(idx)
                 case = child.case
-                if re.match(regs, case.name):
+                if regs in case.name:
                     child.setHidden(False)
                     top_status = True
                 else:

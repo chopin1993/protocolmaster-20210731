@@ -14,16 +14,16 @@ class RoleRoutine(Routine):
         super(RoleRoutine, self).__init__(name, device)
         self.src = src
 
-    def send_did(self, cmd, did, value=None, dst=None,**kwargs):
+    def send_did(self, cmd, did, value=None, taid=None, **kwargs):
         fbd = RemoteFBD.create(cmd, did, value, **kwargs)
-        dst = self.device.get_dst_addr(dst)
+        dst = self.device.get_dst_addr(taid)
         data = Smart7EData(self.src, dst, fbd)
         self.write(data)
 
-    def send_multi_dids(self, cmd, *args, dst=None):
+    def send_multi_dids(self, cmd, *args, taid=None):
         dids = [DIDRemote.create_did(args[idx], args[idx + 1]) for idx, arg in enumerate(args) if idx % 2 == 0]
         fbd = RemoteFBD(cmd, dids)
-        dst = self.device.get_dst_addr(dst)
+        dst = self.device.get_dst_addr(taid)
         data = Smart7EData(self.src, dst, fbd)
         self.write(data)
 
@@ -49,10 +49,10 @@ class RoleRoutine(Routine):
             raise ValueError("cant not encode value for did {0}".format(did))
         return DIDValidtor(did_cls.DID, value)
 
-    def expect_did(self, cmd, did, value=None, timeout=2, ack=False, **kwargs):
+    def expect_did(self, cmd, did, value=None, timeout=2, ack=False, said=None,**kwargs):
         cmd = CMD.to_enum(cmd)
         did = [self._create_did_validtor(did, value, **kwargs)]
-        self.validate = SmartDataValidator(src=self.device.get_dst_addr(),
+        self.validate = SmartDataValidator(src=self.device.get_dst_addr(said),
                                            dst=self.src,
                                            cmd=cmd,
                                            dids=did,
@@ -63,10 +63,10 @@ class RoleRoutine(Routine):
         self.validate = NoMessage(allowed_message)
         self.wait_event(seconds)
 
-    def expect_multi_dids(self, cmd, *args, dst=None, timeout=2, ack=False):
+    def expect_multi_dids(self, cmd, *args, said=None, timeout=2, ack=False):
         cmd = CMD.to_enum(cmd)
         dids = [self._create_did_validtor(args[idx], args[idx + 1]) for idx, arg in enumerate(args) if idx % 2 == 0]
-        dst = self.device.get_dst_addr(dst)
+        dst = self.device.get_dst_addr(said)
         self.validate = SmartDataValidator(src=dst,
                                            dst=self.src,
                                            cmd=cmd,
