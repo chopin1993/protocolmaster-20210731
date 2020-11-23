@@ -34,7 +34,7 @@ class RoleRoutine(Routine):
             raise NotImplementedError
         if isinstance(value, str):
             if did_cls.is_value_string(value):
-                value = str2bytearray(value)
+                value = did_cls.encode_reply(value)
             else:
                 value = BytesCompare(value)
         elif isinstance(value, types.FunctionType):

@@ -17,27 +17,35 @@ def to_number(txt):
 
 class DataMetaType(Register):
 
+    @staticmethod
+    def to_cls_name(value):
+        value = value.split(".")[0]
+        type_dict = {}
+        type_dict["string"] = "cstring"
+        type_dict["bytes"] = "ByteArray"
+        type_dict['vs'] = "ContextBaseValue"
+        type_dict['f32'] = "ByteArray"
+        if value in type_dict:
+            value = type_dict[value]
+        if not value.startswith("Data"):
+            value = "Data" + value
+        return value
+
     @classmethod
     def create(cls, member):
         '''
         利用字符串从json中创建DataMetaType
         '''
-        type_dict = {}
-        type_dict["string"] = "cstring"
-        type_dict["bytes"] = "ByteArray"
-        type_dict['vs'] = "ContextBaseValue"
-        for key, value in member.items():
-            if value in type_dict:
-                value = type_dict[value]
-            if not value.startswith("Data"):
-                value = "Data"+value
+        for key, value_raw in member.items():
+            value = DataMetaType.to_cls_name(value_raw)
             cls = DataMetaType.find_sub_class_by_name(value)
             if cls is None:
                 print("no meta type:",value)
-                raise NotImplementedError
+                raise NotImplementedError(str(value))
             ob = cls(name=key)
             if "attr" in member:
                 ob.attr = member["attr"]
+            ob.extra = value_raw.split(".")[1:]
             return ob
         return None
 
@@ -52,6 +60,7 @@ class DataMetaType(Register):
         self.name = name
         self._value = value
         self.attr = attr
+        self.extra = []
         if decoder is not None:
             self.decode(decoder)
         self.widget = None
@@ -160,11 +169,23 @@ class DataCString(DataMetaType):
     def __init__(self, name=None, value="", decoder=None):
         super(DataCString, self).__init__(name, value, decoder)
 
+    @property
+    def reverse(self):
+        if len(self.extra) > 0 and self.extra[0]=='r':
+            return True
+        else:
+            return False
+
     def encode(self, encoder, **kwargs):
-        encoder.encode_str(self.value)
+        if self.reverse:
+            value = self.value[::-1]
+        encoder.encode_str(value)
 
     def decode(self, decoder, **kwargs):
-        self.value = decoder.decode_cstr()
+        value = decoder.decode_cstr()
+        if self.reverse:
+            value = value[::-1]
+        self.value = value
 
     def str2value(self, strvalue):
         return strvalue

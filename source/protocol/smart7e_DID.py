@@ -63,7 +63,7 @@ class DIDRemote(Register):
         from .smart7e_protocol import CMD
         if cls.INIT is False:
             cls.INIT = True
-            cls.READ_MEMBERS =  [deepcopy(meta) for meta in cls.MEMBERS if cmd_filter(meta.attr, CMD.READ)]
+            cls.READ_MEMBERS = [deepcopy(meta) for meta in cls.MEMBERS if cmd_filter(meta.attr, CMD.READ)]
             cls.WRITE_MEMBERS = [deepcopy(meta) for meta in cls.MEMBERS if cmd_filter(meta.attr, CMD.WRITE)]
             cls.REPLY_MEMBERS = [deepcopy(meta) for meta in cls.MEMBERS if cmd_filter(meta.attr, "d")]
         if isinstance(cmd, CMD):
@@ -95,7 +95,7 @@ class DIDRemote(Register):
             return all_did[name]
         else:
             try:
-                did =  int(name, base=16)
+                did = int(name, base=16)
                 return cls.find_class_by_did(did)
             except ValueError as error:
                 return None
@@ -179,7 +179,7 @@ class DIDRemote(Register):
                 self.error_code = decoder.decode_u16()
             else:
                 self.data = decoder.decode_bytes(self.len)
-        if len(kwargs)>=0 and self.data is None:
+        if self.data is None:
             encoder = BinaryEncoder()
             for member in self.MEMBERS:
                 if member.name in kwargs:
@@ -267,7 +267,7 @@ def _parse_dids(sheet, enum_dict):
     for idx,(did_type, did, member_patterns, did_name) in enumerate(did_infos):
         cls = DIDRemote.find_class_by_name(did_name, refresh=True)
         if cls is None:
-            member_configs = re.findall(r"[(（](\w*)[,，](\w*)[,，](\w*)[)）]", member_patterns)
+            member_configs = re.findall(r"[(（]([\w.]*)[,，]([\w]*)[,，]([\w]*)[)）]", member_patterns)
             members = []
             for meta_type, attr, name in member_configs:
                 paras = {}
