@@ -28,8 +28,6 @@ def cmd_filter(suffixs, cmd):
         ids = "r"
     elif cmd == CMD.WRITE:
         ids = "w"
-    if len(suffixs) <= 1:
-        return False
     return ids in suffixs
 
 class DIDRemote(Register):

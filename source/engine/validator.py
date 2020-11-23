@@ -20,6 +20,8 @@ class NoMessage(Validator):
             return False, "验证失败,等待是收到异常报文"
         else:
             return True, "验证成功"
+    def __str__(self):
+        return "允许收到信息" if self.allowed_message else "不允许收到信息"
 
 
 
@@ -102,6 +104,9 @@ class DIDValidtor(Validator):
             return False
         return  compare_data(self.value, did.data)
 
+    def __str__(self):
+        return "did:{did} value:{value}".format(did=self.did, value=self.value)
+
 def error_msg(filed, expected, rcv):
     return f"{filed} error, expect:{expected} rcv:{rcv}".format(filed=filed, expected=expected, rcv=rcv)
 
@@ -125,6 +130,9 @@ class SmartDataValidator(Validator):
             return False,error_msg("said",self.src, smartData.said)
         if self.dst != smartData.taid:
             return False,error_msg("taid", self.dst, smartData.taid)
+
+        if self.seq is not None and self.seq != (smartData.seq&0x7f):
+            return False, error_msg("seq", self.seq, smartData.seq)
 
         if self.fbd is None:
             if self.cmd != smartData.fbd.cmd:

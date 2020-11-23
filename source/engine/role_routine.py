@@ -13,6 +13,7 @@ class RoleRoutine(Routine):
     def __init__(self, name, src, device:Device):
         super(RoleRoutine, self).__init__(name, device)
         self.src = src
+        self.current_seq = None
 
     def send_did(self, cmd, did, value=None, taid=None, **kwargs):
         fbd = RemoteFBD.create(cmd, did, value, **kwargs)
@@ -49,6 +50,12 @@ class RoleRoutine(Routine):
             raise ValueError("cant not encode value for did {0}".format(did))
         return DIDValidtor(did_cls.DID, value)
 
+    def get_expect_seq(self,cmd):
+        if cmd in [CMD.WRITE, CMD.READ]:
+            return self.current_seq
+        else:
+            return None
+
     def expect_did(self, cmd, did, value=None, timeout=2, ack=False, said=None,**kwargs):
         cmd = CMD.to_enum(cmd)
         did = [self._create_did_validtor(did, value, **kwargs)]
@@ -56,6 +63,7 @@ class RoleRoutine(Routine):
                                            dst=self.src,
                                            cmd=cmd,
                                            dids=did,
+                                           seq=self.get_expect_seq(cmd),
                                            ack=ack)
         self.wait_event(timeout)
 
@@ -71,6 +79,7 @@ class RoleRoutine(Routine):
                                            dst=self.src,
                                            cmd=cmd,
                                            dids=dids,
+                                           seq = self.get_expect_seq(cmd),
                                            ack=ack)
         self.wait_event(timeout)
 
@@ -112,4 +121,5 @@ class RoleRoutine(Routine):
 
     def write(self,data):
         log_snd_frame(self.name, data)
+        self.current_seq = data.seq
         self.device.write(data)
