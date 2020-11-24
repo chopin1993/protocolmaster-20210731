@@ -46,6 +46,7 @@ def key(data):
 def parse_func_testcase():
     public_dir = os.path.join(TestEngine.instance().output_dir, "测试用例")
     files = get_file_list(public_dir, key)
+    files = [name for name in files if name.startswith("test") or name.startswith("init")]
     for name in files:
         name = os.path.splitext(name)[0]
         if name.startswith("__"):
@@ -54,7 +55,7 @@ def parse_func_testcase():
         mod = importlib.import_module("autotest." + file +".测试用例." + name)
         group_brief = getattr(mod, "测试组说明", None)
         tests = gather_all_test(mod.__dict__)
-        TestEngine.instance().group_begin(name, None, group_brief)
+        TestEngine.instance().group_begin(name[4:], None, group_brief)
         for test in tests:
             case_name, case_brief = _parse_doc_string(test.__doc__)
             test = FunCaseAdapter(test)
@@ -64,6 +65,7 @@ def parse_func_testcase():
 def parse_public_test_case():
     public_dir = os.path.join(TestEngine.instance().output_dir, "..", "公共用例")
     files = get_file_list(public_dir)
+    files = [name for name in files if name.startswith("test") or name.startswith("init")]
     for name in files:
         name = os.path.splitext(name)[0]
         if name.startswith("__"):
@@ -71,7 +73,7 @@ def parse_public_test_case():
         mod = importlib.import_module("autotest.公共用例." + name)
         group_brief = getattr(mod, "测试组说明", None)
         tests = gather_all_test(mod.__dict__)
-        TestEngine.instance().group_begin(name, None, group_brief)
+        TestEngine.instance().group_begin(name[4:], None, group_brief)
         for test in tests:
             case_name, case_brief = _parse_doc_string(test.__doc__)
             test = FunCaseAdapter(test)
