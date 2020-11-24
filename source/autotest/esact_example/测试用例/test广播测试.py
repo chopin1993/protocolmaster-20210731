@@ -11,7 +11,7 @@ def test_r_string():
     engine.wait(3)
     engine.send_did("WRITE", "通断操作C012", "01", taid=0xffffffff, gids=[0,1,2],gid_type="U8")
     engine.wait(3)
-    engine.send_did("WRITE", "通断操作C012", "81", taid=0xffffffff, gids=[0,1,2],gid_type="BIT1")
+    engine.send_did("WRITE", "通断操作C012", "81", taid=0xffffffff, gids=[1,2,9],gid_type="BIT1")
     engine.wait(3)
 
 def test_r_string2():

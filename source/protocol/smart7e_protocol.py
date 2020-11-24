@@ -97,6 +97,7 @@ class LocalFBD(DataFragment):
 
 class GID(DataFragment):
     def __init__(self, type=None, gids=None, decoder=None, **kwargs):
+        self.gids = []
         if decoder is None:
             self.type = GIDTYPE.to_enum(type)
             if isinstance(gids, int):
@@ -116,6 +117,7 @@ class GID(DataFragment):
                 cnt = (max(self.gids)+7)//8
                 buffers = [0]*cnt
                 for gid in self.gids:
+                    gid -= 1
                     idx = gid//8
                     bit = gid%8
                     buffers[idx] |= 1<<bit
@@ -128,15 +130,16 @@ class GID(DataFragment):
 
     def decode(self, decoder):
         data = decoder.decode_u8()
-        self.type = GIDTYPE.to_enum(((data&0x3f)>>6))
+        self.type = GIDTYPE.to_enum(((data&0xc0)>>6))
         len_ = data&0x3f
         if self.type == GIDTYPE.U8:
             self.gids = [decoder.decode_u8()  for i in range(0,len_)]
         elif self.type == GIDTYPE.U16:
             self.gids = [decoder.decode_u16() for i in range(0, len_, 2)]
         else:
+            self.gids = []
             for i,data in enumerate(decoder.decode_bytes(len_)):
-                base = (len_-1-i)*8
+                base = (len_-1-i)*8+1
                 for bits in range(0,8):
                     if data & (1<<bits):
                         self.gids.append(bits+base)
