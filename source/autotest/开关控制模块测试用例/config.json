@@ -1,0 +1,272 @@
+{
+    "测试配置信息": {
+        "enable": true,
+        "paras": {},
+        "subcase": {}
+    },
+    "基本报文测试": {
+        "enable": false,
+        "paras": {},
+        "subcase": {
+            "设置网关的PANID": {
+                "enable": false,
+                "paras": {},
+                "subcase": {}
+            },
+            "软件版本测试": {
+                "enable": false,
+                "paras": {
+                    "软件版本": ""
+                },
+                "subcase": {}
+            },
+            "PLC版本信息": {
+                "enable": false,
+                "paras": {
+                    "应用层通讯协议及版本": ""
+                },
+                "subcase": {}
+            },
+            "设备类型测试": {
+                "enable": false,
+                "paras": {
+                    "设备类型": ""
+                },
+                "subcase": {}
+            },
+            "SN查询": {
+                "enable": false,
+                "paras": {
+                    "sn通配符": ""
+                },
+                "subcase": {}
+            },
+            "Dkey查询": {
+                "enable": false,
+                "paras": {
+                    "dkey通配符": ""
+                },
+                "subcase": {}
+            },
+            "多DID测试": {
+                "enable": false,
+                "paras": {},
+                "subcase": {}
+            }
+        }
+    },
+    "test01_基本协议测试": {
+        "enable": false,
+        "paras": {},
+        "subcase": {
+            "设备类型0001": {
+                "enable": false,
+                "paras": {},
+                "subcase": {}
+            },
+            "应用层通讯协议及版本0002": {
+                "enable": false,
+                "paras": {},
+                "subcase": {}
+            },
+            "设备描述信息设备制造商0003": {
+                "enable": false,
+                "paras": {},
+                "subcase": {}
+            },
+            "载波版本号0004": {
+                "enable": false,
+                "paras": {},
+                "subcase": {}
+            },
+            "适配层版本号0606": {
+                "enable": false,
+                "paras": {},
+                "subcase": {}
+            },
+            "网络层版本号060A": {
+                "enable": false,
+                "paras": {},
+                "subcase": {}
+            },
+            "DKEY0005": {
+                "enable": false,
+                "paras": {},
+                "subcase": {}
+            },
+            "SN0007": {
+                "enable": false,
+                "paras": {},
+                "subcase": {}
+            },
+            "设备PWD000A": {
+                "enable": false,
+                "paras": {},
+                "subcase": {}
+            },
+            "多DID组合报文测试": {
+                "enable": false,
+                "paras": {},
+                "subcase": {}
+            }
+        }
+    },
+    "test02_功能类协议测试": {
+        "enable": false,
+        "paras": {},
+        "subcase": {
+            "默认出厂参数测试": {
+                "enable": false,
+                "paras": {},
+                "subcase": {}
+            },
+            "通断操作C012": {
+                "enable": false,
+                "paras": {},
+                "subcase": {}
+            },
+            "继电器翻转C018": {
+                "enable": false,
+                "paras": {},
+                "subcase": {}
+            },
+            "继电器上电状态C060": {
+                "enable": false,
+                "paras": {},
+                "subcase": {}
+            },
+            "继电器过零点动作延迟时间C020": {
+                "enable": false,
+                "paras": {},
+                "subcase": {}
+            },
+            "主动上报使能标志D005": {
+                "enable": false,
+                "paras": {},
+                "subcase": {}
+            },
+            "设备运行状态信息统计E019": {
+                "enable": false,
+                "paras": {},
+                "subcase": {}
+            }
+        }
+    },
+    "test03_设备搜索测试": {
+        "enable": false,
+        "paras": {},
+        "subcase": {
+            "设备搜索类型测试": {
+                "enable": false,
+                "paras": {},
+                "subcase": {}
+            },
+            "设备搜索时间测试": {
+                "enable": false,
+                "paras": {},
+                "subcase": {}
+            },
+            "重发搜索测试": {
+                "enable": false,
+                "paras": {},
+                "subcase": {}
+            },
+            "设备搜索断电测试": {
+                "enable": false,
+                "paras": {},
+                "subcase": {}
+            },
+            "最大最小时间验证": {
+                "enable": false,
+                "paras": {},
+                "subcase": {}
+            },
+            "APP设备指示0009": {
+                "enable": false,
+                "paras": {},
+                "subcase": {}
+            },
+            "静默时间000B": {
+                "enable": false,
+                "paras": {},
+                "subcase": {}
+            },
+            "设备入网后不再支持设备搜索测试": {
+                "enable": true,
+                "paras": {},
+                "subcase": {}
+            }
+        }
+    },
+    "test04_状态同步测试": {
+        "enable": false,
+        "paras": {},
+        "subcase": {
+            "设置测试工装参数": {
+                "enable": false,
+                "paras": {},
+                "subcase": {}
+            },
+            "添加上报测试": {
+                "enable": false,
+                "paras": {},
+                "subcase": {}
+            },
+            "上电上报测试": {
+                "enable": false,
+                "paras": {},
+                "subcase": {}
+            },
+            "配置订阅者信息": {
+                "enable": false,
+                "paras": {},
+                "subcase": {}
+            },
+            "订阅者上报顺序测试": {
+                "enable": false,
+                "paras": {},
+                "subcase": {}
+            },
+            "默认参数同时上报设备和网关": {
+                "enable": false,
+                "paras": {},
+                "subcase": {}
+            },
+            "不上报": {
+                "enable": true,
+                "paras": {},
+                "subcase": {}
+            },
+            "只上报网关": {
+                "enable": true,
+                "paras": {},
+                "subcase": {}
+            },
+            "只上报设备": {
+                "enable": true,
+                "paras": {},
+                "subcase": {}
+            },
+            "网关无应答时设备上报的重试机制": {
+                "enable": false,
+                "paras": {},
+                "subcase": {}
+            },
+            "广播报文控制测试": {
+                "enable": false,
+                "paras": {},
+                "subcase": {}
+            }
+        }
+    },
+    "test05_远程升级测试": {
+        "enable": false,
+        "paras": {},
+        "subcase": {}
+    },
+    "常用测试模块": {
+        "enable": false,
+        "paras": {},
+        "subcase": {}
+    }
+}
