@@ -39,16 +39,22 @@ class SmartLocalValidator(Validator):
         if data is None:
             return False, "验证失败, 没有收到回复报文"
         is_local = data.is_local()
+        if not is_local:
+            return False, error_msg("address","local","non local")
+
         fbd = data.fbd
         cmd = fbd.cmd
+
         if isinstance(self.cmd , list):
             cmd_valid = cmd in self.cmd
         else:
             cmd_valid = (cmd == fbd.cmd)
-        if is_local and cmd_valid:
-            return True, "验证成功"
-        else:
-            return False, "验证失败"
+
+        if not cmd_valid:
+            return False, error_msg("cmd", self.cmd, fbd.cmd)
+
+        return True, "验证成功"
+
 
 class BytesCompare(Validator):
     def __init__(self, placeholder):

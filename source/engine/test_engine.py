@@ -196,6 +196,7 @@ class Routine(object):
         self.timer.timeout.connect(self.timeout_handle)
         self.validate = None
         self.name = name
+        self.is_expect_boradcast = False
 
     def timeout_handle(self):
         self.handle_rcv_msg(None)
@@ -307,5 +308,9 @@ class Device(object):
         for role in self.roles:
             from .role_routine import RoleRoutine
             if isinstance(role, RoleRoutine):
-                if data.taid == role.src:
-                    role.handle_rcv_msg(data)
+                if data.taid == 0xffffffff:
+                    if role.is_expect_boradcast:
+                        role.handle_rcv_msg(data)
+                else:
+                    if data.taid == role.src:
+                        role.handle_rcv_msg(data)

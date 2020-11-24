@@ -30,6 +30,11 @@ class CMD(EsEnum):
     WRITE = 0x7
 
 
+class GIDTYPE(EsEnum):
+    BIT1 = 0
+    U8 = 1
+    U16 = 2
+
 class LocalFBD(DataFragment):
     CMDS = []
 
@@ -91,11 +96,9 @@ class LocalFBD(DataFragment):
 
 
 class GID(DataFragment):
-    TYPE_U8 = 1
-    TYPE_U16 = 2
-    def __init__(self, type=None, gids=None,decoder=None,**kwargs):
+    def __init__(self, type=None, gids=None, decoder=None, **kwargs):
         if decoder is None:
-            self.type = type
+            self.type = GIDTYPE.to_enum(type)
             if isinstance(gids, int):
                 gids = [gids]
             self.gids = gids
@@ -105,28 +108,42 @@ class GID(DataFragment):
     def encode(self, encoder):
         data_encoder = BinaryEncoder()
         if isinstance(self.gids, list):
-            if self.type == self.TYPE_U8:
+            if self.type == GIDTYPE.U8:
                 [data_encoder.encode_u8(addr) for addr in self.gids]
-            else:
+            elif self.type== GIDTYPE.U16:
                 [data_encoder.encode_u16(addr) for addr in self.gids]
+            else:
+                cnt = (max(self.gids)+7)//8
+                buffers = [0]*cnt
+                for gid in self.gids:
+                    idx = gid//8
+                    bit = gid%8
+                    buffers[idx] |= 1<<bit
+                [data_encoder.encode_u8(data) for data in buffers]
         else:
             data_encoder.encode_str(self.gids)
         address = data_encoder.get_data()
-        encoder.encode_u8(self.type<<6|len(address))
+        encoder.encode_u8(self.type.value<<6|len(address))
         encoder.encode_str(address)
 
     def decode(self, decoder):
         data = decoder.decode_u8()
-        self.type = ((data&0x3f)>>6)
-        len = data&0x3f
-        if self.type == self.TYPE_U8:
-            self.gids = [decoder.decode_u8()  for i in range(0,len)]
+        self.type = GIDTYPE.to_enum(((data&0x3f)>>6))
+        len_ = data&0x3f
+        if self.type == GIDTYPE.U8:
+            self.gids = [decoder.decode_u8()  for i in range(0,len_)]
+        elif self.type == GIDTYPE.U16:
+            self.gids = [decoder.decode_u16() for i in range(0, len_, 2)]
         else:
-            self.gids = [decoder.decode_u16() for i in range(0, len, 2)]
+            for i,data in enumerate(decoder.decode_bytes(len_)):
+                base = (len_-1-i)*8
+                for bits in range(0,8):
+                    if data & (1<<bits):
+                        self.gids.append(bits+base)
 
     def __str__(self):
         str1 = "gid: type-"
-        str1 += "u8" if self.type == self.TYPE_U8 else "u16 "
+        str1 += str(self.type)
         str1 += str(self.gids)
         str1 += " "
         return str1
@@ -188,11 +205,14 @@ class UpdateFBD(DataFragment):
 class RemoteFBD(DataFragment):
 
     @staticmethod
-    def create(cmd, did_name, data, **kwargs):
+    def create(cmd, did_name, data, gids=None, gid_type=None,**kwargs):
+        gid = None
+        if gids is not None:
+            gid = GID(gid_type, gids)
         did = DIDRemote.create_did(did_name, data, **kwargs)
-        return RemoteFBD(cmd, did)
+        return RemoteFBD(cmd, did, gid=gid, **kwargs)
 
-    def __init__(self, cmd=None, didunits=None, decoder=None, gid=None, **kwargs):
+    def __init__(self, cmd=None, didunits=None, gid=None, decoder=None,**kwargs):
         self.didunits = []
         self.cmd = CMD.to_enum(cmd)
         if decoder is None:

@@ -35,17 +35,19 @@ def get_config():
     return TestEngine.instance().config
 
 
-def send_did(cmd, did, value=None, taid=None, **kwargs):
+def send_did(cmd, did, value=None, taid=None, gids=None, gid_type="U16", **kwargs):
     """
     发送7e报文
-    :param cmd:支持“READ”,"WRITE","REPORT","NOTIFY"
+    :param cmd:支持“READ”,"WRITE","REPORT","NOTIFY"(不可靠上报)
     :param did:可以使用数字，也可以使用《数据表示分类表格》的中文名称
     :param value:可是数字,也可以是类似于“00 34 78”的字符串
     :param dst:目标地址
+    :param gids:组地址列表，可以是组地址列表。
+    :param gid_type: 组地址编码类型，支持"BIT1","U8","U16"
     :param kwargs:如果数据标识中有多个数据单元，可以使用key,value的方式赋值
     """
     role = TestEngine.instance().get_default_role()
-    role.send_did(cmd, did, value=value, taid=taid, **kwargs)
+    role.send_did(cmd, did, value=value, taid=taid, gids=gids, gid_type=gid_type, **kwargs)
 
 
 def expect_did(cmd, did, value=None, timeout=2, ack=False, said=None, **kwargs):
@@ -86,8 +88,8 @@ def expect_multi_dids(cmd, *args, timeout=2, ack=False,said=None):
 def send_raw(fbd, taid=None):
     """
     发送组织帧
-    :param fbd: 自组fbd帧
-    :taid: 目标地址
+    :param fbd:自组fbd帧
+    :taid:目标地址
     """
     role = TestEngine.instance().get_default_role()
     role.send_raw(fbd, taid=taid)
@@ -96,8 +98,8 @@ def send_raw(fbd, taid=None):
 def expect_raw(fbd, said=None, timeout=2):
     """
     发送组织帧
-    :param fbd: 自组fbd帧
-    :param said: 源地址
+    :param fbd:自组fbd帧
+    :param said:源地址
     """
     role = TestEngine.instance().get_default_role()
     role.expect_raw(fbd, said, timeout=timeout)
