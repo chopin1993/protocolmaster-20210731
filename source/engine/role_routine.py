@@ -65,16 +65,18 @@ class RoleRoutine(Routine):
                    **kwargs):
         cmd = CMD.to_enum(cmd)
         did = [self._create_did_validtor(did, value, **kwargs)]
+        seq = self.get_expect_seq(cmd)
         gid = None
         if gids is not None:
             self.is_expect_boradcast = True
             gid = GID(gid_type, gids)
+            seq = None
         self.validate = SmartDataValidator(src=self.device.get_dst_addr(said),
                                            dst=self.src,
                                            cmd=cmd,
                                            dids=did,
                                            gid=gid,
-                                           seq=self.get_expect_seq(cmd),
+                                           seq=seq,
                                            ack=ack)
         self.wait_event(timeout)
 

@@ -310,7 +310,7 @@ class Smart7EData(DataFragment):
         if self.is_boardcast():  #广播需要带有组地址
             if isinstance(self.fbd, RemoteFBD):
                 if self.fbd.gid is None:
-                    gid = GID(GID.TYPE_U8,0)
+                    gid = GID(GIDTYPE.U8,0)
                     self.fbd.gid = gid
         if isinstance(self.fbd, bytes) or isinstance(self.fbd, bytearray):
             fbd_data = self.fbd
