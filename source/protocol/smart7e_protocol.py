@@ -141,6 +141,12 @@ class GID(DataFragment):
                     if data & (1<<bits):
                         self.gids.append(bits+base)
 
+    def __eq__(self, other):
+        if self.type == other.type and set(self.gids) == set(other.gids):
+            return True
+        else:
+            return False
+
     def __str__(self):
         str1 = "gid: type-"
         str1 += str(self.type)

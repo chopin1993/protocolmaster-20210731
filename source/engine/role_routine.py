@@ -21,9 +21,12 @@ class RoleRoutine(Routine):
         data = Smart7EData(self.src, dst, fbd)
         self.write(data)
 
-    def send_multi_dids(self, cmd, *args, taid=None):
+    def send_multi_dids(self, cmd, *args, taid=None, gids=None, gid_type="U16"):
         dids = [DIDRemote.create_did(args[idx], args[idx + 1]) for idx, arg in enumerate(args) if idx % 2 == 0]
-        fbd = RemoteFBD(cmd, dids)
+        gid = None
+        if gids is not None:
+            gid = GID(gid_type, gids)
+        fbd = RemoteFBD(cmd, dids, gid=gid)
         dst = self.device.get_dst_addr(taid)
         data = Smart7EData(self.src, dst, fbd)
         self.write(data)
@@ -56,13 +59,21 @@ class RoleRoutine(Routine):
         else:
             return None
 
-    def expect_did(self, cmd, did, value=None, timeout=2, ack=False, said=None,**kwargs):
+    def expect_did(self, cmd, did, value=None,
+                   timeout=2, ack=False, said=None,
+                   gids=None, gid_type="U16",
+                   **kwargs):
         cmd = CMD.to_enum(cmd)
         did = [self._create_did_validtor(did, value, **kwargs)]
+        gid = None
+        if gids is not None:
+            self.is_expect_boradcast = True
+            gid = GID(gid_type, gids)
         self.validate = SmartDataValidator(src=self.device.get_dst_addr(said),
                                            dst=self.src,
                                            cmd=cmd,
                                            dids=did,
+                                           gid=gid,
                                            seq=self.get_expect_seq(cmd),
                                            ack=ack)
         self.wait_event(timeout)
@@ -71,13 +82,20 @@ class RoleRoutine(Routine):
         self.validate = NoMessage(allowed_message)
         self.wait_event(seconds)
 
-    def expect_multi_dids(self, cmd, *args, said=None, timeout=2, ack=False):
+    def expect_multi_dids(self, cmd, *args,
+                          said=None, timeout=2, ack=False,
+                          gids=None, gid_type="U16"):
         cmd = CMD.to_enum(cmd)
+        gid = None
+        if gids is not None:
+            self.is_expect_boradcast = True
+            gid = GID(gid_type, gids)
         dids = [self._create_did_validtor(args[idx], args[idx + 1]) for idx, arg in enumerate(args) if idx % 2 == 0]
         dst = self.device.get_dst_addr(said)
         self.validate = SmartDataValidator(src=dst,
                                            dst=self.src,
                                            cmd=cmd,
+                                           gid = gid,
                                            dids=dids,
                                            seq = self.get_expect_seq(cmd),
                                            ack=ack)
@@ -112,6 +130,7 @@ class RoleRoutine(Routine):
                 self.ack_report_message(data)
             self.timer.stop()
             self.validate = None
+            self.is_expect_boradcast = False
 
     def ack_report_message(self, data):
         if data is None:

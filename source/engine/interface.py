@@ -50,39 +50,53 @@ def send_did(cmd, did, value=None, taid=None, gids=None, gid_type="U16", **kwarg
     role.send_did(cmd, did, value=value, taid=taid, gids=gids, gid_type=gid_type, **kwargs)
 
 
-def expect_did(cmd, did, value=None, timeout=2, ack=False, said=None, **kwargs):
+def expect_did(cmd, did, value=None, timeout=2, ack=False, said=None, gids=None, gid_type="U16",**kwargs):
     """
     :param cmd: 支持“READ”,"WRITE","REPORT","NOTIFY""
     :param did: 可以使用数字，也可以使用《数据表示分类表格》的中文名称
     :param value:可是数字,也可以是类似于“00 34 78”的字符串, 可以使用*作为占位符"** **",可以传入函数
     :param timeout:
     :param ack: 是否给与回复
-    :param kwargs: 如果did有多个数据项，可以使用key,vlaue的方式传递数据
+    :param gids:广播地址列表
+    :param gid_type:广播地址编码类型 支持"BIT1","U8","U16"
+    :param kwargs: 如果did有多个数据项，可以使用key,value的方式传递数据
     """
     role = TestEngine.instance().get_default_role()
-    role.expect_did(cmd, did, value=value, timeout=timeout, ack=ack, said=said,**kwargs)
+    role.expect_did(cmd,
+                    did,
+                    value=value,
+                    timeout=timeout,
+                    ack=ack,
+                    said=said,
+                    gids=None,
+                    gid_type="U16",
+                    **kwargs)
 
 
-def send_multi_dids(cmd, *args, taid=None):
+def send_multi_dids(cmd, *args, taid=None, gids=None, gid_type="U16"):
     """
     :param cmd:支持“READ”,"WRITE","REPORT","NOTIFY"
     :param args:did1,value1,did2,value2...did和value交替排列
     :param dst:目的低点至，默认是被测设备
+    :param gids:广播地址列表
+    :param gid_type:广播地址编码类型 支持"BIT1","U8","U16"
     """
     role = TestEngine.instance().get_default_role()
-    role.send_multi_dids(cmd, *args, taid=taid)
+    role.send_multi_dids(cmd, *args, taid=taid, gids=gids, gid_type=gid_type)
 
 
-def expect_multi_dids(cmd, *args, timeout=2, ack=False,said=None):
+def expect_multi_dids(cmd, *args, timeout=2, ack=False, said=None, gids=None,gid_type="U16"):
     """
     :param cmd:支持“READ”,"WRITE","REPORT","NOTIFY"
     :param args:did1,value1,did2,value2...did和value交替排列
     :param timeout:超时时间
     :param ack:是否给与回复，主要在上报的时候使用
+    :param gids:广播地址列表
+    :param gid_type:广播地址编码类型 支持"BIT1","U8","U16"
     :return:
     """
     role = TestEngine.instance().get_default_role()
-    role.expect_multi_dids(cmd, *args, timeout=timeout, ack=ack, said=said)
+    role.expect_multi_dids(cmd, *args, timeout=timeout, ack=ack, said=said,gids=gids, gid_type=gid_type)
 
 
 def send_raw(fbd, taid=None):
