@@ -8,18 +8,6 @@ from .常用测试模块 import *
 config = engine.get_config()
 
 
-def power_off_test():
-    """
-    前置工装通断电
-    抄控器通过报文控制大功率计量遥控开关通断，实现给测试设备的通断电
-    """
-    # pane1 = engine.create_role("通断测试设备", 778856) # 创建陪测设备
-    engine.send_did("WRITE", "通断操作C012", "01", dst=778856)
-    engine.wait(seconds=5)
-    engine.send_did("WRITE", "通断操作C012", "81", dst=778856)
-    engine.wait(seconds=10)
-
-
 def device_search0008(search_time, search_type):
     """
     APP设备搜索0008 定义函数
@@ -37,7 +25,7 @@ def device_search0008(search_time, search_type):
         else:
             return False
 
-    engine.send_did("SEARCH", "APP设备搜索0008", 搜索类型="未注册节点", 搜索时间=search_time, 设备类型=search_type, dst=0xFFFFFFFF)
+    engine.send_did("SEARCH", "APP设备搜索0008", 搜索类型="未注册节点", 搜索时间=search_time, 设备类型=search_type, taid=0xFFFFFFFF)
     engine.expect_multi_dids("SEARCH",
                              "SN0007", cal_time,
                              "DKEY0005", config["DKEY0005"],
@@ -46,7 +34,7 @@ def device_search0008(search_time, search_type):
                              timeout=search_time)
 
     engine.add_doc_info("search time {0}".format(passed))
-    engine.wait(seconds=10, expect_no_message=True)
+    engine.wait(seconds=10, allowed_message=False)
 
 
 def test_APP设备搜索对设备类型的测试():
@@ -62,10 +50,10 @@ def test_APP设备搜索对设备类型的测试():
     device_search0008(search_time=10, search_type="FF FF FF FF")
     device_search0008(search_time=10, search_type="31 71 10 10")
     # 针对不支持的设备类型，开关控制模块不回复；
-    engine.send_did("SEARCH", "APP设备搜索0008", 搜索类型="未注册节点", 搜索时间=10, 设备类型="31 71 20 20", dst=0xFFFFFFFF)
-    engine.wait(seconds=10, expect_no_message=True)
-    engine.send_did("SEARCH", "APP设备搜索0008", 搜索类型="未注册节点", 搜索时间=10, 设备类型="31 71 20 01", dst=0xFFFFFFFF)
-    engine.wait(seconds=10, expect_no_message=True)
+    engine.send_did("SEARCH", "APP设备搜索0008", 搜索类型="未注册节点", 搜索时间=10, 设备类型="31 71 20 20", taid=0xFFFFFFFF)
+    engine.wait(seconds=10, allowed_message=False)
+    engine.send_did("SEARCH", "APP设备搜索0008", 搜索类型="未注册节点", 搜索时间=10, 设备类型="31 71 20 01", taid=0xFFFFFFFF)
+    engine.wait(seconds=10, allowed_message=False)
     # 再次针对支持的设备类型，可以正常回复；
     device_search0008(search_time=10, search_type="FF FF FF FF")
     device_search0008(search_time=10, search_type="31 71 10 10")
@@ -95,8 +83,8 @@ def test_APP设备搜索对设备重发搜索的测试():
     重发搜索测试
     """
     engine.add_doc_info("重发搜索测试，先将设备搜索时间为300s，等待30s后，再将设备搜索时间为10s，测试10s內可以正常回复：")
-    engine.send_did("SEARCH", "APP设备搜索0008", 搜索类型="未注册节点", 搜索时间=300, 设备类型="31 71 10 10", dst=0xFFFFFFFF)
-    engine.wait(seconds=30, expect_no_message=True)
+    engine.send_did("SEARCH", "APP设备搜索0008", 搜索类型="未注册节点", 搜索时间=300, 设备类型="31 71 10 10", taid=0xFFFFFFFF)
+    engine.wait(seconds=30, allowed_message=False)
     device_search0008(search_time=10, search_type="31 71 10 10")
 
 
@@ -105,9 +93,9 @@ def test_APP设备搜索对设备断电重启的测试():
     设备搜索断电测试
     前置大功率开关断电10s后重启
     """
-    engine.send_did("SEARCH", "APP设备搜索0008", 搜索类型="未注册节点", 搜索时间=30, 设备类型="31 71 10 10", dst=0xFFFFFFFF)
+    engine.send_did("SEARCH", "APP设备搜索0008", 搜索类型="未注册节点", 搜索时间=30, 设备类型="31 71 10 10", taid=0xFFFFFFFF)
     # 前置大功率开关断电10s后重启
-    engine.wait(seconds=30, expect_no_message=True)
+    engine.wait(seconds=30, allowed_message=False)
     device_search0008(search_time=10, search_type="31 71 10 10")
 
 
@@ -116,7 +104,7 @@ def test_APP设备搜索对最大最小时间的测试():
     最大最小时间验证
     """
     # 针对最小时间的测试
-    engine.send_did("SEARCH", "APP设备搜索0008", 搜索类型="未注册节点", 搜索时间=0, 设备类型="31 71 10 10", dst=0xFFFFFFFF)
+    engine.send_did("SEARCH", "APP设备搜索0008", 搜索类型="未注册节点", 搜索时间=0, 设备类型="31 71 10 10", taid=0xFFFFFFFF)
     engine.expect_multi_dids("SEARCH",
                              "SN0007", config["SN0007"],
                              "DKEY0005", config["DKEY0005"],
@@ -124,8 +112,8 @@ def test_APP设备搜索对最大最小时间的测试():
                              "设备描述信息设备制造商0003", config["设备描述信息设备制造商0003"],
                              timeout=10)
     # 针对最大时间的测试
-    engine.send_did("SEARCH", "APP设备搜索0008", 搜索类型="未注册节点", 搜索时间=0xFFFF, 设备类型="31 71 10 10", dst=0xFFFFFFFF)
-    engine.wait(seconds=300, expect_no_message=True)
+    engine.send_did("SEARCH", "APP设备搜索0008", 搜索类型="未注册节点", 搜索时间=0xFFFF, 设备类型="31 71 10 10", taid=0xFFFFFFFF)
+    engine.wait(seconds=300, allowed_message=False)
     device_search0008(search_time=10, search_type="31 71 10 10")
 
 
@@ -135,7 +123,7 @@ def test_APP设备指示0009():
     """
     engine.send_did("WRITE", "APP设备指示0009")
     engine.expect_did("WRITE", "APP设备指示0009")
-    engine.wait(seconds=10, expect_no_message=True)
+    engine.wait(seconds=10, allowed_message=False)
 
 
 def test_APP设备指示0009():
@@ -146,18 +134,18 @@ def test_APP设备指示0009():
     """
     engine.send_did("WRITE", "APP设备指示0009")
     engine.expect_did("WRITE", "APP设备指示0009")
-    engine.wait(seconds=10, expect_no_message=True)
+    engine.wait(seconds=10, allowed_message=False)
 
     # 设备指示过程中抄读测试,不回复
     engine.send_did("WRITE", "APP设备指示0009")
     engine.expect_did("WRITE", "APP设备指示0009", "")
 
     engine.send_did("READ", "设备描述信息设备制造商0003")
-    engine.wait(seconds=2, expect_no_message=True)
+    engine.wait(seconds=2, allowed_message=False)
     engine.send_did("READ", "设备描述信息设备制造商0003")
-    engine.wait(seconds=2, expect_no_message=True)
+    engine.wait(seconds=2, allowed_message=False)
     engine.send_did("READ", "设备描述信息设备制造商0003")
-    engine.wait(seconds=2, expect_no_message=True)
+    engine.wait(seconds=2, allowed_message=False)
 
     engine.send_did("READ", "设备描述信息设备制造商0003")
     engine.expect_did("READ", "设备描述信息设备制造商0003", config["设备描述信息设备制造商0003"])
@@ -165,7 +153,7 @@ def test_APP设备指示0009():
     # 设备展示过程中断电重启
     engine.send_did("READ", "APP设备指示0009")
     engine.expect_did("READ", "APP设备指示0009")
-    engine.wait(seconds=1, expect_no_message=True)
+    engine.wait(seconds=1, allowed_message=False)
 
     # 控制大功率开关通断电，测试断电指示的过程中断电重启，开关控制模块仍可以正常运行
     engine.send_did("READ", "设备描述信息设备制造商0003")
@@ -185,12 +173,12 @@ def test_静默时间000B():
     engine.send_did("WRITE", "静默时间000B", 静默时间=60)
     engine.expect_did("WRITE", "静默时间000B", 静默时间=60)
 
-    engine.send_did("SEARCH", "APP设备搜索0008", 搜索类型="未注册节点", 搜索时间=10, 设备类型="31 71 10 10", dst=0xFFFFFFFF)
-    engine.wait(seconds=10, expect_no_message=True)
-    engine.send_did("SEARCH", "APP设备搜索0008", 搜索类型="未注册节点", 搜索时间=10, 设备类型="31 71 10 10", dst=0xFFFFFFFF)
-    engine.wait(seconds=10, expect_no_message=True)
-    engine.send_did("SEARCH", "APP设备搜索0008", 搜索类型="未注册节点", 搜索时间=40, 设备类型="31 71 10 10", dst=0xFFFFFFFF)
-    engine.wait(seconds=40, expect_no_message=True)
+    engine.send_did("SEARCH", "APP设备搜索0008", 搜索类型="未注册节点", 搜索时间=10, 设备类型="31 71 10 10", taid=0xFFFFFFFF)
+    engine.wait(seconds=10, allowed_message=False)
+    engine.send_did("SEARCH", "APP设备搜索0008", 搜索类型="未注册节点", 搜索时间=10, 设备类型="31 71 10 10", taid=0xFFFFFFFF)
+    engine.wait(seconds=10, allowed_message=False)
+    engine.send_did("SEARCH", "APP设备搜索0008", 搜索类型="未注册节点", 搜索时间=40, 设备类型="31 71 10 10", taid=0xFFFFFFFF)
+    engine.wait(seconds=40, allowed_message=False)
 
     device_search0008(search_time=10, search_type="31 71 10 10")
 
@@ -214,17 +202,17 @@ def test_静默时间000B():
 
     engine.send_did("WRITE", "静默时间000B", 静默时间=65535)
     engine.expect_did("WRITE", "静默时间000B", 静默时间=65535)
-    engine.send_did("SEARCH", "APP设备搜索0008", 搜索类型="未注册节点", 搜索时间=10, 设备类型="31 71 10 10", dst=0xFFFFFFFF)
-    engine.wait(seconds=10, expect_no_message=True)
-    engine.send_did("SEARCH", "APP设备搜索0008", 搜索类型="未注册节点", 搜索时间=60, 设备类型="31 71 10 10", dst=0xFFFFFFFF)
-    engine.wait(seconds=60, expect_no_message=True)
-    engine.send_did("SEARCH", "APP设备搜索0008", 搜索类型="未注册节点", 搜索时间=300, 设备类型="31 71 10 10", dst=0xFFFFFFFF)
-    engine.wait(seconds=300, expect_no_message=True)
+    engine.send_did("SEARCH", "APP设备搜索0008", 搜索类型="未注册节点", 搜索时间=10, 设备类型="31 71 10 10", taid=0xFFFFFFFF)
+    engine.wait(seconds=10, allowed_message=False)
+    engine.send_did("SEARCH", "APP设备搜索0008", 搜索类型="未注册节点", 搜索时间=60, 设备类型="31 71 10 10", taid=0xFFFFFFFF)
+    engine.wait(seconds=60, allowed_message=False)
+    engine.send_did("SEARCH", "APP设备搜索0008", 搜索类型="未注册节点", 搜索时间=300, 设备类型="31 71 10 10", taid=0xFFFFFFFF)
+    engine.wait(seconds=300, allowed_message=False)
 
     engine.add_doc_info("静默时间的重新设置为60s测试")
     engine.send_did("WRITE", "静默时间000B", 静默时间=60)
     engine.expect_did("WRITE", "静默时间000B", 静默时间=60)
-    engine.wait(60, expect_no_message=True)
+    engine.wait(60, allowed_message=False)
     device_search0008(search_time=10, search_type="31 71 10 10")
 
     # 入网后不再支持设备搜索报文测试
@@ -241,12 +229,12 @@ def test_设备入网后不再支持设备搜索():
     device_search0008(search_time=10, search_type="31 71 10 10")
 
     engine.add_doc_info("2、测试设备加入网关后，设备不再响应设备搜索")
-    set_gw_info() # 设置网关PANID信息，模拟设备入网
+    set_gw_info()  # 设置网关PANID信息，模拟设备入网
     engine.wait(20)
-    engine.send_did("SEARCH", "APP设备搜索0008", 搜索类型="未注册节点", 搜索时间=10, 设备类型="31 71 10 10", dst=0xFFFFFFFF)
-    engine.wait(seconds=10, expect_no_message=True)
+    engine.send_did("SEARCH", "APP设备搜索0008", 搜索类型="未注册节点", 搜索时间=10, 设备类型="31 71 10 10", taid=0xFFFFFFFF)
+    engine.wait(seconds=10, allowed_message=False)
 
     engine.add_doc_info("3、测试设备清除PANID后，设备再次响应设备搜索")
-    clear_gw_info() #清除网关PANID信息，模拟出厂设备
+    clear_gw_info()  # 清除网关PANID信息，模拟出厂设备
     engine.wait(20)
     device_search0008(search_time=10, search_type="31 71 10 10")
