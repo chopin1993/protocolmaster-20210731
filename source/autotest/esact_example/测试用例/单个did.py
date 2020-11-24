@@ -6,7 +6,7 @@ def test_software_version():
     did可以为字符串，可以是Number，也可以是字符串形式的Number
     """
     engine.send_did("READ", "设备类型")
-    engine.expect_did("READ", "设备类型", "FF FF 18 00 01 00 01 00")
+    engine.expect_did("READ", "设备类型", "FF FF 18 00 01 00 01 01")
 
     engine.send_did("read", 0x0001)
     engine.expect_did("READ", "设备类型", "FF FF 18 00 01 00 01 00")

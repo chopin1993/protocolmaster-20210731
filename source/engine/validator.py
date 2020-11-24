@@ -114,7 +114,7 @@ class DIDValidtor(Validator):
         return "did:{did} value:{value}".format(did=self.did, value=self.value)
 
 def error_msg(filed, expected, rcv):
-    return f"{filed} error, expect:{expected} rcv:{rcv}".format(filed=filed, expected=expected, rcv=rcv)
+    return f"{filed} mismatch, expect:{expected} rcv:{rcv}".format(filed=filed, expected=expected, rcv=rcv)
 
 
 class SmartDataValidator(Validator):
@@ -148,8 +148,8 @@ class SmartDataValidator(Validator):
                 return False, error_msg("gid",self.gid, smartData.fbd.gid)
             for validator, did in zip(self.dids, smartData.fbd.didunits):
                 if not validator(did):
-                    return False, error_msg("did error", str(validator), str(did))
+                    return False, error_msg("did", str(validator), str(did))
         else:
             if self.fbd(smartData.fbd.data):
-                return False, error_msg("fbd error", self.fbd,  smartData.fbd.data)
+                return False, error_msg("fbd", self.fbd,  smartData.fbd.data)
         return True, "验证成功"

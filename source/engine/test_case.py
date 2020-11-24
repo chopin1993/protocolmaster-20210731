@@ -27,7 +27,9 @@ class TestCaseInfo(object):
 
     def add_fail_test(self,*args):
         self.passed = False
+        self.infos.append(args)
         self.errors.append(args)
+
 
     def add_normal_operation(self, *args):
         self.infos.append(args)
