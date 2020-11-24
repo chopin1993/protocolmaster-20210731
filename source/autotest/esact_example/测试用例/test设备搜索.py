@@ -3,16 +3,16 @@ import engine
 def clear_gw_info():
     r"4aid+2panid+2pw+4gid+2sid"
     config = engine.get_config()
-    engine.send_did("WRITE", "载波芯片注册信息",
+    engine.send_local_msg("设置PANID", 0)
+    engine.expect_local_msg("确认")
+
+    engine.send_did("WRITE", "载波芯片注册信息0603",
                     aid=config["测试设备地址"],
                     panid=0,
                     pw=config["设备密码"],
-                    gid=1,
+                    device_gid=1,
                     sid=1)
-    engine.send_local_msg("设置PANID", 0)
-    engine.expect_local_msg("确认")
-    engine.expect_did("WRITE", "载波芯片注册信息", "** ** ** ** ** **")
-
+    engine.expect_did("WRITE", "载波芯片注册信息0603", "** ** ** ** ** **")
     engine.wait(20)
 
 
@@ -31,7 +31,7 @@ def test_device_search():
                                        "设备描述信息设备制造商0003","ESACT-1A(v1.4)-20171020",
                                        timeout=20)
 
-    engine.send_did("SEARCH", "APP设备搜索",dst=0xffffffff, 搜索类型="未注册节点", 搜索时间=14, 设备类型="32 01 10 10")
+    engine.send_did("SEARCH", "APP设备搜索0008",dst=0xffffffff, 搜索类型="未注册节点", 搜索时间=14, 设备类型="32 01 10 10")
     engine.expect_multi_dids("SEARCH", "SN0007","32 01 10 10 ** ** ** ** ** ** ** **",
                                        "DKEY0005", "** ** ** ** ** ** ** **",
                                        "设备PWD000A",config["设备密码"],
