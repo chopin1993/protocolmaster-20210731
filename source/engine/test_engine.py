@@ -174,16 +174,16 @@ def log_snd_frame(name, data, only_log=False):
     if not only_log:
         TestEngine.instance().add_normal_operation(name, "snd", str(data))
         TestEngine.instance().add_normal_operation(name, "annotation", data.to_readable_str())
-    logging.info("snd %s", str(data))
-    logging.info("txt %s", data.to_readable_str())
+    logging.info("%s snd %s", name, str(data))
+    logging.info("%s txt %s", name, data.to_readable_str())
 
 
 def log_rcv_frame(name, data, only_log=False):
     if not only_log:
         TestEngine.instance().add_normal_operation(name, "rcv", str(data))
         TestEngine.instance().add_normal_operation(name, "annotation", data.to_readable_str())
-    logging.info("rcv %s", str(data))
-    logging.info("txt %s", data.to_readable_str())
+    logging.info("%s rcv %s",name, str(data))
+    logging.info("%s txt %s",name, data.to_readable_str())
 
 
 class Routine(object):
@@ -238,11 +238,13 @@ class Device(object):
         self.updater = None
         self.local_routine = None
         self.legal_devices = set()
+        self.legal_devices.add(TestEngine.instance().get_test_dev_addr())
 
     def config_com(self, **kwargs):
         self.media.config(**kwargs)
 
     def create_role(self, name, src):
+        self.legal_devices.add(src)
         from .role_routine import RoleRoutine
         from .local_routine import LocalRoutine
         role = RoleRoutine(name, src, self)
@@ -298,7 +300,7 @@ class Device(object):
             return
 
         if data.said not in self.legal_devices:
-            log_rcv_frame(self.name, data, only_log=True)
+            log_rcv_frame("ignore:", data, only_log=True)
             return
 
         if data.is_update():

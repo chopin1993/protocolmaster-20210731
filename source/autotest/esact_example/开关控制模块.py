@@ -4,7 +4,7 @@ import engine
 
 #配置测试串口
 config = dict()
-config["测试程序名称"] = r"ESACT-1A(v1.4)-20171020"
+config["测试程序名称"] = "ESACT-1A(v1.5)-20200808"
 config["串口"] = "COM9"
 config["波特率"] = "9600"
 config["校验位"] = 'None'

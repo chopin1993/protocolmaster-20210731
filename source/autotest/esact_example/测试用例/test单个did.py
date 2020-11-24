@@ -17,7 +17,6 @@ def test_software_version():
     engine.send_did("READ", "0001")
     engine.expect_did("READ", "设备类型0001", "** ** ** ** ** ** ** **")
 
-    engine.wait(100)
 
 
 def test_did_para():

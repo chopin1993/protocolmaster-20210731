@@ -17,7 +17,7 @@ class NoMessage(Validator):
 
     def __call__(self, data):
         if not self.allowed_message and data is not None:
-            return False, "验证失败,等待是收到异常报文"
+            return False, "验证失败,等待时收到异常报文"
         else:
             return True, "验证成功"
     def __str__(self):

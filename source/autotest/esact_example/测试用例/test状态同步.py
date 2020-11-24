@@ -11,7 +11,7 @@ def start_report():
                     aid=config["测试设备地址"],
                     panid=config["panid"],
                     pw=config["设备密码"],
-                    gid=1,
+                    device_gid=1,
                     sid=1)
     engine.expect_did("WRITE", "载波芯片注册信息0603", "** ** ** ** ** **")
 
@@ -22,14 +22,14 @@ def test_gateway_report():
     """
     start_report()
     engine.add_doc_info("设备会在20s内第一次上报")
-    engine.expect_multi_dids("REPORT", "通断操作C012", "**","导致状态改变的控制设备AID", "** ** ** **", timeout=20)
+    engine.expect_multi_dids("REPORT", "通断操作C012", "**","导致状态改变的控制设备AIDC01A", "** ** ** **", timeout=20)
     engine.add_doc_info("设备会在40s内第二次上报")
-    engine.wait(10, expect_no_message=True)
-    engine.expect_multi_dids("REPORT", "通断操作C012", "**","导致状态改变的控制设备AID", "** ** ** **", timeout=30, ack=True)
+    engine.wait(10, allowed_message=False)
+    engine.expect_multi_dids("REPORT", "通断操作C012", "**","导致状态改变的控制设备AIDC01A", "** ** ** **", timeout=30, ack=True)
     engine.add_doc_info("上报收到回复之后，便不会重发")
     start_report()
-    engine.expect_multi_dids("REPORT", "通断操作C012", "**", "导致状态改变的控制设备AID", "** ** ** **", timeout=65, ack=True)
-    engine.wait(100, expect_no_message=True)
+    engine.expect_multi_dids("REPORT", "通断操作C012", "**", "导致状态改变的控制设备AIDC01A", "** ** ** **", timeout=65, ack=True)
+    engine.wait(20, allowed_message=False)
 
 
 def test_subscribe_report():
