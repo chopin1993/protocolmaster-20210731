@@ -7,13 +7,13 @@ def start_report():
     config = engine.get_config()
     engine.send_local_msg("设置PANID", config["panid"])
     engine.expect_local_msg("确认")
-    engine.send_did("WRITE", "载波芯片注册信息",
+    engine.send_did("WRITE", "载波芯片注册信息0603",
                     aid=config["测试设备地址"],
                     panid=config["panid"],
                     pw=config["设备密码"],
                     gid=1,
                     sid=1)
-    engine.expect_did("WRITE", "载波芯片注册信息", "** ** ** ** ** **")
+    engine.expect_did("WRITE", "载波芯片注册信息0603", "** ** ** ** ** **")
 
 
 def test_gateway_report():
@@ -40,8 +40,8 @@ def test_subscribe_report():
     2. 使用面板控制设备，面板就会自动成为设备的订阅者。
     3. 通过其他地址控制设备，设备会自动将状态信息上报给面板
     """
-    engine.send_did("WRITE", "主动上报使能标志", 传感器类型="开关", 上报命令="上报设备")
-    engine.expect_did("WRITE", "主动上报使能标志", 传感器类型="开关", 上报命令="上报设备")
+    engine.send_did("WRITE", "主动上报使能标志D005", 传感器类型="开关", 上报命令="上报设备")
+    engine.expect_did("WRITE", "主动上报使能标志D005", 传感器类型="开关", 上报命令="上报设备")
 
     engine.add_doc_info("面板控制设备之后，会自动成为设备的订阅者，其他设备在控制开关控制器，开关控制器回向面板上报")
 

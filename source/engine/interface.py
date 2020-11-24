@@ -19,11 +19,8 @@ def config(infos):
     com = TestEngine.instance().create_com_device(infos["串口"])
     def init_func():
         nonlocal com
-        config = infos
         com.config_com(port=infos["串口"], baudrate=infos["波特率"], parity=infos["校验位"])
         com.create_role("monitor", infos["抄控器默认源地址"])
-        send_local_msg("设置PANID", config["panid"])
-        expect_local_msg("确认")
     TestEngine.instance().group_begin("测试配置信息", init_func,None)
 
 
