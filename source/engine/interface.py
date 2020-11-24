@@ -154,8 +154,8 @@ def run_all_tests(gui=False):
     自动扫描公共用例和项目文件夹下测试用例中所有的测试用例，并执行。
     :param gui: True: 显示gui界面 False：自动执行保存的配置
     """
-    parse_public_test_case()
     parse_func_testcase()
+    parse_public_test_case()
     try:
         TestEngine.instance().load_config()
     except Exception as e:

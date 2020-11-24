@@ -37,10 +37,15 @@ def gather_all_test(variables):
             tests.append(value)
     return tests
 
+def key(data):
+    if data.startswith("init"):
+        return "0000_" +data
+    else:
+        return "1111_" +data
 
 def parse_func_testcase():
     public_dir = os.path.join(TestEngine.instance().output_dir, "测试用例")
-    files = get_file_list(public_dir)
+    files = get_file_list(public_dir, key)
     for name in files:
         name = os.path.splitext(name)[0]
         if name.startswith("__"):

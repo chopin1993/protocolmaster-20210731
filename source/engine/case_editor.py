@@ -121,12 +121,15 @@ class CaseEditor(QMainWindow, Ui_MainWindow):
             self.paraContainerWidget.layout().addWidget(para_widget)
             para_widget.show()
 
-
         child_cnt = tree_widget_item.childCount()
         status = tree_widget_item.checkState(0)
         for idx in range(child_cnt):
             child = tree_widget_item.child(idx)
             child.setCheckState(0, status)
+
+        parent = tree_widget_item.parent()
+        if parent is not None and status == Qt.Checked:
+            parent.setCheckState(0, status)
 
     def init_tree(self):
         for group in self.test_infos:

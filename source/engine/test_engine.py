@@ -104,8 +104,8 @@ class TestEngine(object):
 
     def get_valid_infos(self):
         valids = []
-        for group in self.all_infos:
-            if group.is_enable():
+        for i, group in enumerate(self.all_infos):
+            if group.is_enable() or i==0:
                 valids.append(group)
         return valids
 
