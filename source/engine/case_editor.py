@@ -60,6 +60,7 @@ class CaseEditor(QMainWindow, Ui_MainWindow):
         run_test = menu.addAction("运行此测试")
         action = menu.exec_(self.testCaseView.mapToGlobal(pos))
         if action == run_test:
+            self.sync_status()
             cur_item = self.testCaseView.itemAt(pos)
             case = cur_item.case
             self.engine.run_single_case(case)
