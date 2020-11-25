@@ -96,9 +96,10 @@ class UnitCompare(Validator):
         return True
 
 class DIDValidtor(Validator):
-    def __init__(self,did, value):
+    def __init__(self,did, value, gid):
         self.did = did
         self.value = value
+        self.gid = gid
 
     def __call__(self, did):
         def compare_data(expect_value,target_value):
@@ -108,10 +109,12 @@ class DIDValidtor(Validator):
                 return  expect_value == target_value
         if self.did != did.DID:
             return False
+        if self.gid != did.gid:
+            return False
         return  compare_data(self.value, did.data)
 
     def __str__(self):
-        return "did:{did} value:{value}".format(did=self.did, value=self.value)
+        return "did:{did:0>4x} value:{value}".format(did=self.did, value=self.value)
 
 def error_msg(filed, expected, rcv):
     return f"{filed} mismatch, expect:{expected} rcv:{rcv}".format(filed=filed, expected=expected, rcv=rcv)
@@ -137,13 +140,12 @@ class SmartDataValidator(Validator):
             return False,error_msg("said",self.src, smartData.said)
         if self.dst != smartData.taid:
             return False,error_msg("taid", self.dst, smartData.taid)
-
+        if self.seq is not None and self.seq != (smartData.seq&0x7f):
+            return False, error_msg("seq", self.seq, smartData.seq)
         if self.fbd is None:
             if self.cmd != smartData.fbd.cmd:
                 return False, error_msg("cmd",self.cmd, smartData.fbd.cmd)
-            # 目前0603的回复报文不支持seq回复判断
-            # if self.cmd in [CMD.READ,CMD.WRITE] and self.seq is not None and self.seq != (smartData.seq&0x7f):
-            #     return False, error_msg("seq", self.seq, smartData.seq)
+
             if self.gid is not None and self.gid != smartData.fbd.gid:
                 return False, error_msg("gid",self.gid, smartData.fbd.gid)
             for validator, did in zip(self.dids, smartData.fbd.didunits):

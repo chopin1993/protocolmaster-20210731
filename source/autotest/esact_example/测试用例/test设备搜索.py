@@ -12,7 +12,7 @@ def clear_gw_info():
                     pw=config["设备密码"],
                     device_gid=1,
                     sid=1)
-    engine.expect_did("WRITE", "载波芯片注册信息0603", "** ** ** ** ** **")
+    engine.expect_did("WRITE", "载波芯片注册信息0603", "** ** ** ** ** **",check_seq=False)
     engine.wait(20)
 
 
@@ -44,17 +44,6 @@ def test_device_search():
 
 
 
-
-
-def test_device_show():
-    """
-    设备指示
-    发送指示命令，验证设备的响应动作是否与要求一致。
-    设备指示具体指示动作为第一路继电器翻转，1s变换一次状态，持续6s，设备指示过程中不允许载波通信，本地按键无效。
-    """
-    engine.send_did("WRITE", "APP设备指示0009", "")
-    engine.expect_did("WRITE", "APP设备指示0009", "")
-    engine.wait(6)
 
 
 def test_device_show():

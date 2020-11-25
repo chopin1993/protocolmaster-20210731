@@ -8,154 +8,10 @@ from tools.converter import str2hexstr,hexstr2bytes
 from tools.esenum import EsEnum
 from .data_fragment import DataFragment
 from .DataMetaType import *
+from .smart_utils import *
+from .smart7e_DID import *
 
 SMART_7e_HEAD = bytes([0x7e])
-
-
-class DIDLocal(object):
-    def __init__(self, cmd, units, name):
-        self.cmd = cmd
-        self.units = units
-        self.name = name
-
-
-class CMD(EsEnum):
-    NOTIFY = 0x0 #不可靠上报
-    REPORT = 0x01 #可靠上报
-    READ = 0x02
-    SEARCH = 0x03
-    FILE = 0x04
-    UPDATE = 0x05 #升级
-    UPDATE_BIG = 0x06 #大文件升级
-    WRITE = 0x7
-
-
-class GIDTYPE(EsEnum):
-    BIT1 = 0
-    U8 = 1
-    U16 = 2
-
-class LocalFBD(DataFragment):
-    CMDS = []
-
-    @staticmethod
-    def append_cmd(cmd ,units, txt):
-        LocalFBD.CMDS.append(DIDLocal(cmd, units, txt))
-
-    @staticmethod
-    def find_cmd(data):
-        for cmd in LocalFBD.CMDS:
-            if isinstance(data, str):
-                if cmd.name == data:
-                    return cmd
-            elif isinstance(data,int):
-                if cmd.cmd == data:
-                    return cmd
-            else:
-                raise ValueError
-        print("no proper cmd",data)
-        raise NotImplementedError
-
-    def __init__(self, cmd=None, data=None, decoder=None, **kwargs):
-        if decoder is None:
-            self.cmd = self.find_cmd(cmd).cmd
-            self.data = data
-            self.kwargs = kwargs
-        else:
-            self.decode(decoder)
-
-    def encode(self, encoder):
-        encoder.encode_u8(self.cmd)
-        if len(self.kwargs) == 0:
-            if isinstance(self.data, str):
-                value = hexstr2bytes(self.data)
-                encoder.encode_str(value)
-            elif self.data is not None:
-                local_cmd = self.find_cmd(self.cmd)
-                if len(local_cmd.units) == 1:
-                    unit = local_cmd.units[0]
-                    unit.value = self.data
-                    unit.encode(encoder)
-        else:
-            local_cmd = self.find_cmd(self.cmd)
-            for unit in local_cmd.units:
-                if unit.name in self.kwargs:
-                    unit.value = self.kwargs[unit.name]
-                    unit.encode(encoder)
-
-    def decode(self, decoder):
-        self.cmd = decoder.decode_u8()
-        self.data = decoder.decode_left_bytes()
-
-    def __str__(self):
-        cmd_info = self.find_cmd(self.cmd)
-        if len(cmd_info.units) == 0  or self.data is None :
-            return cmd_info.name
-        else:
-            return cmd_info.name + " " + str(self.data)
-
-
-class GID(DataFragment):
-    def __init__(self, type=None, gids=None, decoder=None, **kwargs):
-        self.gids = []
-        if decoder is None:
-            self.type = GIDTYPE.to_enum(type)
-            if isinstance(gids, int):
-                gids = [gids]
-            self.gids = gids
-        else:
-            self.decode(decoder)
-
-    def encode(self, encoder):
-        data_encoder = BinaryEncoder()
-        if isinstance(self.gids, list):
-            if self.type == GIDTYPE.U8:
-                [data_encoder.encode_u8(addr) for addr in self.gids]
-            elif self.type== GIDTYPE.U16:
-                [data_encoder.encode_u16(addr) for addr in self.gids]
-            else:
-                cnt = (max(self.gids)+7)//8
-                buffers = [0]*cnt
-                for gid in self.gids:
-                    gid -= 1
-                    idx = gid//8
-                    bit = gid%8
-                    buffers[idx] |= 1<<bit
-                [data_encoder.encode_u8(data) for data in buffers]
-        else:
-            data_encoder.encode_str(self.gids)
-        address = data_encoder.get_data()
-        encoder.encode_u8(self.type.value<<6|len(address))
-        encoder.encode_str(address)
-
-    def decode(self, decoder):
-        data = decoder.decode_u8()
-        self.type = GIDTYPE.to_enum(((data&0xc0)>>6))
-        len_ = data&0x3f
-        if self.type == GIDTYPE.U8:
-            self.gids = [decoder.decode_u8()  for i in range(0,len_)]
-        elif self.type == GIDTYPE.U16:
-            self.gids = [decoder.decode_u16() for i in range(0, len_, 2)]
-        else:
-            self.gids = []
-            for i,data in enumerate(decoder.decode_bytes(len_)):
-                base = (len_-1-i)*8+1
-                for bits in range(0,8):
-                    if data & (1<<bits):
-                        self.gids.append(bits+base)
-
-    def __eq__(self, other):
-        if self.type == other.type and set(self.gids) == set(other.gids):
-            return True
-        else:
-            return False
-
-    def __str__(self):
-        str1 = "gid: type-"
-        str1 += str(self.type)
-        str1 += str(self.gids)
-        str1 += " "
-        return str1
 
 
 class UpdateStartInfo(DataFragment):
@@ -215,13 +71,10 @@ class RemoteFBD(DataFragment):
 
     @staticmethod
     def create(cmd, did_name, data, gids=None, gid_type=None,**kwargs):
-        gid = None
-        if gids is not None:
-            gid = GID(gid_type, gids)
-        did = DIDRemote.create_did(did_name, data, **kwargs)
-        return RemoteFBD(cmd, did, gid=gid, **kwargs)
+        did = DIDRemote.create_did(did_name, data, gids=gids, gid_type=gid_type,**kwargs)
+        return RemoteFBD(cmd, did, **kwargs)
 
-    def __init__(self, cmd=None, didunits=None, gid=None, decoder=None,**kwargs):
+    def __init__(self, cmd=None, didunits=None, decoder=None,**kwargs):
         self.didunits = []
         self.cmd = CMD.to_enum(cmd)
         if decoder is None:
@@ -229,31 +82,27 @@ class RemoteFBD(DataFragment):
                 self.didunits.extend(didunits)
             else:
                 self.didunits.append(didunits)
-            self.gid = gid
         else:
-            self.data = bytes(self.cmd.value)+decoder.data
-            self.gid = None
-            ctx = kwargs['ctx']
-            if ctx.is_boardcast():
-                self.gid = decoder.decoder_for_object(GID,**kwargs)
-            else:
-                self.gid = None
-            while decoder.left_bytes() >= 3:
-                did = decoder.decode_u16()
-                didunits = decoder.decoder_for_object(DIDRemote.find_class_by_did(did), **kwargs)
-                self.didunits.append(didunits)
+            self.decode(decoder, **kwargs)
 
     def encode(self, encoder):
         encoder.encode_u8(self.cmd.value)
-        if self.gid is not None:
-            encoder.encode_object(self.gid)
         for did in self.didunits:
             encoder.encode_object(did)
 
+    def decode(self, decoder, **kwargs):
+        self.data = bytes(self.cmd.value) + decoder.data
+        frame = kwargs['ctx']
+        while decoder.left_bytes() >= 3:
+            if frame.is_boardcast():
+                gid = decoder.decoder_for_object(GID, **kwargs)
+                kwargs['gid'] = gid
+            did = decoder.decode_u16()
+            didunit = decoder.decoder_for_object(DIDRemote.find_class_by_did(did), **kwargs)
+            self.didunits.append(didunit)
+
     def __str__(self):
        text = self.cmd.name
-       if self.gid is not None:
-           text += " " + str(self.gid)
        for did in self.didunits:
            text += " " + str(did)
        return text
@@ -279,7 +128,7 @@ class Smart7EData(DataFragment):
         return self.seq&0x80==0x80
 
     def is_update(self):
-        return self.fbd.cmd == CMD.UPDATE
+        return self.fbd.cmd in [CMD.UPDATE,CMD.UPDATE_PLC]
 
     def is_local(self):
         return self.said ==0 and self.taid == 0
@@ -299,7 +148,7 @@ class Smart7EData(DataFragment):
             self.fbd = fbd_decoder.decoder_for_object(LocalFBD)
         else:
             cmd = CMD.to_enum(fbd_decoder.decode_u8())
-            if cmd == CMD.UPDATE:
+            if cmd in [CMD.UPDATE,CMD.UPDATE_PLC]:
                 self.fbd = fbd_decoder.decoder_for_object(UpdateFBD, cmd=cmd, ctx=self)
             else:
                 self.fbd = fbd_decoder.decoder_for_object(RemoteFBD, cmd=cmd, ctx=self)
@@ -310,11 +159,6 @@ class Smart7EData(DataFragment):
         encoder.encode_u32(self.taid)
         encoder.encode_u8(self.seq)
 
-        if self.is_boardcast():  #广播需要带有组地址
-            if isinstance(self.fbd, RemoteFBD):
-                if self.fbd.gid is None:
-                    gid = GID(GIDTYPE.U8,0)
-                    self.fbd.gid = gid
         if isinstance(self.fbd, bytes) or isinstance(self.fbd, bytearray):
             fbd_data = self.fbd
         else:
@@ -404,4 +248,3 @@ class Smart7eProtocol(Protocol):
             print("time const:" ,time.time()-start,"data length",total_len)
         return False, 0, 0
 
-from .smart7e_DID import DIDRemote

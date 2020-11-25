@@ -13,13 +13,14 @@ def start_report():
                     pw=config["设备密码"],
                     device_gid=1,
                     sid=1)
-    engine.expect_did("WRITE", "载波芯片注册信息0603", "** ** ** ** ** **")
+    engine.expect_did("WRITE", "载波芯片注册信息0603", "** ** ** ** ** **",check_seq=False)
 
 
 def test_gateway_report():
     """
     组网上报
     """
+    engine.report_check_enable(True)
     start_report()
     engine.add_doc_info("设备会在20s内第一次上报")
     engine.expect_multi_dids("REPORT", "通断操作C012", "**","导致状态改变的控制设备AIDC01A", "** ** ** **", timeout=20)
@@ -30,6 +31,7 @@ def test_gateway_report():
     start_report()
     engine.expect_multi_dids("REPORT", "通断操作C012", "**", "导致状态改变的控制设备AIDC01A", "** ** ** **", timeout=65, ack=True)
     engine.wait(20, allowed_message=False)
+    engine.report_check_enable(False)
 
 
 def test_subscribe_report():
@@ -40,16 +42,21 @@ def test_subscribe_report():
     2. 使用面板控制设备，面板就会自动成为设备的订阅者。
     3. 通过其他地址控制设备，设备会自动将状态信息上报给面板
     """
+    engine.report_check_enable(True)
     engine.send_did("WRITE", "主动上报使能标志D005", 传感器类型="未知", 上报命令="上报设备")
     engine.expect_did("WRITE", "主动上报使能标志D005", 传感器类型="未知", 上报命令="上报设备")
 
     engine.add_doc_info("面板控制设备之后，会自动成为设备的订阅者，其他设备在控制开关控制器，开关控制器回向面板上报")
 
     panel = engine.create_role("订阅者1", 3)
+    panel.report_check_enable(True)
     panel.send_did("WRITE", "通断操作C012", "01")
     panel.expect_did("WRITE","通断操作C012","00")
+
 
     engine.send_did("WRITE", "通断操作C012", "81")
     engine.expect_did("WRITE", "通断操作C012", "01")
 
     panel.expect_did("NOTIFY", "通断操作C012","01",timeout=15,ack=True)
+    engine.report_check_enable(False)
+    panel.report_check_enable(False)

@@ -60,9 +60,13 @@ class CaseEditor(QMainWindow, Ui_MainWindow):
         run_test = menu.addAction("运行此测试")
         action = menu.exec_(self.testCaseView.mapToGlobal(pos))
         if action == run_test:
+            self.sync_status()
             cur_item = self.testCaseView.itemAt(pos)
             case = cur_item.case
-            self.engine.run_single_case(case)
+            if self.engine.is_running():
+                QMessageBox.information(None, u"测试正在运行", "需要等待当前测试运行完毕才能运行新的测试")
+            else:
+                self.engine.run_single_case(case)
             return
         else:
             return
@@ -102,8 +106,11 @@ class CaseEditor(QMainWindow, Ui_MainWindow):
 
     def run_all_test(self):
         self.sync_status()
-        self.engine.run_all_test()
-        QMessageBox.information(None, u"测试完成","请查看测试报告")
+        if self.engine.is_running():
+            QMessageBox.information(None, u"测试正在运行", "需要等待当前测试运行完毕才能运行新的测试")
+        else:
+            self.engine.run_all_test()
+            QMessageBox.information(None, u"测试完成","请查看测试报告")
 
     def item_clicked(self, tree_widget_item):
         self.current_widget = tree_widget_item

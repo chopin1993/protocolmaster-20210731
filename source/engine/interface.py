@@ -47,7 +47,11 @@ def send_did(cmd, did, value=None, taid=None, gids=None, gid_type="U16", **kwarg
     role.send_did(cmd, did, value=value, taid=taid, gids=gids, gid_type=gid_type, **kwargs)
 
 
-def expect_did(cmd, did, value=None, timeout=2, ack=False, said=None, gids=None, gid_type="U16",**kwargs):
+def expect_did(cmd, did, value=None,
+               timeout=2, ack=False, said=None,
+               gids=None, gid_type="U16",
+               check_seq=True,
+               **kwargs):
     """
     :param cmd: 支持“READ”,"WRITE","REPORT","NOTIFY""
     :param did: 可以使用数字，也可以使用《数据表示分类表格》的中文名称
@@ -56,6 +60,7 @@ def expect_did(cmd, did, value=None, timeout=2, ack=False, said=None, gids=None,
     :param ack: 是否给与回复
     :param gids:广播地址列表
     :param gid_type:广播地址编码类型 支持"BIT1","U8","U16"
+    :param check_seq: True:比对seq, False:忽略seq
     :param kwargs: 如果did有多个数据项，可以使用key,value的方式传递数据
     """
     role = TestEngine.instance().get_default_role()
@@ -65,36 +70,78 @@ def expect_did(cmd, did, value=None, timeout=2, ack=False, said=None, gids=None,
                     timeout=timeout,
                     ack=ack,
                     said=said,
-                    gids=None,
-                    gid_type="U16",
+                    gids=gids,
+                    gid_type=gid_type,
+                    check_seq=check_seq,
                     **kwargs)
 
 
-def send_multi_dids(cmd, *args, taid=None, gids=None, gid_type="U16"):
+def send_multi_dids(cmd, *args, taid=None):
     """
     :param cmd:支持“READ”,"WRITE","REPORT","NOTIFY"
     :param args:did1,value1,did2,value2...did和value交替排列
-    :param dst:目的低点至，默认是被测设备
-    :param gids:广播地址列表
-    :param gid_type:广播地址编码类型 支持"BIT1","U8","U16"
+    :param dst:目的地址，默认是被测设备
     """
     role = TestEngine.instance().get_default_role()
-    role.send_multi_dids(cmd, *args, taid=taid, gids=gids, gid_type=gid_type)
+    assert len(args)%2 == 0
+    padding_args = []
+    for i in range(0,len(args),2):
+        padding_args.append(None)
+        padding_args.append(None)
+        padding_args.append(args[i])
+        padding_args.append(args[i+1])
+    role.send_multi_dids(cmd, *padding_args, taid=taid)
 
 
-def expect_multi_dids(cmd, *args, timeout=2, ack=False, said=None, gids=None,gid_type="U16"):
+def expect_multi_dids(cmd, *args,
+                      timeout=2, ack=False, said=None,
+                      check_seq=True):
     """
+    期望收到多个did
     :param cmd:支持“READ”,"WRITE","REPORT","NOTIFY"
     :param args:did1,value1,did2,value2...did和value交替排列
     :param timeout:超时时间
     :param ack:是否给与回复，主要在上报的时候使用
-    :param gids:广播地址列表
-    :param gid_type:广播地址编码类型 支持"BIT1","U8","U16"
-    :return:
+    :param said: 目标设备地址，默认发给被测设备
+    :param check_seq: True:比对seq, False:忽略seq
+    """
+    padding_args = []
+    for i in range(0, len(args), 2):
+        padding_args.append(None)
+        padding_args.append(None)
+        padding_args.append(args[i])
+        padding_args.append(args[i + 1])
+
+    role = TestEngine.instance().get_default_role()
+    role.expect_multi_dids(cmd, *padding_args, timeout=timeout, ack=ack,
+                           said=said,
+                           check_seq=check_seq)
+
+def boardcast_send_multi_dids(cmd, *args):
+    """
+    :param cmd:支持“READ”,"WRITE","REPORT","NOTIFY"
+    :param args:gid1, gidtyp1,did1,value1,gid2,gidtyp2 did2,value2...gid1,gidtyp1,did和value顺序排列
     """
     role = TestEngine.instance().get_default_role()
-    role.expect_multi_dids(cmd, *args, timeout=timeout, ack=ack, said=said,gids=gids, gid_type=gid_type)
+    role.send_multi_dids(cmd, *args, taid=0xffffffff)
 
+
+def boardcast_expect_multi_dids(cmd, *args,
+                      timeout=2, ack=False, said=None,
+                      check_seq=True):
+    """
+    期望收到多个广播did
+    :param cmd:支持“READ”,"WRITE","REPORT","NOTIFY"
+    :param args:gid1, gidtyp1,did1,value1,gid2,gidtyp2 did2,value2...gid1,gidtyp1,did和value顺序排列
+    :param said:目的地址，默认是被测设备
+    :param timeout:超时时间
+    :param ack:是否给与回复，主要在上报的时候使用
+    :param check_seq: True:比对seq, False:忽略seq
+    """
+    role = TestEngine.instance().get_default_role()
+    role.expect_multi_dids(cmd, *args, timeout=timeout, ack=ack,
+                           said=said,
+                           check_seq=check_seq)
 
 def send_raw(fbd, taid=None):
     """
@@ -141,9 +188,20 @@ def update(file_name,  control_func=None, block_size=128):
     :param control_func:控制程序。func的参数是请求的包，返回的是要发送的包。返回None表示不予回复。
     :return 设备请求的seqs列表。
     """
+    from tools.filetool import get_config_file
+    from protocol.smart7e_protocol import CMD
+    files = []
     updater = TestEngine.instance().get_updater()
-    file_name = os.path.join(TestEngine.instance().output_dir, file_name)
-    return updater.update(file_name, block_size, control_func)
+    file_name1 = os.path.join(TestEngine.instance().output_dir, file_name)
+    files.append(file_name1)
+    if os.path.exists(file_name1):
+        return updater.update(CMD.UPDATE, file_name1, block_size, control_func)
+    file_name2 = get_config_file(os.path.join("升级文件",file_name))
+    files.append(file_name2)
+    if os.path.exists(file_name2):
+        return updater.update(CMD.UPDATE_PLC, file_name2, block_size, control_func)
+    raise FileNotFoundError(str(files))
+
 
 
 def run_all_tests(gui=False):
@@ -206,3 +264,12 @@ def wait(seconds, allowed_message=True, tips=""):
     logging.info(msg)
     role = TestEngine.instance().get_default_role()
     role.wait(seconds, allowed_message)
+
+
+def report_check_enable(enable):
+    """
+    使能/禁止检测上报报文
+    :param enable: True: 检测上报报文 False:忽略上报报文。默认设备忽略上报报文
+    """
+    role = TestEngine.instance().get_default_role()
+    role.report_check_enable(enable)

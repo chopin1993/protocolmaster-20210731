@@ -14,25 +14,39 @@ class RoleRoutine(Routine):
         super(RoleRoutine, self).__init__(name, device)
         self.src = src
         self.current_seq = None
+        self.check_report = False
 
-    def send_did(self, cmd, did, value=None, taid=None, **kwargs):
-        fbd = RemoteFBD.create(cmd, did, value, **kwargs)
+    def report_check_enable(self, enable):
+        self.check_report = enable
+
+    def send_did(self, cmd, did, value=None, taid=None, gids=None, gid_type="U16", **kwargs):
+        gid, taid = self.get_gid(taid, gids, gid_type)
+        fbd = RemoteFBD.create(cmd, did, value,gids=gids, gid_type=gid_type, **kwargs)
         dst = self.device.get_dst_addr(taid)
         data = Smart7EData(self.src, dst, fbd)
         self.write(data)
 
-    def send_multi_dids(self, cmd, *args, taid=None, gids=None, gid_type="U16"):
-        dids = [DIDRemote.create_did(args[idx], args[idx + 1]) for idx, arg in enumerate(args) if idx % 2 == 0]
+    def get_gid(self, taid, gids, gid_type):
+        gid = None
+        if taid==0xffffffff and gids is None:
+            raise ValueError("taid is boardcast but gids is None")
+        if gids is not None:
+            gid = GID(gid_type, gids)
+            taid = 0xffffffff
+        return gid,taid
+
+    def send_multi_dids(self, cmd, *args, taid=None):
+        dids = [DIDRemote.create_did(name=args[i+2], value=args[i+3], gids=args[i],gid_type=args[i+1]) for i in range(0, len(args), 4)]
+        fbd = RemoteFBD(cmd, dids)
+        dst = self.device.get_dst_addr(taid)
+        data = Smart7EData(self.src, dst, fbd)
+        self.write(data)
+
+    def _create_did_validtor(self, did, value, gids=None, gid_type=None, **kwargs):
+        did_cls = DIDRemote.find_class_by_name(did)
         gid = None
         if gids is not None:
             gid = GID(gid_type, gids)
-        fbd = RemoteFBD(cmd, dids, gid=gid)
-        dst = self.device.get_dst_addr(taid)
-        data = Smart7EData(self.src, dst, fbd)
-        self.write(data)
-
-    def _create_did_validtor(self, did, value, **kwargs):
-        did_cls = DIDRemote.find_class_by_name(did)
         if did_cls is None:
             logging.error("%s cant not search in excel", did)
             raise NotImplementedError
@@ -51,10 +65,10 @@ class RoleRoutine(Routine):
             value = did_cls.encode_reply(value)
         else:
             raise ValueError("cant not encode value for did {0}".format(did))
-        return DIDValidtor(did_cls.DID, value)
+        return DIDValidtor(did_cls.DID, value, gid)
 
-    def get_expect_seq(self,cmd):
-        if cmd in [CMD.WRITE, CMD.READ]:
+    def get_expect_seq(self,cmd, check):
+        if cmd in [CMD.WRITE, CMD.READ] and check:
             return self.current_seq
         else:
             return None
@@ -62,10 +76,11 @@ class RoleRoutine(Routine):
     def expect_did(self, cmd, did, value=None,
                    timeout=2, ack=False, said=None,
                    gids=None, gid_type="U16",
+                   check_seq=True,
                    **kwargs):
         cmd = CMD.to_enum(cmd)
         did = [self._create_did_validtor(did, value, **kwargs)]
-        seq = self.get_expect_seq(cmd)
+        seq = self.get_expect_seq(cmd, check_seq)
         gid = None
         if gids is not None:
             self.is_expect_boradcast = True
@@ -86,20 +101,30 @@ class RoleRoutine(Routine):
 
     def expect_multi_dids(self, cmd, *args,
                           said=None, timeout=2, ack=False,
-                          gids=None, gid_type="U16"):
+                          gids=None, gid_type="U16",
+                          check_seq=True
+                          ):
+        assert len(args)%4 == 0
         cmd = CMD.to_enum(cmd)
+        seq = self.get_expect_seq(cmd, check_seq)
         gid = None
         if gids is not None:
             self.is_expect_boradcast = True
             gid = GID(gid_type, gids)
-        dids = [self._create_did_validtor(args[idx], args[idx + 1]) for idx, arg in enumerate(args) if idx % 2 == 0]
+        dids = []
+        for i in range(0, len(args), 4):
+            did = self._create_did_validtor(did=args[i+2],
+                                            value=args[i+3],
+                                            gids=args[i],
+                                            gid_type=args[i+1])
+            dids.append(did)
         dst = self.device.get_dst_addr(said)
         self.validate = SmartDataValidator(src=dst,
                                            dst=self.src,
                                            cmd=cmd,
-                                           gid = gid,
+                                           gid=gid,
                                            dids=dids,
-                                           seq = self.get_expect_seq(cmd),
+                                           seq=seq,
                                            ack=ack)
         self.wait_event(timeout)
 
@@ -118,10 +143,13 @@ class RoleRoutine(Routine):
         self.wait_event(timeout)
 
     def handle_rcv_msg(self, data):
+        #检查是否可以忽略上报报文
+        if data is not None and data.fbd.cmd in [CMD.REPORT, CMD.NOTIFY] and not self.check_report:
+            log_rcv_frame(self.name+" report ignone", data)
+            return
+
         if data is not None:
             log_rcv_frame(self.name, data)
-        if data is not None and data.fbd.cmd == CMD.UPDATE:
-            return
         if self.validate is not None:
             valid, msg = self.validate(data)
             if valid:

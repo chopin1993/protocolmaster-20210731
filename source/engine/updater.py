@@ -10,13 +10,14 @@ from PyQt5.QtCore import QTimer
 
 
 class UpdaterFileParser(object):
-    def __init__(self, file_name):
+    def __init__(self,cmd, file_name):
         self.device_type = None
         self.soft_version = None
         self.crc = None
         self.size = None
         self.data = None
         self.file_name = file_name
+        self.cmd = cmd
 
         with open(self.file_name, "rb") as handle:
             self.data = handle.read()
@@ -33,7 +34,7 @@ class UpdaterFileParser(object):
         else:
             data_idx = idx-1
             data = self.data[data_idx*block_size:block_size*(data_idx+1)]
-        fbd = UpdateFBD(cmd=CMD.UPDATE,seq=idx,ack=True,crc=self.crc, data=data)
+        fbd = UpdateFBD(cmd=self.cmd, seq=idx,ack=True,crc=self.crc, data=data)
         return fbd
 
     def parse_file(self,data):
@@ -77,14 +78,16 @@ class UpdateRoutine(Routine):
     def timeout_handle(self):
         self.handle_rcv_msg(None)
 
-    def update(self, file_name, block_size=128, control_func=None):
+    def update(self, cmd, file_name, block_size=128, control_func=None):
+        self.snd_seqs = []
+        self.rcv_seqs = []
         self.file_name = file_name
         self.block_size = block_size
         self.control_func = _default_control_func if control_func is None else control_func
         if not os.path.exists(file_name):
             TestEngine.instance().add_fail_test(self.name, "fail", self.file_name + " 不存在")
             return
-        self.parser = UpdaterFileParser(self.file_name)
+        self.parser = UpdaterFileParser(cmd, self.file_name)
         self.send_idx = 0
         self.send_update_package(self.send_idx)
         self.updating = True
@@ -119,7 +122,7 @@ class UpdateRoutine(Routine):
             return
 
         if data is None:
-             if self.resend < 4:
+             if self.resend < 10:
                 add_doc_info("resend package {0}  次数 {1}".format(self.send_idx, self.resend))
                 self.resend += 1
                 self.send_update_package(self.send_idx)
@@ -130,6 +133,7 @@ class UpdateRoutine(Routine):
                 self.updating = False
                 self.timer.stop()
                 return
+        self.resend = 0
         self.rcv_seqs.append(data.fbd.seq)
         seq = self.control_func(data.fbd.seq)
         if seq is not None and seq != 0xffff:
