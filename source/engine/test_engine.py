@@ -40,6 +40,7 @@ class TestEngine(object):
         self.test_name = None
         self.output_dir = ""
         self.config = None
+        self.running = False
 
     def get_default_role(self):
         return self.com_medias[0].default_role
@@ -111,10 +112,14 @@ class TestEngine(object):
                 valids.append(group)
         return valids
 
+    def is_running(self):
+        return self.running
+
     def run_single_case(self,case):
         return self.run_all_test([self.all_infos[0], case])
 
     def run_all_test(self, valids=None):
+        self.running = True
         def run_test(case):
             func = case.func
             case.clear()
@@ -144,6 +149,7 @@ class TestEngine(object):
             for case in fails:
                 logging.info("失败测试名称：%s 失败原因：%s", case.name, case.get_fail_msg())
         self.generate_test_report(valids)
+        self.running = False
 
     def is_exist_config(self):
         file_path = os.path.join(self.output_dir, "config.json")

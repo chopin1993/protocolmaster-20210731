@@ -136,7 +136,7 @@ class RoleRoutine(Routine):
     def handle_rcv_msg(self, data):
         #检查是否可以忽略上报报文
         if data is not None and data.fbd.cmd in [CMD.REPORT, CMD.NOTIFY] and not self.check_report:
-            log_rcv_frame("report ignone", data)
+            log_rcv_frame(self.name+" report ignone", data)
             return
 
         if data is not None:

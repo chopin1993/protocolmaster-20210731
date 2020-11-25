@@ -13,7 +13,7 @@ def start_report():
                     pw=config["设备密码"],
                     device_gid=1,
                     sid=1)
-    engine.expect_did("WRITE", "载波芯片注册信息0603", "** ** ** ** ** **")
+    engine.expect_did("WRITE", "载波芯片注册信息0603", "** ** ** ** ** **",check_seq=False)
 
 
 def test_gateway_report():
@@ -49,11 +49,14 @@ def test_subscribe_report():
     engine.add_doc_info("面板控制设备之后，会自动成为设备的订阅者，其他设备在控制开关控制器，开关控制器回向面板上报")
 
     panel = engine.create_role("订阅者1", 3)
+    panel.report_check_enable(True)
     panel.send_did("WRITE", "通断操作C012", "01")
     panel.expect_did("WRITE","通断操作C012","00")
+
 
     engine.send_did("WRITE", "通断操作C012", "81")
     engine.expect_did("WRITE", "通断操作C012", "01")
 
     panel.expect_did("NOTIFY", "通断操作C012","01",timeout=15,ack=True)
     engine.report_check_enable(False)
+    panel.report_check_enable(False)
