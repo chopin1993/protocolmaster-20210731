@@ -107,45 +107,60 @@
         }
     },
     "03_设备搜索测试": {
-        "enable": true,
+        "enable": false,
         "paras": {},
         "subcase": {
-            "设备搜索类型测试": {
-                "enable": true,
-                "paras": {},
-                "subcase": {}
-            },
-            "设备搜索时间测试": {
+            "01_设备搜索类型测试": {
                 "enable": false,
                 "paras": {},
                 "subcase": {}
             },
-            "重发搜索测试": {
+            "02_设备搜索时间测试": {
                 "enable": false,
                 "paras": {},
                 "subcase": {}
             },
-            "设备搜索断电测试": {
+            "03_重发设备搜索测试": {
                 "enable": false,
                 "paras": {},
                 "subcase": {}
             },
-            "最大最小时间验证": {
+            "04_设备搜索中断电测试": {
                 "enable": false,
                 "paras": {},
                 "subcase": {}
             },
-            "APP设备指示0009": {
+            "05_设备搜索最大最小时间测试": {
                 "enable": false,
                 "paras": {},
                 "subcase": {}
             },
-            "静默时间000B": {
+            "06_APP设备指示0009": {
                 "enable": false,
                 "paras": {},
                 "subcase": {}
             },
-            "设备入网后不再支持设备搜索测试": {
+            "07_APP设备指示中断电测试": {
+                "enable": false,
+                "paras": {},
+                "subcase": {}
+            },
+            "08_静默时间000B": {
+                "enable": false,
+                "paras": {},
+                "subcase": {}
+            },
+            "09_静默时间000B断电测试": {
+                "enable": false,
+                "paras": {},
+                "subcase": {}
+            },
+            "10_静默时间最大值最小值测试": {
+                "enable": false,
+                "paras": {},
+                "subcase": {}
+            },
+            "11_设备入网后不再支持设备搜索测试": {
                 "enable": false,
                 "paras": {},
                 "subcase": {}
@@ -156,57 +171,57 @@
         "enable": false,
         "paras": {},
         "subcase": {
-            "设置测试工装参数": {
+            "01_测试前环境搭建": {
                 "enable": false,
                 "paras": {},
                 "subcase": {}
             },
-            "添加上报测试": {
+            "02_添加上报测试": {
                 "enable": false,
                 "paras": {},
                 "subcase": {}
             },
-            "上电上报测试": {
+            "03_上电上报测试": {
                 "enable": false,
                 "paras": {},
                 "subcase": {}
             },
-            "配置订阅者信息": {
+            "04_配置订阅者信息": {
                 "enable": false,
                 "paras": {},
                 "subcase": {}
             },
-            "订阅者上报顺序测试": {
+            "05_订阅者上报顺序测试": {
                 "enable": false,
                 "paras": {},
                 "subcase": {}
             },
-            "默认参数同时上报设备和网关": {
+            "06_默认参数同时上报设备和网关": {
                 "enable": false,
                 "paras": {},
                 "subcase": {}
             },
-            "不上报": {
+            "07_不上报": {
                 "enable": false,
                 "paras": {},
                 "subcase": {}
             },
-            "只上报网关": {
+            "08_只上报网关": {
                 "enable": false,
                 "paras": {},
                 "subcase": {}
             },
-            "只上报设备": {
+            "09_只上报设备": {
                 "enable": false,
                 "paras": {},
                 "subcase": {}
             },
-            "网关无应答时设备上报的重试机制": {
+            "10_网关无应答时设备上报的重试机制": {
                 "enable": false,
                 "paras": {},
                 "subcase": {}
             },
-            "广播报文控制测试": {
+            "11_广播报文控制测试": {
                 "enable": false,
                 "paras": {},
                 "subcase": {}
@@ -214,8 +229,90 @@
         }
     },
     "05_远程升级测试": {
+        "enable": true,
+        "paras": {},
+        "subcase": {
+            "01_测试环境搭建": {
+                "enable": false,
+                "paras": {},
+                "subcase": {}
+            },
+            "02_应用层远程升级（提测版本升级至其他版本）": {
+                "enable": false,
+                "paras": {},
+                "subcase": {}
+            },
+            "03_兼容性升级测试": {
+                "enable": false,
+                "paras": {},
+                "subcase": {}
+            },
+            "04_断点续传": {
+                "enable": false,
+                "paras": {},
+                "subcase": {}
+            },
+            "05_断电重传": {
+                "enable": false,
+                "paras": {},
+                "subcase": {}
+            },
+            "06_升级过程中被控制": {
+                "enable": true,
+                "paras": {},
+                "subcase": {}
+            },
+            "07_升级成功瞬间断电": {
+                "enable": true,
+                "paras": {},
+                "subcase": {}
+            }
+        }
+    },
+    "公共用例_基本报文": {
         "enable": false,
         "paras": {},
-        "subcase": {}
+        "subcase": {
+            "软件版本测试": {
+                "enable": false,
+                "paras": {
+                    "软件版本": ""
+                },
+                "subcase": {}
+            },
+            "PLC版本信息": {
+                "enable": false,
+                "paras": {
+                    "应用层通讯协议及版本": ""
+                },
+                "subcase": {}
+            },
+            "设备类型测试": {
+                "enable": false,
+                "paras": {
+                    "设备类型": ""
+                },
+                "subcase": {}
+            },
+            "SN查询": {
+                "enable": false,
+                "paras": {
+                    "sn通配符": ""
+                },
+                "subcase": {}
+            },
+            "Dkey查询": {
+                "enable": false,
+                "paras": {
+                    "dkey通配符": ""
+                },
+                "subcase": {}
+            },
+            "多DID测试": {
+                "enable": false,
+                "paras": {},
+                "subcase": {}
+            }
+        }
     }
 }
