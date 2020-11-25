@@ -65,8 +65,8 @@ class RoleRoutine(Routine):
             raise ValueError("cant not encode value for did {0}".format(did))
         return DIDValidtor(did_cls.DID, value)
 
-    def get_expect_seq(self,cmd):
-        if cmd in [CMD.WRITE, CMD.READ]:
+    def get_expect_seq(self,cmd, check):
+        if cmd in [CMD.WRITE, CMD.READ] and check:
             return self.current_seq
         else:
             return None
@@ -74,10 +74,11 @@ class RoleRoutine(Routine):
     def expect_did(self, cmd, did, value=None,
                    timeout=2, ack=False, said=None,
                    gids=None, gid_type="U16",
+                   check_seq=True,
                    **kwargs):
         cmd = CMD.to_enum(cmd)
         did = [self._create_did_validtor(did, value, **kwargs)]
-        seq = self.get_expect_seq(cmd)
+        seq = self.get_expect_seq(cmd, check_seq)
         gid = None
         if gids is not None:
             self.is_expect_boradcast = True
@@ -98,8 +99,11 @@ class RoleRoutine(Routine):
 
     def expect_multi_dids(self, cmd, *args,
                           said=None, timeout=2, ack=False,
-                          gids=None, gid_type="U16"):
+                          gids=None, gid_type="U16",
+                          check_seq=True
+                          ):
         cmd = CMD.to_enum(cmd)
+        seq = self.get_expect_seq(cmd, check_seq)
         gid = None
         if gids is not None:
             self.is_expect_boradcast = True
@@ -111,7 +115,7 @@ class RoleRoutine(Routine):
                                            cmd=cmd,
                                            gid = gid,
                                            dids=dids,
-                                           seq = self.get_expect_seq(cmd),
+                                           seq = seq,
                                            ack=ack)
         self.wait_event(timeout)
 
