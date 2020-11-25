@@ -76,38 +76,72 @@ def expect_did(cmd, did, value=None,
                     **kwargs)
 
 
-def send_multi_dids(cmd, *args, taid=None, gids=None, gid_type="U16"):
+def send_multi_dids(cmd, *args, taid=None):
     """
     :param cmd:支持“READ”,"WRITE","REPORT","NOTIFY"
     :param args:did1,value1,did2,value2...did和value交替排列
-    :param dst:目的低点至，默认是被测设备
-    :param gids:广播地址列表
-    :param gid_type:广播地址编码类型 支持"BIT1","U8","U16"
+    :param dst:目的地址，默认是被测设备
     """
     role = TestEngine.instance().get_default_role()
-    role.send_multi_dids(cmd, *args, taid=taid, gids=gids, gid_type=gid_type)
+    assert len(args)%2 == 0
+    padding_args = []
+    for i in range(0,len(args),2):
+        padding_args.append(None)
+        padding_args.append(None)
+        padding_args.append(args[i])
+        padding_args.append(args[i+1])
+    role.send_multi_dids(cmd, *padding_args, taid=taid)
 
 
 def expect_multi_dids(cmd, *args,
                       timeout=2, ack=False, said=None,
-                      gids=None,gid_type="U16"
-                      ,check_seq=True):
+                      check_seq=True):
     """
+    期望收到多个did
     :param cmd:支持“READ”,"WRITE","REPORT","NOTIFY"
     :param args:did1,value1,did2,value2...did和value交替排列
     :param timeout:超时时间
     :param ack:是否给与回复，主要在上报的时候使用
-    :param gids:广播地址列表
-    :param gid_type:广播地址编码类型 支持"BIT1","U8","U16"
+    :param said: 目标设备地址，默认发给被测设备
     :param check_seq: True:比对seq, False:忽略seq
-    :return:
+    """
+    padding_args = []
+    for i in range(0, len(args), 2):
+        padding_args.append(None)
+        padding_args.append(None)
+        padding_args.append(args[i])
+        padding_args.append(args[i + 1])
+
+    role = TestEngine.instance().get_default_role()
+    role.expect_multi_dids(cmd, *padding_args, timeout=timeout, ack=ack,
+                           said=said,
+                           check_seq=check_seq)
+
+def boardcast_send_multi_dids(cmd, *args):
+    """
+    :param cmd:支持“READ”,"WRITE","REPORT","NOTIFY"
+    :param args:gid1, gidtyp1,did1,value1,gid2,gidtyp2 did2,value2...gid1,gidtyp1,did和value顺序排列
+    """
+    role = TestEngine.instance().get_default_role()
+    role.send_multi_dids(cmd, *args, taid=0xffffffff)
+
+
+def boardcast_expect_multi_dids(cmd, *args,
+                      timeout=2, ack=False, said=None,
+                      check_seq=True):
+    """
+    期望收到多个广播did
+    :param cmd:支持“READ”,"WRITE","REPORT","NOTIFY"
+    :param args:gid1, gidtyp1,did1,value1,gid2,gidtyp2 did2,value2...gid1,gidtyp1,did和value顺序排列
+    :param said:目的地址，默认是被测设备
+    :param timeout:超时时间
+    :param ack:是否给与回复，主要在上报的时候使用
+    :param check_seq: True:比对seq, False:忽略seq
     """
     role = TestEngine.instance().get_default_role()
     role.expect_multi_dids(cmd, *args, timeout=timeout, ack=ack,
                            said=said,
-                           gids=gids, gid_type=gid_type,
-                           check_seq=True)
-
+                           check_seq=check_seq)
 
 def send_raw(fbd, taid=None):
     """

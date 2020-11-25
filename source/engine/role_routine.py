@@ -29,22 +29,24 @@ class RoleRoutine(Routine):
     def get_gid(self, taid, gids, gid_type):
         gid = None
         if taid==0xffffffff and gids is None:
-            raise ValueError("taid is boardcat but gids is None")
+            raise ValueError("taid is boardcast but gids is None")
         if gids is not None:
             gid = GID(gid_type, gids)
             taid = 0xffffffff
         return gid,taid
 
-    def send_multi_dids(self, cmd, *args, taid=None, gids=None, gid_type="U16"):
-        dids = [DIDRemote.create_did(args[idx], args[idx + 1]) for idx, arg in enumerate(args) if idx % 2 == 0]
-        gid,taid = self.get_gid(taid, gids, gid_type)
-        fbd = RemoteFBD(cmd, dids, gid=gid)
+    def send_multi_dids(self, cmd, *args, taid=None):
+        dids = [DIDRemote.create_did(name=args[i+2], value=args[i+3], gids=args[i],gid_type=args[i+1]) for i in range(0, len(args), 4)]
+        fbd = RemoteFBD(cmd, dids)
         dst = self.device.get_dst_addr(taid)
         data = Smart7EData(self.src, dst, fbd)
         self.write(data)
 
-    def _create_did_validtor(self, did, value, **kwargs):
+    def _create_did_validtor(self, did, value, gids=None, gid_type=None, **kwargs):
         did_cls = DIDRemote.find_class_by_name(did)
+        gid = None
+        if gids is not None:
+            gid = GID(gid_type, gids)
         if did_cls is None:
             logging.error("%s cant not search in excel", did)
             raise NotImplementedError
@@ -63,7 +65,7 @@ class RoleRoutine(Routine):
             value = did_cls.encode_reply(value)
         else:
             raise ValueError("cant not encode value for did {0}".format(did))
-        return DIDValidtor(did_cls.DID, value)
+        return DIDValidtor(did_cls.DID, value, gid)
 
     def get_expect_seq(self,cmd, check):
         if cmd in [CMD.WRITE, CMD.READ] and check:
@@ -102,20 +104,27 @@ class RoleRoutine(Routine):
                           gids=None, gid_type="U16",
                           check_seq=True
                           ):
+        assert len(args)%4 == 0
         cmd = CMD.to_enum(cmd)
         seq = self.get_expect_seq(cmd, check_seq)
         gid = None
         if gids is not None:
             self.is_expect_boradcast = True
             gid = GID(gid_type, gids)
-        dids = [self._create_did_validtor(args[idx], args[idx + 1]) for idx, arg in enumerate(args) if idx % 2 == 0]
+        dids = []
+        for i in range(0, len(args), 4):
+            did = self._create_did_validtor(did=args[i+2],
+                                            value=args[i+3],
+                                            gids=args[i],
+                                            gid_type=args[i+1])
+            dids.append(did)
         dst = self.device.get_dst_addr(said)
         self.validate = SmartDataValidator(src=dst,
                                            dst=self.src,
                                            cmd=cmd,
-                                           gid = gid,
+                                           gid=gid,
                                            dids=dids,
-                                           seq = seq,
+                                           seq=seq,
                                            ack=ack)
         self.wait_event(timeout)
 

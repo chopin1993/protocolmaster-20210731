@@ -96,9 +96,10 @@ class UnitCompare(Validator):
         return True
 
 class DIDValidtor(Validator):
-    def __init__(self,did, value):
+    def __init__(self,did, value, gid):
         self.did = did
         self.value = value
+        self.gid = gid
 
     def __call__(self, did):
         def compare_data(expect_value,target_value):
@@ -107,6 +108,8 @@ class DIDValidtor(Validator):
             else:
                 return  expect_value == target_value
         if self.did != did.DID:
+            return False
+        if self.gid != did.gid:
             return False
         return  compare_data(self.value, did.data)
 

@@ -1,7 +1,7 @@
 import engine
 
 
-def test_r_string():
+def test_boardcast_single():
     """
     单个广播测试
     """
@@ -14,19 +14,23 @@ def test_r_string():
     engine.send_did("WRITE", "通断操作C012", "81", gids=[1,2,9],gid_type="BIT1")
     engine.wait(3)
 
-def test_r_string2():
+def test_boardcat_mulit():
     """
     多个广播测试
     """
     engine.send_did("WRITE", "通断操作C012", "01")
     engine.wait(3)
-    engine.send_multi_dids("WRITE", "通断操作C012", "81",
-                                    "通断操作C012", "81",
-                                     taid=0xffffffff, gids=[0,1,2],gid_type="BIT1")
+    engine.boardcast_send_multi_dids("WRITE",
+                                     [1, 2, 3], "BIT1","通断操作C012", "81",
+                                     [2, 3, 4], "U8", "通断操作C012", "81",
+                                     [3, 4, 5], "U16", "通断操作C012", "81",
+                                    )
     engine.wait(3)
-    engine.send_multi_dids("WRITE", "通断操作C012", "01",
-                                    "通断操作C012", "01",
-                                     gids=[0,1,2],gid_type="BIT1")
+    engine.boardcast_send_multi_dids("WRITE",
+                                     [1, 2, 3], "BIT1","通断操作C012", "01",
+                                     [2, 3, 4], "U8", "通断操作C012", "01",
+                                     [3, 4, 5], "U16", "通断操作C012", "01",
+                                    )
 
 
 def test_crash_multi():

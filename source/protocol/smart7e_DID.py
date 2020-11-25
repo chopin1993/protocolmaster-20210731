@@ -9,20 +9,9 @@ import logging
 import os
 import re
 from collections import OrderedDict
-
-class ErrorCode(Enum):
-    NO_ERROR = 0
-    OTHER_ERROR= 0x0f
-    LEN_ERROR = 0x01
-    BUFFER_ERR = 0x02
-    DATA_ERR = 0x03
-    DID_ERROR = 0x04
-    DEV_BUSY = 0x05
-    NO_RETURN = 0x10
-
+from .smart_utils import *
 
 def cmd_filter(suffixs, cmd):
-    from .smart7e_protocol import CMD
     ids = cmd
     if cmd == CMD.READ:
         ids = "r"
@@ -41,12 +30,15 @@ class DIDRemote(Register):
     _all_did = None
 
     @classmethod
-    def create_did(self,name, value=None, **kwargs):
+    def create_did(self, name, value=None,gid_type="U16",gids=None, **kwargs):
+        gid = None
+        if gids is not None:
+            gid = GID(gid_type, gids)
         did_class = DIDRemote.find_class_by_name(name)
         assert did_class != None, name
         if isinstance(value, str):
             value = hexstr2bytes(value)
-        did = did_class(value, **kwargs)
+        did = did_class(value, gid=gid, **kwargs)
         return did
 
     @classmethod
@@ -58,7 +50,6 @@ class DIDRemote(Register):
 
     @classmethod
     def get_members(cls, cmd):
-        from .smart7e_protocol import CMD
         if cls.INIT is False:
             cls.INIT = True
             cls.READ_MEMBERS = [deepcopy(meta) for meta in cls.MEMBERS if cmd_filter(meta.attr, CMD.READ)]
@@ -150,11 +141,12 @@ class DIDRemote(Register):
                 idx += 1
         return encoder.get_data()
 
-    def __init__(self, data=None, decoder=None, **kwargs):
+    def __init__(self, data=None, decoder=None, gid=None, **kwargs):
         self.units = []
         self.is_error = False
-        self.data = bytes()
+        self.data = data
         self.reply = False
+        self.gid = gid
         if 'ctx' in kwargs:
             self.ctx = kwargs["ctx"]
             self.reply = self.ctx.is_reply()
@@ -169,27 +161,22 @@ class DIDRemote(Register):
                 assert False
 
         if decoder is None:
-            self.data = data
+            if self.data is None:
+                encoder = BinaryEncoder()
+                for member in self.MEMBERS:
+                    if member.name in kwargs:
+                        member.value = kwargs[member.name]
+                        member.encode(encoder)
+                self.data = encoder.get_data()
         else:
-            self.len = decoder.decode_u8()
-            if self.len & 0x80:
-                self.is_error = True
-                self.error_code = decoder.decode_u16()
-            else:
-                self.data = decoder.decode_bytes(self.len)
-        if self.data is None:
-            encoder = BinaryEncoder()
-            for member in self.MEMBERS:
-                if member.name in kwargs:
-                    member.value = kwargs[member.name]
-                    member.encode(encoder)
-            self.data = encoder.get_data()
-
+            self.decode(decoder,**kwargs)
 
     def declare_metadata(self, metadata):
         self.units.append(metadata)
 
     def encode(self, encoder):
+        if self.gid is not None:
+            encoder.encode_object(self.gid)
         encoder.encode_u16(self.DID)
         assert self.data is not None
         data_len = len(self.data)
@@ -197,12 +184,13 @@ class DIDRemote(Register):
         if data_len > 0:
             encoder.encode_str(self.data)
 
-    def decode(self, decoder):
-        len = decoder.decode_u8()
-        if len > 0:
-            self.data = decoder.decode_bytes(len)
+    def decode(self, decoder, **kwargs):
+        self.len = decoder.decode_u8()
+        if self.len & 0x80:
+            self.is_error = True
+            self.error_code = decoder.decode_u16()
         else:
-            self.data = bytes()
+            self.data = decoder.decode_bytes(self.len)
 
     def decode_units(self):
         from .smart7e_protocol import CMD
@@ -226,7 +214,10 @@ class DIDRemote(Register):
 
     def __str__(self):
         if not self.is_error:
-            txt = "{0}-0x{1:0>4x}".format(self.__class__.__name__,self.DID)
+            txt = ""
+            if self.gid is not None:
+                txt = " " + str(self.gid)
+            txt += "{0}-0x{1:0>4x}".format(self.__class__.__name__,self.DID)
             units = self.decode_units()
             if len(units) == 1:
                 txt += " " + list(units.values())[0].value_str()
@@ -313,8 +304,74 @@ def _parse_enums(sheet):
     enum_dict[name] = name_values
 
 
+class DIDLocal(object):
+    def __init__(self, cmd, units, name):
+        self.cmd = cmd
+        self.units = units
+        self.name = name
+
+
+class LocalFBD(DataFragment):
+    CMDS = []
+
+    @staticmethod
+    def append_cmd(cmd ,units, txt):
+        LocalFBD.CMDS.append(DIDLocal(cmd, units, txt))
+
+    @staticmethod
+    def find_cmd(data):
+        for cmd in LocalFBD.CMDS:
+            if isinstance(data, str):
+                if cmd.name == data:
+                    return cmd
+            elif isinstance(data,int):
+                if cmd.cmd == data:
+                    return cmd
+            else:
+                raise ValueError
+        print("no proper cmd",data)
+        raise NotImplementedError
+
+    def __init__(self, cmd=None, data=None, decoder=None, **kwargs):
+        if decoder is None:
+            self.cmd = self.find_cmd(cmd).cmd
+            self.data = data
+            self.kwargs = kwargs
+        else:
+            self.decode(decoder)
+
+    def encode(self, encoder):
+        encoder.encode_u8(self.cmd)
+        if len(self.kwargs) == 0:
+            if isinstance(self.data, str):
+                value = hexstr2bytes(self.data)
+                encoder.encode_str(value)
+            elif self.data is not None:
+                local_cmd = self.find_cmd(self.cmd)
+                if len(local_cmd.units) == 1:
+                    unit = local_cmd.units[0]
+                    unit.value = self.data
+                    unit.encode(encoder)
+        else:
+            local_cmd = self.find_cmd(self.cmd)
+            for unit in local_cmd.units:
+                if unit.name in self.kwargs:
+                    unit.value = self.kwargs[unit.name]
+                    unit.encode(encoder)
+
+    def decode(self, decoder):
+        self.cmd = decoder.decode_u8()
+        self.data = decoder.decode_left_bytes()
+
+    def __str__(self):
+        cmd_info = self.find_cmd(self.cmd)
+        if len(cmd_info.units) == 0  or self.data is None :
+            return cmd_info.name
+        else:
+            return cmd_info.name + " " + str(self.data)
+
+
 def _parse_local_cmd(sheet):
-    from .smart7e_protocol import LocalFBD
     for row in range(1, sheet.nrows):
         values = sheet.row_values(row, 0)
         value, format, cmd_name = int(str(values[0]), base=16), values[1], values[4]
