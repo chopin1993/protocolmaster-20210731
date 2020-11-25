@@ -148,7 +148,7 @@ class Smart7EData(DataFragment):
             self.fbd = fbd_decoder.decoder_for_object(LocalFBD)
         else:
             cmd = CMD.to_enum(fbd_decoder.decode_u8())
-            if cmd == CMD.UPDATE:
+            if cmd in [CMD.UPDATE,CMD.UPDATE_PLC]:
                 self.fbd = fbd_decoder.decoder_for_object(UpdateFBD, cmd=cmd, ctx=self)
             else:
                 self.fbd = fbd_decoder.decoder_for_object(RemoteFBD, cmd=cmd, ctx=self)
