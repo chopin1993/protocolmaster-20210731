@@ -12,7 +12,9 @@ import weakref
 
 
 def get_current_time_str():
-    return time.strftime('%H:%M:%S', time.localtime(time.time()))
+    cur = time.time()
+    s, ms = int(cur),cur - int(cur)
+    return time.strftime('%H:%M:%S', time.localtime(s))+":{0:0>3}".format(int(ms*1000))
 
 
 class TestEngine(object):
