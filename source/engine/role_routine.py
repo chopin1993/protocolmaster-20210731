@@ -15,17 +15,25 @@ class RoleRoutine(Routine):
         self.src = src
         self.current_seq = None
 
-    def send_did(self, cmd, did, value=None, taid=None, **kwargs):
-        fbd = RemoteFBD.create(cmd, did, value, **kwargs)
+    def send_did(self, cmd, did, value=None, taid=None, gids=None, gid_type="U16", **kwargs):
+        gid, taid = self.get_gid(taid, gids, gid_type)
+        fbd = RemoteFBD.create(cmd, did, value,gids=gids, gid_type=gid_type, **kwargs)
         dst = self.device.get_dst_addr(taid)
         data = Smart7EData(self.src, dst, fbd)
         self.write(data)
 
-    def send_multi_dids(self, cmd, *args, taid=None, gids=None, gid_type="U16"):
-        dids = [DIDRemote.create_did(args[idx], args[idx + 1]) for idx, arg in enumerate(args) if idx % 2 == 0]
+    def get_gid(self, taid, gids, gid_type):
         gid = None
+        if taid==0xffffffff and gids is None:
+            raise ValueError("taid is boardcat but gids is None")
         if gids is not None:
             gid = GID(gid_type, gids)
+            taid = 0xffffffff
+        return gid,taid
+
+    def send_multi_dids(self, cmd, *args, taid=None, gids=None, gid_type="U16"):
+        dids = [DIDRemote.create_did(args[idx], args[idx + 1]) for idx, arg in enumerate(args) if idx % 2 == 0]
+        gid,taid = self.get_gid(taid, gids, gid_type)
         fbd = RemoteFBD(cmd, dids, gid=gid)
         dst = self.device.get_dst_addr(taid)
         data = Smart7EData(self.src, dst, fbd)
