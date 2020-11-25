@@ -10,6 +10,7 @@ import os
 import re
 from collections import OrderedDict
 from .smart_utils import *
+from tools.filetool import get_config_file
 
 def cmd_filter(suffixs, cmd):
     ids = cmd
@@ -383,10 +384,6 @@ def _parse_local_cmd(sheet):
             data_meta = DataMetaType.create(paras)
             units.append(data_meta)
         LocalFBD.append_cmd(value, units, cmd_name)
-
-
-def get_config_file(name):
-    return os.path.join(os.path.dirname(__file__), ".." , "resource", name)
 
 
 def sync_xls_dids():

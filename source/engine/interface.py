@@ -188,9 +188,20 @@ def update(file_name,  control_func=None, block_size=128):
     :param control_func:控制程序。func的参数是请求的包，返回的是要发送的包。返回None表示不予回复。
     :return 设备请求的seqs列表。
     """
+    from tools.filetool import get_config_file
+    from protocol.smart7e_protocol import CMD
+    files = []
     updater = TestEngine.instance().get_updater()
-    file_name = os.path.join(TestEngine.instance().output_dir, file_name)
-    return updater.update(file_name, block_size, control_func)
+    file_name1 = os.path.join(TestEngine.instance().output_dir, file_name)
+    files.append(file_name1)
+    if os.path.exists(file_name1):
+        return updater.update(CMD.UPDATE, file_name1, block_size, control_func)
+    file_name2 = get_config_file(os.path.join("升级文件",file_name))
+    files.append(file_name2)
+    if os.path.exists(file_name2):
+        return updater.update(CMD.UPDATE_PLC, file_name2, block_size, control_func)
+    raise FileNotFoundError(str(files))
+
 
 
 def run_all_tests(gui=False):

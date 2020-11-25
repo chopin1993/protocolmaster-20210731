@@ -4,12 +4,12 @@ import engine
 测试组说明="升级方面测试"
 
 def assert_version1():
-    engine.send_did("READ", "设备描述信息设备制造商")
-    engine.expect_did("READ", "设备描述信息设备制造商",  "ESACT-1A(v1.5)-20200805")
+    engine.send_did("READ", "设备描述信息设备制造商0003")
+    engine.expect_did("READ", "设备描述信息设备制造商0003",  "ESACT-1A(v1.5)-20200805")
 
 def assert_version2():
-    engine.send_did("READ", "设备描述信息设备制造商")
-    engine.expect_did("READ", "设备描述信息设备制造商",  "ESACT-1A(v1.5)-20200808")
+    engine.send_did("READ", "设备描述信息设备制造商0003")
+    engine.expect_did("READ", "设备描述信息设备制造商0003",  "ESACT-1A(v1.5)-20200808")
 
 def test_update1():
     """

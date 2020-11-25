@@ -128,7 +128,7 @@ class Smart7EData(DataFragment):
         return self.seq&0x80==0x80
 
     def is_update(self):
-        return self.fbd.cmd == CMD.UPDATE
+        return self.fbd.cmd in [CMD.UPDATE,CMD.UPDATE_PLC]
 
     def is_local(self):
         return self.said ==0 and self.taid == 0
