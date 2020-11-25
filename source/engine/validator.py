@@ -111,7 +111,7 @@ class DIDValidtor(Validator):
         return  compare_data(self.value, did.data)
 
     def __str__(self):
-        return "did:{did} value:{value}".format(did=self.did, value=self.value)
+        return "did:{did:0>4x} value:{value}".format(did=self.did, value=self.value)
 
 def error_msg(filed, expected, rcv):
     return f"{filed} mismatch, expect:{expected} rcv:{rcv}".format(filed=filed, expected=expected, rcv=rcv)
