@@ -14,6 +14,10 @@ class RoleRoutine(Routine):
         super(RoleRoutine, self).__init__(name, device)
         self.src = src
         self.current_seq = None
+        self.check_report = False
+
+    def report_check_enable(self, enable):
+        self.check_report = enable
 
     def send_did(self, cmd, did, value=None, taid=None, gids=None, gid_type="U16", **kwargs):
         gid, taid = self.get_gid(taid, gids, gid_type)
@@ -126,10 +130,13 @@ class RoleRoutine(Routine):
         self.wait_event(timeout)
 
     def handle_rcv_msg(self, data):
+        #检查是否可以忽略上报报文
+        if data is not None and data.fbd.cmd in [CMD.REPORT, CMD.NOTIFY] and not self.check_report:
+            log_rcv_frame("report ignone", data)
+            return
+
         if data is not None:
             log_rcv_frame(self.name, data)
-        if data is not None and data.fbd.cmd == CMD.UPDATE:
-            return
         if self.validate is not None:
             valid, msg = self.validate(data)
             if valid:

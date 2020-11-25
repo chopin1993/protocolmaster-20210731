@@ -206,3 +206,12 @@ def wait(seconds, allowed_message=True, tips=""):
     logging.info(msg)
     role = TestEngine.instance().get_default_role()
     role.wait(seconds, allowed_message)
+
+
+def report_check_enable(enable):
+    """
+    使能/禁止检测上报报文
+    :param enable: True: 检测上报报文 False:忽略上报报文。默认设备忽略上报报文
+    """
+    role = TestEngine.instance().get_default_role()
+    role.report_check_enable(enable)

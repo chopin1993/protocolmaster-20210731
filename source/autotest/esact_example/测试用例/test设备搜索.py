@@ -12,7 +12,7 @@ def clear_gw_info():
                     pw=config["设备密码"],
                     device_gid=1,
                     sid=1)
-    engine.expect_did("WRITE", "载波芯片注册信息0603", "** ** ** ** ** **")
+    engine.expect_did("WRITE", "载波芯片注册信息0603", "** ** ** ** ** **", ignore_seq=True)
     engine.wait(20)
 
 
