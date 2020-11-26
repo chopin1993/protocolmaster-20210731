@@ -258,7 +258,7 @@ def _parse_dids(sheet, enum_dict):
     for idx,(did_type, did, member_patterns, did_name) in enumerate(did_infos):
         cls = DIDRemote.find_class_by_name(did_name, refresh=True)
         if cls is None:
-            member_configs = re.findall(r"[(（]([\w.]*)[,，]([\w]*)[,，]([\w]*)[)）]", member_patterns)
+            member_configs = re.findall(r"[(（]([\w.]*)[,，]([\w]*)[,，]([_\w]*)[)）]", member_patterns)
             members = []
             for meta_type, attr, name in member_configs:
                 paras = {}
