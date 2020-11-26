@@ -313,10 +313,10 @@ def test_设备入网后不再支持设备搜索():
 
     engine.add_doc_info("2、测试设备加入网关后，设备不再响应设备搜索")
     set_gw_info()  # 设置网关PANID信息，模拟设备入网
-    engine.expect_multi_dids("REPORT",
-                             "通断操作C012", "00",
-                             "导致状态改变的控制设备AIDC01A", config["测试设备地址"], timeout=16, ack=True)
-    engine.wait(10)
+    # engine.expect_multi_dids("REPORT",
+    #                          "通断操作C012", "00",
+    #                          "导致状态改变的控制设备AIDC01A", config["测试设备地址"], timeout=16, ack=True)
+    engine.wait(20)
 
     engine.send_did("SEARCH", "APP设备搜索0008", 搜索类型="未注册节点", 搜索时间=10,
                     设备类型="31 71 10 10", taid=0xFFFFFFFF, gids=[0], gid_type="U8")
@@ -324,8 +324,8 @@ def test_设备入网后不再支持设备搜索():
 
     engine.add_doc_info("3、测试设备清除PANID后，设备再次响应设备搜索")
     clear_gw_info()  # 清除网关PANID信息，模拟出厂设备
-    engine.expect_multi_dids("REPORT",
-                             "通断操作C012", "00",
-                             "导致状态改变的控制设备AIDC01A", config["测试设备地址"], timeout=16, ack=True)
-    engine.wait(10)
+    # engine.expect_multi_dids("REPORT",
+    #                          "通断操作C012", "00",
+    #                          "导致状态改变的控制设备AIDC01A", config["测试设备地址"], timeout=16, ack=True)
+    engine.wait(20)
     device_search0008(search_time=10, search_type="31 71 10 10")

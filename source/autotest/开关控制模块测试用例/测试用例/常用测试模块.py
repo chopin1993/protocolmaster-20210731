@@ -35,7 +35,7 @@ def clear_gw_info():
                     pw=config["设备PWD000A"],
                     device_gid=config["抄控器默认源地址"],
                     sid=1)
-    engine.expect_did("WRITE", "载波芯片注册信息0603", "** ** ** ** ** **")
+    engine.expect_did("WRITE", "载波芯片注册信息0603", "** ** ** ** ** **", check_seq=False)
 
 
 def set_gw_info():
@@ -53,7 +53,7 @@ def set_gw_info():
                     pw=config["设备PWD000A"],
                     device_gid=config["抄控器默认源地址"],
                     sid=8)
-    engine.expect_did("WRITE", "载波芯片注册信息0603", "** ** ** ** ** **")
+    engine.expect_did("WRITE", "载波芯片注册信息0603", "** ** ** ** ** **", check_seq=False)
 
 
 def set_subscriber(name, aid):
@@ -66,7 +66,9 @@ def set_subscriber(name, aid):
     panel = engine.create_role(name, aid)
     panel.send_did("WRITE", "通断操作C012", "81")
     panel.expect_did("WRITE", "通断操作C012", "01")
+    engine.wait(0.5)
     panel.send_did("WRITE", "通断操作C012", "01")
     panel.expect_did("WRITE", "通断操作C012", "00")
+    engine.wait(0.5)
     return panel
 

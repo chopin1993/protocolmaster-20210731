@@ -99,7 +99,12 @@
                 "paras": {},
                 "subcase": {}
             },
-            "08_参数修改后断电验证": {
+            "08_错误类报文测试": {
+                "enable": false,
+                "paras": {},
+                "subcase": {}
+            },
+            "09_参数修改后断电验证": {
                 "enable": false,
                 "paras": {},
                 "subcase": {}
@@ -233,7 +238,7 @@
         "paras": {},
         "subcase": {
             "01_测试环境搭建": {
-                "enable": false,
+                "enable": true,
                 "paras": {},
                 "subcase": {}
             },
@@ -242,8 +247,8 @@
                 "paras": {},
                 "subcase": {}
             },
-            "03_兼容性升级测试": {
-                "enable": false,
+            "03_兼容性升级测试（已发布版本升级至提测版本）": {
+                "enable": true,
                 "paras": {},
                 "subcase": {}
             },
@@ -258,12 +263,43 @@
                 "subcase": {}
             },
             "06_升级过程中被控制": {
-                "enable": true,
+                "enable": false,
                 "paras": {},
                 "subcase": {}
             },
             "07_升级成功瞬间断电": {
-                "enable": true,
+                "enable": false,
+                "paras": {},
+                "subcase": {}
+            },
+            "08_相同版本重复升级测试": {
+                "enable": false,
+                "paras": {},
+                "subcase": {}
+            },
+            "09_载波适配层升级测试": {
+                "enable": false,
+                "paras": {},
+                "subcase": {}
+            },
+            "10_载波网络层升级测试": {
+                "enable": false,
+                "paras": {},
+                "subcase": {}
+            }
+        }
+    },
+    "06_测试完成恢复至出厂参数": {
+        "enable": false,
+        "paras": {},
+        "subcase": {
+            "测试完成恢复出厂状态": {
+                "enable": false,
+                "paras": {},
+                "subcase": {}
+            },
+            "test": {
+                "enable": false,
                 "paras": {},
                 "subcase": {}
             }
