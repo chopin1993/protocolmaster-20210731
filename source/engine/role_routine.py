@@ -14,10 +14,6 @@ class RoleRoutine(Routine):
         super(RoleRoutine, self).__init__(name, device)
         self.src = src
         self.current_seq = None
-        self.check_report = False
-
-    def report_check_enable(self, enable):
-        self.check_report = enable
 
     def send_did(self, cmd, did, value=None, taid=None, gids=None, gid_type="U16", **kwargs):
         gid, taid = self.get_gid(taid, gids, gid_type)
@@ -144,7 +140,9 @@ class RoleRoutine(Routine):
 
     def handle_rcv_msg(self, data):
         #检查是否可以忽略上报报文
-        if data is not None and data.fbd.cmd in [CMD.REPORT, CMD.NOTIFY] and not self.check_report:
+        if data is not None and \
+                data.fbd.cmd in [CMD.REPORT, CMD.NOTIFY] and \
+                not TestEngine.instance().report_enable:
             log_rcv_frame(self.name+" report ignone", data)
             return
 

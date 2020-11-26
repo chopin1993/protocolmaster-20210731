@@ -10,7 +10,7 @@ from ESSetting import ESSetting
 from tools.converter import hexstr2bytes
 from protocol.smart7e_DID import DIDRemote
 import sip
-from protocol.smart7e_DID import sync_json_dids
+from protocol.smart7e_DID import sync_xls_dids
 
 @plug_register
 class OIPPlug(ApplicationPlug, Ui_Form):
@@ -105,7 +105,7 @@ class OIPPlug(ApplicationPlug, Ui_Form):
                 self.didcomboBox.addItem(key)
 
     def sync_json_dids(self):
-        ret, msg = sync_json_dids()
+        ret, msg = sync_xls_dids()
         if ret < 0:
             self.show_error_msg("Smart7E文件格式有误", msg)
         else:

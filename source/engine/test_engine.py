@@ -41,6 +41,10 @@ class TestEngine(object):
         self.output_dir = ""
         self.config = None
         self.running = False
+        self.report_enable = False
+
+    def get_all_role(self):
+        return self.com_medias[0].roles
 
     def get_default_role(self):
         return self.com_medias[0].default_role
