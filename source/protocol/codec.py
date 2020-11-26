@@ -1,6 +1,7 @@
 import struct
 import numpy as np
 from tools.converter import bytearray2str,str2bytearray
+from copy import  deepcopy
 
 class Encoder(object):
     def __init__(self):
@@ -133,6 +134,15 @@ class BinaryDecoder(Decoder):
     def decode_left_bytes(self):
         data = self.data
         self.data = bytes()
+        return data
+
+    def peek_bytes(self, length=-1):
+        if length == 0:
+            return bytes()
+        elif length < 0:
+            return  deepcopy(self.data)
+        length = max(len(self.data), length)
+        data = deepcopy(self.data[0:length])
         return data
 
     def decode_cstr(self):

@@ -189,6 +189,7 @@ class DIDRemote(Register):
         self.len = decoder.decode_u8()
         if self.len & 0x80:
             self.is_error = True
+            self.data = decoder.peek_bytes(self.len & 0x80)
             self.error_code = decoder.decode_u16()
         else:
             self.data = decoder.decode_bytes(self.len)

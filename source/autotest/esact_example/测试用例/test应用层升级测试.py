@@ -41,7 +41,7 @@ def test_break_continue():
             return seq
         else:
             return None
-    engine.update("ESACT-1S1A(v1.5)-20200805.bin",controller_fun)
+    engine.update("ESACT-1S1A(v1.5)-20200805.bin",controller_fun, )
     engine.wait(3)
 
     # 读版本号
