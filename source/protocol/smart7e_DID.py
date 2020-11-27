@@ -247,9 +247,28 @@ def create_remote_class(name, did, member,type_name=""):
     cls.TYPE_NAME = type_name
     return cls
 
-
-def _parse_dids(sheet, enum_dict):
+def _create_did_class(did_type, did, member_patterns, did_name):
     from .smart7e_DID_user import get_user_fun
+    member_configs = re.findall(r"[(（]([\w.]*)[,，]([\w]*)[,，]([_\w]*)[)）]", member_patterns)
+    members = []
+    for meta_type, attr, name in member_configs:
+        paras = {}
+        paras[name] = meta_type
+        paras['attr'] = attr
+        data_meta = DataMetaType.create(paras)
+        if "enum" in meta_type:
+            assert name in enum_dict, name
+            data_meta.name_dict = enum_dict[name]
+        elif "vs" == meta_type:
+            encoder_func, decode_func, to_value_func, value_str_func = get_user_fun(name)
+            data_meta.encode_func = encoder_func
+            data_meta.decoder_func = decode_func
+            data_meta.to_value_func = to_value_func
+            data_meta.value_str_func = value_str_func
+        members.append(data_meta)
+    create_remote_class(did_name, int(did, base=16), members, did_type)
+
+def _parse_dids(sheet):
     did_infos = []
     for row in range(1, sheet.nrows):
         values = sheet.row_values(row, 0, )
@@ -257,28 +276,13 @@ def _parse_dids(sheet, enum_dict):
         did_infos.append((type, did, member_patterns, name))
     logging.info("did rows %d, rows %d", sheet.nrows-1, len(did_infos))
     for idx,(did_type, did, member_patterns, did_name) in enumerate(did_infos):
-        cls = DIDRemote.find_class_by_name(did_name, refresh=True)
-        if cls is None:
-            member_configs = re.findall(r"[(（]([\w.]*)[,，]([\w]*)[,，]([_\w]*)[)）]", member_patterns)
-            members = []
-            for meta_type, attr, name in member_configs:
-                paras = {}
-                paras[name] = meta_type
-                paras['attr'] = attr
-                data_meta = DataMetaType.create(paras)
-                if "enum" in meta_type:
-                    assert name in enum_dict, name
-                    data_meta.name_dict = enum_dict[name]
-                elif "vs" == meta_type:
-                    encoder_func, decode_func, to_value_func, value_str_func = get_user_fun(name)
-                    data_meta.encode_func = encoder_func
-                    data_meta.decoder_func = decode_func
-                    data_meta.to_value_func = to_value_func
-                    data_meta.value_str_func = value_str_func
-                members.append(data_meta)
-            create_remote_class(did_name, int(did, base=16), members, did_type)
-        else:
-            logging.warning("repeat did:%d name:%s", did, did_name)
+        for i in range(10):
+           if DIDRemote.find_class_by_name(did_name, refresh=True) is None:
+                _create_did_class(did_type, did, member_patterns, did_name)
+                if i >=1:
+                    logging.warning("%s create %d time",did_name, i+1)
+           else:
+               continue
     did_dict = DIDRemote.get_did_dict(True)
     all_load =True
     for idx, (did_type, did, member_patterns, did_name) in enumerate(did_infos):
@@ -395,7 +399,7 @@ def sync_xls_dids():
     workbook = xlrd.open_workbook(config_file)
     enum_dict = {}
     _parse_enums(workbook.sheet_by_name("enums"))
-    _parse_dids(workbook.sheet_by_name("dids"), enum_dict)
+    _parse_dids(workbook.sheet_by_name("dids"))
     _parse_local_cmd(workbook.sheet_by_name("localcmd"))
     logging.info("load  %d dids ok!!!!!",len(DIDRemote.get_did_dict()))
 

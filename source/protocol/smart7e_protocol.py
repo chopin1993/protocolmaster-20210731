@@ -104,7 +104,7 @@ class RemoteFBD(DataFragment):
     def __str__(self):
        text = "{}[{}]".format(self.cmd.name, u8tohexstr(self.cmd.value))
        for did in self.didunits:
-           text += "\n" + str(did)
+           text += "\n    " + str(did)
        return text
 
 

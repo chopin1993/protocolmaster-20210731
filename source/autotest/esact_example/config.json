@@ -96,26 +96,26 @@
         }
     },
     "广播测试": {
-        "enable": true,
+        "enable": false,
         "paras": {},
         "subcase": {
             "单个广播测试": {
-                "enable": true,
+                "enable": false,
                 "paras": {},
                 "subcase": {}
             },
             "多个广播测试": {
-                "enable": true,
+                "enable": false,
                 "paras": {},
                 "subcase": {}
             },
             "崩溃测试1": {
-                "enable": true,
+                "enable": false,
                 "paras": {},
                 "subcase": {}
             },
             "崩溃测试-single": {
-                "enable": true,
+                "enable": false,
                 "paras": {},
                 "subcase": {}
             }
@@ -209,7 +209,7 @@
                 "paras": {},
                 "subcase": {}
             },
-            "手动测试失败": {
+            "失败测试-手动期望失败": {
                 "enable": true,
                 "paras": {},
                 "subcase": {}
