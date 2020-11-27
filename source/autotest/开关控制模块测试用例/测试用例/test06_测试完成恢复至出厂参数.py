@@ -59,10 +59,3 @@ def test_测试完成恢复出厂参数():
     engine.expect_did("READ", "主动上报使能标志D005", "00 03")
     engine.send_did("READ", "设备运行状态信息统计E019", "08")
     engine.expect_did("READ", "设备运行状态信息统计E019", "08 00 00 00 00")
-
-#
-# def test_test():
-#     """
-#     test
-#     """
-#     pass

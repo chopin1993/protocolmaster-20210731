@@ -165,15 +165,13 @@ def test_上电上报():
                     pw=config["设备PWD000A"],
                     device_gid=config["抄控器默认源地址"],
                     sid=120)
-    engine.expect_did("WRITE", "载波芯片注册信息0603", "** ** ** ** ** **")
+    engine.expect_did("WRITE", "载波芯片注册信息0603", "** ** ** ** ** **", check_seq=False)
     engine.wait(14.5, allowed_message=False)
     engine.expect_multi_dids("REPORT",
                              "通断操作C012", "**",
                              "导致状态改变的控制设备AIDC01A", config["测试设备地址"], timeout=1)
-    # 前端工装断电重启，模拟上电上报
-    engine.send_did("WRITE", "通断操作C012", "01", taid=778856)
-    engine.wait(seconds=5)
-    engine.send_did("WRITE", "通断操作C012", "81", taid=778856)
+    # 前端工装断电重启，模拟上电上报,并且重新上电后后续报文立即计时
+    power_off_test(time=0)
     # sid = 120时，上电上报时间 = 60+sid% 100 =80s
     engine.wait(79, allowed_message=False)
     engine.expect_multi_dids("REPORT",
@@ -187,10 +185,8 @@ def test_上电上报():
     engine.expect_multi_dids("REPORT",
                              "通断操作C012", "**",
                              "导致状态改变的控制设备AIDC01A", config["测试设备地址"], timeout=1)
-    # 前端工装断电重启，模拟上电上报
-    engine.send_did("WRITE", "通断操作C012", "01", taid=778856)
-    engine.wait(seconds=5)
-    engine.send_did("WRITE", "通断操作C012", "81", taid=778856)
+    # 前端工装断电重启，模拟上电上报,并且重新上电后后续报文立即计时
+    power_off_test(time=0)
     # sid = 8时，上电上报时间 = 60+sid% 100 =68s
     engine.wait(67, allowed_message=False)
     engine.expect_multi_dids("REPORT",
@@ -199,10 +195,8 @@ def test_上电上报():
 
     # 测试上报重发机制，收不到网关应答，进行10s、100s重试，重试结束则本次添加上报结束
     engine.add_doc_info("3、测试上报重发机制，收不到网关应答，进行10s、100s重试，重试结束则本次添加上报结束")
-    # 前端工装断电重启，模拟上电上报
-    engine.send_did("WRITE", "通断操作C012", "01", taid=778856)
-    engine.wait(seconds=5)
-    engine.send_did("WRITE", "通断操作C012", "81", taid=778856)
+    # 前端工装断电重启，模拟上电上报,并且重新上电后后续报文立即计时
+    power_off_test(time=0)
     # sid = 8时，上电上报时间 = 60+sid% 100 =68s
     engine.wait(67, allowed_message=False)
     engine.expect_multi_dids("REPORT",
@@ -220,10 +214,8 @@ def test_上电上报():
 
     # 如果10s重试上报过程中，收到网关应答，不再进行100重试上报
     engine.add_doc_info("4、如果10s重试上报过程中，收到网关应答，不再进行100重试上报")
-    # 前端工装断电重启，模拟上电上报
-    engine.send_did("WRITE", "通断操作C012", "01", taid=778856)
-    engine.wait(seconds=5)
-    engine.send_did("WRITE", "通断操作C012", "81", taid=778856)
+    # 前端工装断电重启，模拟上电上报,并且重新上电后后续报文立即计时
+    power_off_test(time=0)
     # sid = 8时，上电上报时间 = 60+sid% 100 =68s
     engine.wait(67, allowed_message=False)
     engine.expect_multi_dids("REPORT",
@@ -238,9 +230,7 @@ def test_上电上报():
     engine.add_doc_info("5、测试上电上报前的过程中，是否可以正常被控制通断"
                         "（控制正常，被控制通断后，新的上报取代上电上报，上电上报中止）")
     # 前端工装断电重启，模拟上电上报
-    engine.send_did("WRITE", "通断操作C012", "01", taid=778856)
-    engine.wait(seconds=5)
-    engine.send_did("WRITE", "通断操作C012", "81", taid=778856)
+    power_off_test()
     # 上电上报前可以被正常控制通断
     engine.send_did("WRITE", "通断操作C012", "81")
     engine.expect_did("WRITE", "通断操作C012", "01")
@@ -259,10 +249,8 @@ def test_上电上报():
 
     engine.add_doc_info("6、测试上电上报重试的过程中，是否可以正常被控制通断"
                         "（控制正常，被控制通断后，新的上报取代上电上报，上电上报中止）")
-    # 前端工装断电重启，模拟上电上报
-    engine.send_did("WRITE", "通断操作C012", "01", taid=778856)
-    engine.wait(seconds=5)
-    engine.send_did("WRITE", "通断操作C012", "81", taid=778856)
+    # 前端工装断电重启，模拟上电上报,并且重新上电后后续报文立即计时
+    power_off_test(time=0)
     # sid = 8时，上电上报时间 = 60+sid% 100 =68s
     engine.wait(67, allowed_message=False)
     engine.expect_multi_dids("REPORT",
@@ -288,10 +276,8 @@ def test_上电上报():
     engine.send_did("WRITE", "通断操作C012", "81")
     engine.expect_did("WRITE", "通断操作C012", "01")
     engine.wait(1)
-    # 前端工装断电重启，模拟上电上报
-    engine.send_did("WRITE", "通断操作C012", "01", taid=778856)
-    engine.wait(seconds=5)
-    engine.send_did("WRITE", "通断操作C012", "81", taid=778856)
+    # 前端工装断电重启，模拟上电上报,并且重新上电后后续报文立即计时
+    power_off_test(time=0)
     # sid = 8时，上电上报时间 = 60+sid% 100 =68s
     engine.wait(67, allowed_message=False)
     engine.expect_multi_dids("REPORT",
@@ -565,7 +551,8 @@ def test_默认参数同时上报设备和网关():
 
     # 3、手机客户端情景模式控制（网关控制）——被控设备状态按组地址顺序上报，状态同步先后上报订阅者，最后上报网关
     engine.send_did("WRITE", "通断操作C012", "81", taid=0xFFFFFFFF, gids=[7, 8, 9, 10, 11], gid_type="BIT1")
-    panel01.expect_did("NOTIFY", "通断操作C012", "01", timeout=2)
+    # 情景模式控制后，第一次上报时间为1.3+0.5*2=2.3s，允许1s误差存在
+    panel01.expect_did("NOTIFY", "通断操作C012", "01", timeout=3.3)
     panel02.expect_did("NOTIFY", "通断操作C012", "01", timeout=2)
     panel03.expect_did("NOTIFY", "通断操作C012", "01", timeout=2)
     engine.expect_multi_dids("REPORT",
@@ -574,7 +561,8 @@ def test_默认参数同时上报设备和网关():
     engine.wait(10, allowed_message=False)
 
     engine.send_did("WRITE", "通断操作C012", "01", taid=0xFFFFFFFF, gids=[7, 8, 9, 10, 11], gid_type="BIT1")
-    panel01.expect_did("NOTIFY", "通断操作C012", "00", timeout=2)
+    # 情景模式控制后，第一次上报时间为1.3+0.5*2=2.3s，允许1s误差存在
+    panel01.expect_did("NOTIFY", "通断操作C012", "00", timeout=3.3)
     panel02.expect_did("NOTIFY", "通断操作C012", "00", timeout=2)
     panel03.expect_did("NOTIFY", "通断操作C012", "00", timeout=2)
     engine.expect_multi_dids("REPORT",
@@ -607,14 +595,16 @@ def test_默认参数同时上报设备和网关():
 
     # 5、订阅者01情景模式控制——被控设备状态按组地址顺序上报，状态同步先后上报订阅者01、订阅者02、订阅者03，最后上报网关
     panel01.send_did("WRITE", "通断操作C012", "81", taid=0xFFFFFFFF, gids=[7, 8, 9, 10, 11], gid_type="BIT1")
-    panel01.expect_did("NOTIFY", "通断操作C012", "01", timeout=2)
+    # 情景模式控制后，第一次上报时间为1.3+0.5*2=2.3s，允许1s误差存在
+    panel01.expect_did("NOTIFY", "通断操作C012", "01", timeout=3.3)
     panel02.expect_did("NOTIFY", "通断操作C012", "01", timeout=2)
     panel03.expect_did("NOTIFY", "通断操作C012", "01", timeout=2)
     engine.expect_multi_dids("REPORT", "通断操作C012", "01", "导致状态改变的控制设备AIDC01A", panel01.src, timeout=2, ack=True)
     engine.wait(10, allowed_message=False)
 
     panel01.send_did("WRITE", "通断操作C012", "01", taid=0xFFFFFFFF, gids=[7, 8, 9, 10, 11], gid_type="BIT1")
-    panel01.expect_did("NOTIFY", "通断操作C012", "00", timeout=2)
+    # 情景模式控制后，第一次上报时间为1.3+0.5*2=2.3s，允许1s误差存在
+    panel01.expect_did("NOTIFY", "通断操作C012", "00", timeout=3.3)
     panel02.expect_did("NOTIFY", "通断操作C012", "00", timeout=2)
     panel03.expect_did("NOTIFY", "通断操作C012", "00", timeout=2)
     engine.expect_multi_dids("REPORT", "通断操作C012", "00", "导致状态改变的控制设备AIDC01A", panel01.src, timeout=2, ack=True)
@@ -787,13 +777,15 @@ def test_只上报设备():
     engine.wait(10, allowed_message=False)
     # 3、手机客户端情景模式控制（网关控制）——被控设备状态按组地址顺序上报，状态同步先后上报订阅者，不上报网关
     engine.send_did("WRITE", "通断操作C012", "81", taid=0xFFFFFFFF, gids=[7, 8, 9, 10, 11], gid_type="BIT1")
-    panel01.expect_did("NOTIFY", "通断操作C012", "01", timeout=2)
+    # 情景模式控制后，第一次上报时间为1.3+0.5*2=2.3s，允许1s误差存在
+    panel01.expect_did("NOTIFY", "通断操作C012", "01", timeout=3.3)
     panel02.expect_did("NOTIFY", "通断操作C012", "01", timeout=2)
     panel03.expect_did("NOTIFY", "通断操作C012", "01", timeout=2)
     engine.wait(10, allowed_message=False)
 
     engine.send_did("WRITE", "通断操作C012", "01", taid=0xFFFFFFFF, gids=[7, 8, 9, 10, 11], gid_type="BIT1")
-    panel01.expect_did("NOTIFY", "通断操作C012", "00", timeout=2)
+    # 情景模式控制后，第一次上报时间为1.3+0.5*2=2.3s，允许1s误差存在
+    panel01.expect_did("NOTIFY", "通断操作C012", "00", timeout=3.3)
     panel02.expect_did("NOTIFY", "通断操作C012", "00", timeout=2)
     panel03.expect_did("NOTIFY", "通断操作C012", "00", timeout=2)
     engine.wait(10, allowed_message=False)
@@ -814,13 +806,15 @@ def test_只上报设备():
     engine.wait(10, allowed_message=False)
     # 5、订阅者01情景模式控制——被控设备状态按组地址顺序上报，状态同步先后上报订阅者01、订阅者02、订阅者03，不上报网关
     panel01.send_did("WRITE", "通断操作C012", "81", taid=0xFFFFFFFF, gids=[7, 8, 9, 10, 11], gid_type="BIT1")
-    panel01.expect_did("NOTIFY", "通断操作C012", "01", timeout=2)
+    # 情景模式控制后，第一次上报时间为1.3+0.5*2=2.3s，允许1s误差存在
+    panel01.expect_did("NOTIFY", "通断操作C012", "01", timeout=3.3)
     panel02.expect_did("NOTIFY", "通断操作C012", "01", timeout=2)
     panel03.expect_did("NOTIFY", "通断操作C012", "01", timeout=2)
     engine.wait(10, allowed_message=False)
 
     panel01.send_did("WRITE", "通断操作C012", "01", taid=0xFFFFFFFF, gids=[7, 8, 9, 10, 11], gid_type="BIT1")
-    panel01.expect_did("NOTIFY", "通断操作C012", "00", timeout=2)
+    # 情景模式控制后，第一次上报时间为1.3+0.5*2=2.3s，允许1s误差存在
+    panel01.expect_did("NOTIFY", "通断操作C012", "00", timeout=3.3)
     panel02.expect_did("NOTIFY", "通断操作C012", "00", timeout=2)
     panel03.expect_did("NOTIFY", "通断操作C012", "00", timeout=2)
     engine.wait(10, allowed_message=False)
@@ -1005,7 +999,8 @@ def test_广播报文控制测试():
 
     engine.add_doc_info("1、组地址按位组合")
     engine.send_did("WRITE", "通断操作C012", "81", taid=0xFFFFFFFF, gids=[7, 8, 9, 10, 11], gid_type="BIT1")
-    panel01.expect_did("NOTIFY", "通断操作C012", "01", timeout=2)
+    # 情景模式控制后，第一次上报时间为1.3+0.5*2=2.3s，允许1s误差存在
+    panel01.expect_did("NOTIFY", "通断操作C012", "01", timeout=3.3)
     panel02.expect_did("NOTIFY", "通断操作C012", "01", timeout=2)
     panel03.expect_did("NOTIFY", "通断操作C012", "01", timeout=2)
     engine.expect_multi_dids("REPORT",
@@ -1014,7 +1009,8 @@ def test_广播报文控制测试():
     engine.wait(10, allowed_message=False)
 
     engine.send_did("WRITE", "通断操作C012", "01", taid=0xFFFFFFFF, gids=[7, 8, 9, 10, 11], gid_type="BIT1")
-    panel01.expect_did("NOTIFY", "通断操作C012", "00", timeout=2)
+    # 情景模式控制后，第一次上报时间为1.3+0.5*2=2.3s，允许1s误差存在
+    panel01.expect_did("NOTIFY", "通断操作C012", "00", timeout=3.3)
     panel02.expect_did("NOTIFY", "通断操作C012", "00", timeout=2)
     panel03.expect_did("NOTIFY", "通断操作C012", "00", timeout=2)
     engine.expect_multi_dids("REPORT",
@@ -1024,7 +1020,8 @@ def test_广播报文控制测试():
 
     engine.add_doc_info("2、组地址按单字节组合")
     engine.send_did("WRITE", "通断操作C012", "81", taid=0xFFFFFFFF, gids=[7, 8, 9, 10, 11], gid_type="U8")
-    panel01.expect_did("NOTIFY", "通断操作C012", "01", timeout=2)
+    # 情景模式控制后，第一次上报时间为1.3+0.5*2=2.3s，允许1s误差存在
+    panel01.expect_did("NOTIFY", "通断操作C012", "01", timeout=3.3)
     panel02.expect_did("NOTIFY", "通断操作C012", "01", timeout=2)
     panel03.expect_did("NOTIFY", "通断操作C012", "01", timeout=2)
     engine.expect_multi_dids("REPORT",
@@ -1033,7 +1030,8 @@ def test_广播报文控制测试():
     engine.wait(10, allowed_message=False)
 
     engine.send_did("WRITE", "通断操作C012", "01", taid=0xFFFFFFFF, gids=[7, 8, 9, 10, 11], gid_type="U8")
-    panel01.expect_did("NOTIFY", "通断操作C012", "00", timeout=2)
+    # 情景模式控制后，第一次上报时间为1.3+0.5*2=2.3s，允许1s误差存在
+    panel01.expect_did("NOTIFY", "通断操作C012", "00", timeout=3.3)
     panel02.expect_did("NOTIFY", "通断操作C012", "00", timeout=2)
     panel03.expect_did("NOTIFY", "通断操作C012", "00", timeout=2)
     engine.expect_multi_dids("REPORT",
@@ -1043,7 +1041,8 @@ def test_广播报文控制测试():
 
     engine.add_doc_info("3、组地址按双字节组合")
     engine.send_did("WRITE", "通断操作C012", "81", taid=0xFFFFFFFF, gids=[7, 8, 9, 10, 11], gid_type="U16")
-    panel01.expect_did("NOTIFY", "通断操作C012", "01", timeout=2)
+    # 情景模式控制后，第一次上报时间为1.3+0.5*2=2.3s，允许1s误差存在
+    panel01.expect_did("NOTIFY", "通断操作C012", "01", timeout=3.3)
     panel02.expect_did("NOTIFY", "通断操作C012", "01", timeout=2)
     panel03.expect_did("NOTIFY", "通断操作C012", "01", timeout=2)
     engine.expect_multi_dids("REPORT",
@@ -1052,7 +1051,8 @@ def test_广播报文控制测试():
     engine.wait(10, allowed_message=False)
 
     engine.send_did("WRITE", "通断操作C012", "01", taid=0xFFFFFFFF, gids=[7, 8, 9, 10, 11], gid_type="U16")
-    panel01.expect_did("NOTIFY", "通断操作C012", "00", timeout=2)
+    # 情景模式控制后，第一次上报时间为1.3+0.5*2=2.3s，允许1s误差存在
+    panel01.expect_did("NOTIFY", "通断操作C012", "00", timeout=3.3)
     panel02.expect_did("NOTIFY", "通断操作C012", "00", timeout=2)
     panel03.expect_did("NOTIFY", "通断操作C012", "00", timeout=2)
     engine.expect_multi_dids("REPORT",

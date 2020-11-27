@@ -39,7 +39,7 @@ def test_通断操作C012():
     2、打开通道，然后查询当前通断状态
     3、关闭通道，然后查询当前通断状态
     """
-    engine.send_did("READ", "通断操作C012")
+    engine.send_did("READ", "通断操作C012","")
     engine.expect_did("READ", "通断操作C012", "00")
 
     engine.send_did("WRITE", "通断操作C012", "81")

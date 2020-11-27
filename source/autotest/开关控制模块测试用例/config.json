@@ -61,51 +61,51 @@
         }
     },
     "02_功能类协议测试": {
-        "enable": false,
+        "enable": true,
         "paras": {},
         "subcase": {
             "01_默认出厂参数测试": {
-                "enable": false,
+                "enable": true,
                 "paras": {},
                 "subcase": {}
             },
             "02_通断操作C012": {
-                "enable": false,
+                "enable": true,
                 "paras": {},
                 "subcase": {}
             },
             "03_继电器翻转C018": {
-                "enable": false,
+                "enable": true,
                 "paras": {},
                 "subcase": {}
             },
             "04_继电器上电状态C060": {
-                "enable": false,
+                "enable": true,
                 "paras": {},
                 "subcase": {}
             },
             "05_继电器过零点动作延迟时间C020": {
-                "enable": false,
+                "enable": true,
                 "paras": {},
                 "subcase": {}
             },
             "06_主动上报使能标志D005": {
-                "enable": false,
+                "enable": true,
                 "paras": {},
                 "subcase": {}
             },
             "07_设备运行状态信息统计E019": {
-                "enable": false,
+                "enable": true,
                 "paras": {},
                 "subcase": {}
             },
             "08_错误类报文测试": {
-                "enable": false,
+                "enable": true,
                 "paras": {},
                 "subcase": {}
             },
             "09_参数修改后断电验证": {
-                "enable": false,
+                "enable": true,
                 "paras": {},
                 "subcase": {}
             }
@@ -234,11 +234,11 @@
         }
     },
     "05_远程升级测试": {
-        "enable": true,
+        "enable": false,
         "paras": {},
         "subcase": {
             "01_测试环境搭建": {
-                "enable": true,
+                "enable": false,
                 "paras": {},
                 "subcase": {}
             },
@@ -248,7 +248,7 @@
                 "subcase": {}
             },
             "03_兼容性升级测试（已发布版本升级至提测版本）": {
-                "enable": true,
+                "enable": false,
                 "paras": {},
                 "subcase": {}
             },
@@ -290,15 +290,26 @@
         }
     },
     "06_测试完成恢复至出厂参数": {
-        "enable": false,
+        "enable": true,
         "paras": {},
         "subcase": {
             "测试完成恢复出厂状态": {
+                "enable": true,
+                "paras": {},
+                "subcase": {}
+            }
+        }
+    },
+    "_test": {
+        "enable": false,
+        "paras": {},
+        "subcase": {
+            "配置本地接口": {
                 "enable": false,
                 "paras": {},
                 "subcase": {}
             },
-            "test": {
+            "单DID通信": {
                 "enable": false,
                 "paras": {},
                 "subcase": {}

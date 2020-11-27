@@ -5,7 +5,7 @@ import engine
 
 # from .常用测试模块 import *
 
-def power_off_test():
+def power_off_test(time=15):
     """
     前置工装通断电
     抄控器通过报文控制大功率计量遥控开关通断，实现给测试设备的通断电
@@ -16,7 +16,8 @@ def power_off_test():
     engine.wait(seconds=5)  # 充分断电
     engine.send_did("WRITE", "通断操作C012", "81", taid=778856)
     engine.expect_did("WRITE", "通断操作C012", "01", said=778856)
-    engine.wait(seconds=15)  # 普通载波设备上电初始化时间约10s，预留足够时间供载波初始化
+    if time != 0:
+         engine.wait(seconds=time)  # 普通载波设备上电初始化时间约10s，预留足够时间供载波初始化
 
 
 def clear_gw_info():
