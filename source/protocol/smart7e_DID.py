@@ -11,6 +11,7 @@ import re
 from collections import OrderedDict
 from .smart_utils import *
 from tools.filetool import get_config_file
+from tools.converter import *
 
 def cmd_filter(suffixs, cmd):
     ids = cmd
@@ -215,11 +216,13 @@ class DIDRemote(Register):
         return outputs
 
     def __str__(self):
+        txt = ""
+        if self.gid is not None:
+            txt = " " + str(self.gid)
+        txt += "did[{}]:{} data[{}]:".format(u16tohexstr(self.DID),
+                                             self.__class__.__name__,
+                                             str2hexstr(self.data))
         if not self.is_error:
-            txt = ""
-            if self.gid is not None:
-                txt = " " + str(self.gid)
-            txt += "{0}-0x{1:0>4x}".format(self.__class__.__name__,self.DID)
             units = self.decode_units()
             if len(units) == 1:
                 txt += " " + list(units.values())[0].value_str()
@@ -232,11 +235,9 @@ class DIDRemote(Register):
                 txt += " no data"
         else:
             name = ErrorCode(value=self.error_code).name
-            txt = "{0}-0x{1:0>4x} error:{2} {3}".format(self.__class__.__name__,
-                                                        self.DID,
-                                                        self.error_code,
-                                                        name)
+            txt += "error:{}".format(name)
         return txt
+
 
 def create_remote_class(name, did, member,type_name=""):
     from types import new_class

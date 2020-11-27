@@ -15,6 +15,17 @@
             }
         }
     },
+    "_适配层和网络层升级": {
+        "enable": false,
+        "paras": {},
+        "subcase": {
+            "升级适配层": {
+                "enable": false,
+                "paras": {},
+                "subcase": {}
+            }
+        }
+    },
     "上断电辅助测试": {
         "enable": true,
         "paras": {},
@@ -26,37 +37,6 @@
             },
             "multi said taid": {
                 "enable": true,
-                "paras": {},
-                "subcase": {}
-            }
-        }
-    },
-    "升级测试": {
-        "enable": false,
-        "paras": {},
-        "subcase": {
-            "升级ESACT-1S1A(v1.5)-20200805": {
-                "enable": false,
-                "paras": {},
-                "subcase": {}
-            },
-            "升级ESACT-1S1A(v1.5)-20200808": {
-                "enable": false,
-                "paras": {},
-                "subcase": {}
-            },
-            "断点续传": {
-                "enable": false,
-                "paras": {},
-                "subcase": {}
-            },
-            "断电重传": {
-                "enable": false,
-                "paras": {},
-                "subcase": {}
-            },
-            "升级+控制": {
-                "enable": false,
                 "paras": {},
                 "subcase": {}
             }
@@ -92,6 +72,11 @@
                 "paras": {},
                 "subcase": {}
             },
+            "错误报文测试": {
+                "enable": true,
+                "paras": {},
+                "subcase": {}
+            },
             "原始报文读取sn2**": {
                 "enable": true,
                 "paras": {},
@@ -121,6 +106,47 @@
             },
             "多个广播测试": {
                 "enable": true,
+                "paras": {},
+                "subcase": {}
+            },
+            "崩溃测试1": {
+                "enable": true,
+                "paras": {},
+                "subcase": {}
+            },
+            "崩溃测试-single": {
+                "enable": true,
+                "paras": {},
+                "subcase": {}
+            }
+        }
+    },
+    "应用层升级测试": {
+        "enable": false,
+        "paras": {},
+        "subcase": {
+            "升级ESACT-1S1A(v1.5)-20200805": {
+                "enable": false,
+                "paras": {},
+                "subcase": {}
+            },
+            "升级ESACT-1S1A(v1.5)-20200808": {
+                "enable": false,
+                "paras": {},
+                "subcase": {}
+            },
+            "断点续传": {
+                "enable": false,
+                "paras": {},
+                "subcase": {}
+            },
+            "断电重传": {
+                "enable": false,
+                "paras": {},
+                "subcase": {}
+            },
+            "升级+控制": {
+                "enable": false,
                 "paras": {},
                 "subcase": {}
             }
@@ -173,12 +199,12 @@
         "enable": true,
         "paras": {},
         "subcase": {
-            "等待时间测试": {
+            "等待时间测试，应该失败": {
                 "enable": true,
                 "paras": {},
                 "subcase": {}
             },
-            "等待时间测试2": {
+            "等待时间测试": {
                 "enable": true,
                 "paras": {},
                 "subcase": {}

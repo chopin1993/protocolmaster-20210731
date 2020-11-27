@@ -1,6 +1,6 @@
 from register import Register
 from protocol.smart7e_protocol import *
-
+from tools.converter import u16tohexstr
 class Validator(Register):
     def __init__(self):
         self.ack = False
@@ -114,7 +114,7 @@ class DIDValidtor(Validator):
         return  compare_data(self.value, did.data)
 
     def __str__(self):
-        return "did:{did:0>4x} value:{value}".format(did=self.did, value=self.value)
+        return "did[{did}] value:{value}".format(did=u16tohexstr(self.did) , value=self.value)
 
 def error_msg(filed, expected, rcv):
     return f"{filed} mismatch, expect:{expected} rcv:{rcv}".format(filed=filed, expected=expected, rcv=rcv)

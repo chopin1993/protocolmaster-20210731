@@ -42,6 +42,7 @@ class TestEngine(object):
         self.config = None
         self.running = False
         self.report_enable = False
+        self.fail_idx = 0
 
     def get_all_role(self):
         return self.com_medias[0].roles
@@ -86,7 +87,9 @@ class TestEngine(object):
         self.current_test = None
 
     def add_fail_test(self, role, tag, msg):
-        self.current_test.add_fail_test(role, tag, msg, get_current_time_str())
+        self.fail_idx += 1
+        fail_idx = "erroridx-{:0>6d}".format(self.fail_idx)
+        self.current_test.add_fail_test(role, tag, msg, fail_idx)
         logging.info("case %s fail, %s %s ", self.current_test.name, tag, msg)
 
     def add_normal_operation(self,role, tag, msg):

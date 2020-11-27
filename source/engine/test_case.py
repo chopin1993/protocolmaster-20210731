@@ -80,10 +80,19 @@ class TestCaseInfo(object):
     def get_fail_msg(self):
         return self.errors[0][1]
 
+    def get_fail_idx(self):
+        txt = ""
+        for error in self.errors:
+            if txt != "":
+                txt = " "
+            txt += error[-1]
+        return txt
+
     def write_fail_table(self, table):
         row_cells = table.add_row().cells
         row_cells[0].text = self.name
         row_cells[1].text = self.get_fail_msg()
+        row_cells[2].text = self.get_fail_idx()
 
     def write_summary_table(self, table):
         row_cells = table.add_row().cells

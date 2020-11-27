@@ -1,7 +1,7 @@
 from tools.esenum import EsEnum
 from .data_fragment import DataFragment
 from .codec import BinaryEncoder,BinaryDecoder
-
+from tools.converter import str2hexstr
 class CMD(EsEnum):
     NOTIFY = 0x0 #不可靠上报
     REPORT = 0x01 #可靠上报
@@ -83,8 +83,6 @@ class GID(DataFragment):
             return False
 
     def __str__(self):
-        str1 = "gid: type-"
-        str1 += str(self.type)
-        str1 += str(self.gids)
-        str1 += " "
-        return str1
+        data =  BinaryEncoder.object2data(self)
+        txt = "gid[{}]:{} {} ".format(str2hexstr(data), str(self.type), str(self.gids))
+        return txt

@@ -38,7 +38,7 @@ def send_did(cmd, did, value=None, taid=None, gids=None, gid_type="U16", **kwarg
     :param cmd:支持“READ”,"WRITE","REPORT","NOTIFY"(不可靠上报)
     :param did:可以使用数字，也可以使用《数据表示分类表格》的中文名称
     :param value:可是数字,也可以是类似于“00 34 78”的字符串
-    :param dst:目标地址
+    :param taid:目标地址
     :param gids:组地址列表，可以是组地址列表。
     :param gid_type: 组地址编码类型，支持"BIT1","U8","U16"
     :param kwargs:如果数据标识中有多个数据单元，可以使用key,value的方式赋值
@@ -80,7 +80,7 @@ def send_multi_dids(cmd, *args, taid=None):
     """
     :param cmd:支持“READ”,"WRITE","REPORT","NOTIFY"
     :param args:did1,value1,did2,value2...did和value交替排列
-    :param dst:目的地址，默认是被测设备
+    :param taid:目的地址，默认是被测设备
     """
     role = TestEngine.instance().get_default_role()
     assert len(args)%2 == 0
@@ -260,6 +260,7 @@ def wait(seconds, allowed_message=True, tips=""):
     :param tips:等待显示的提示信息
     :return:
     """
+    assert seconds > 0, "等待时间必须大于0"
     msg ="we will wait {0}s {1}".format(seconds, tips)
     logging.info(msg)
     role = TestEngine.instance().get_default_role()

@@ -36,10 +36,11 @@ class DocxEngine(object):
         txt = "总测试用例:{0} 通过:{1} 失败:{2}".format(total, passed, fails_cnt)
         self.document.add_paragraph(txt, style="important")
         self.document.add_heading("失败用例汇总", 2)
-        table = self.document.add_table(rows=1, cols=2,style="Table Grid")
+        table = self.document.add_table(rows=1, cols=3,style="Table Grid")
         hdr_cells = table.rows[0].cells
         hdr_cells[0].text = '失败用例'
         hdr_cells[1].text = '失败原因'
+        hdr_cells[2].text = '失败id'
         if fails:
             for case in fails:
                 case.write_fail_table(table)
@@ -99,7 +100,7 @@ class DocxEngine(object):
             body = msg
             style = "success"
         elif tag in ["expect fail","fail","exception"]:
-            body = msg
+            body = "{} {}".format(timestr, msg)
             style = "fail"
         elif tag in ['doc']:
             body = msg

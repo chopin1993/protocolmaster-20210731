@@ -2,7 +2,6 @@
 import struct
 
 
-
 def hexstr2bytes(string):
     """
     >>> data = " 0x31  0x32  0x33 "
@@ -28,6 +27,21 @@ def str2hexstr(string):
         des += " "
     return des.strip().upper()
 
+
+def u32tohexstr(nb):
+    nb = struct.pack("@I", nb)
+    hex = str2hexstr(nb)
+    return hex
+
+
+def u16tohexstr(nb):
+    nb = struct.pack("@H", nb)
+    hex = str2hexstr(nb)
+    return hex
+
+
+def u8tohexstr(value):
+    return "{:0>2x}".format(value)
 
 def str2bytearray(string):
     out = bytes(string, encoding="utf-8")

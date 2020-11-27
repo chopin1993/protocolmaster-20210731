@@ -4,7 +4,7 @@ from .protocol import find_head
 from tools.checker import checksum
 import time
 from .codec import BinaryEncoder, BinaryDecoder
-from tools.converter import str2hexstr,hexstr2bytes
+from tools.converter import *
 from tools.esenum import EsEnum
 from .data_fragment import DataFragment
 from .DataMetaType import *
@@ -102,9 +102,9 @@ class RemoteFBD(DataFragment):
             self.didunits.append(didunit)
 
     def __str__(self):
-       text = self.cmd.name
+       text = "{}[{}]".format(self.cmd.name, u8tohexstr(self.cmd.value))
        for did in self.didunits:
-           text += " " + str(did)
+           text += "\n" + str(did)
        return text
 
 
@@ -184,11 +184,16 @@ class Smart7EData(DataFragment):
         return str2hexstr(data)
 
     def to_readable_str(self):
-        text = "said:{0} taid:{1} seq:{2} len:{3} fbd:{4}".format(self.said,
-                                                                  self.taid,
-                                                                  self.seq,
-                                                                  self.len,
-                                                                  str(self.fbd))
+        hex_said = u32tohexstr(self.said)
+        hex_taid = u32tohexstr(self.taid)
+        hex_seq = u8tohexstr(self.seq)
+        hex_len = u8tohexstr(self.len)
+        text = "said[{}]:{} taid[{}]:{} seq[{}]:{} len[{}]:{} fbd:{}".format(\
+            hex_said,self.said,\
+            hex_taid,self.taid,\
+            hex_seq,self.seq,\
+            hex_len,self.len,\
+            str(self.fbd))
         return text
 
     def ack_message(self):

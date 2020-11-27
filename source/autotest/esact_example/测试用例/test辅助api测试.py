@@ -18,6 +18,6 @@ def test_wait2():
 
 def test_user():
     """
-    手动测试失败
+    失败测试-手动期望失败
     """
     engine.add_fail_test("手动测试失败")

@@ -31,9 +31,10 @@ def _parse_doc_string(doc_string):
 
 
 def gather_all_test(variables):
+    import types
     tests = []
     for key, value in variables.items():
-        if key.startswith("test"):
+        if key.startswith("test") and isinstance(value,types.FunctionType):
             tests.append(value)
     return tests
 
