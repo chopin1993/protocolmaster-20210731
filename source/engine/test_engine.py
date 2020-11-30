@@ -262,6 +262,10 @@ class Device(object):
         self.legal_devices.add(src)
         from .role_routine import RoleRoutine
         from .local_routine import LocalRoutine
+        for role in self.roles:
+            if role.src == src:
+                role.name = name
+                return role
         role = RoleRoutine(name, src, self)
         self.roles.append(role)
         if self.default_role is None:

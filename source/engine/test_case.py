@@ -30,7 +30,6 @@ class TestCaseInfo(object):
         self.infos.append(args)
         self.errors.append(args)
 
-
     def add_normal_operation(self, *args):
         self.infos.append(args)
 

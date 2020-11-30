@@ -17,6 +17,13 @@ def test_software_version():
     engine.send_did("READ", "0001")
     engine.expect_did("READ", "设备类型0001", "** ** ** ** ** ** ** **")
 
+def test_device_type():
+    """
+    设备类型测试
+    did可以为字符串，可以是Number，也可以是字符串形式的Number
+    """
+    engine.send_did("READ", "设备类型0001")
+    engine.expect_did("READ", "设备类型0001", "FF FF 18 00 01 00 01 00")
 
 
 def test_did_para():
