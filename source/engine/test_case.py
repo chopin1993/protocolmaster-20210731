@@ -83,7 +83,7 @@ class TestCaseInfo(object):
         txt = ""
         for error in self.errors:
             if txt != "":
-                txt = " "
+                txt += " "
             txt += error[-1]
         return txt
 

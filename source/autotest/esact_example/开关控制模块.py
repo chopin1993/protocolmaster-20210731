@@ -11,7 +11,7 @@ config["校验位"] = 'None'
 config["抄控器默认源地址"] = 70
 config["测试设备地址"] = 76744
 config["设备密码"] = 19443
-config["panid"] = 70
+config["panid"] = 30
 engine.config(config)
 
 if __name__ == "__main__":

@@ -11,9 +11,10 @@ class Validator(Register):
 
 
 class NoMessage(Validator):
-    def __init__(self,allowed_message=False):
+    def __init__(self,allowed_message=False,src=None):
         super(NoMessage, self).__init__()
         self.allowed_message = allowed_message
+        self.src = src
 
     def __call__(self, data):
         if not self.allowed_message and data is not None:

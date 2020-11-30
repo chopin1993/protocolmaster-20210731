@@ -263,9 +263,14 @@ class Device(object):
         from .role_routine import RoleRoutine
         from .local_routine import LocalRoutine
         for role in self.roles:
-            if role.src == src:
-                role.name = name
-                return role
+            if isinstance(role, RoleRoutine):
+                if role.src == src:
+                    role.name = name
+                    self.local_routine.send_local_msg("设置应用层地址", src)
+                    self.local_routine.expect_local_msg(["确认", "否认"], timeout=2)
+                    self.local_routine.send_local_msg("设置透传模式", 1)
+                    self.local_routine.expect_local_msg("确认")
+                    return role
         role = RoleRoutine(name, src, self)
         self.roles.append(role)
         if self.default_role is None:
@@ -277,6 +282,8 @@ class Device(object):
             self.roles.append(self.updater)
         self.local_routine.send_local_msg("设置应用层地址", src)
         self.local_routine.expect_local_msg(["确认", "否认"], timeout=2)
+        self.local_routine.send_local_msg("设置透传模式", 1)
+        self.local_routine.expect_local_msg("确认")
         return role
 
     def get_dst_addr(self, dst=None):
@@ -319,7 +326,7 @@ class Device(object):
             return
 
         if data.said not in self.legal_devices:
-            log_rcv_frame("ignore:", data, only_log=True)
+            #log_rcv_frame("ignore:", data, only_log=True)
             return
 
         if data.is_update():

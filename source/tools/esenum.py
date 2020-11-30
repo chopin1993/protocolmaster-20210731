@@ -24,3 +24,11 @@ class EsEnum(Enum):
         for e in cls:
             outputs[e.name] = e.value
         return outputs
+
+    @classmethod
+    def value_to_name(cls,value):
+        dict_ = cls.name_dict()
+        for key,value in dict_.items():
+            if value == value:
+                return key
+        return "unknown"

@@ -253,7 +253,7 @@ def add_doc_info(msg):
     logging.info(msg)
 
 
-def wait(seconds, allowed_message=True, tips=""):
+def wait(seconds, allowed_message=True, said=None,tips=""):
     """
     :param seconds:等待时间
     :param allowed_message:True:等待时无论是否收到报文测试都会成功  False:等待时收到报文测试失败，：
@@ -264,7 +264,7 @@ def wait(seconds, allowed_message=True, tips=""):
     msg ="we will wait {0}s {1}".format(seconds, tips)
     logging.info(msg)
     role = TestEngine.instance().get_default_role()
-    role.wait(seconds, allowed_message)
+    role.wait(seconds, allowed_message, said=said)
 
 
 def report_check_enable_all(enable):

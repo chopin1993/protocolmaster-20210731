@@ -49,4 +49,4 @@ def test_crash_signle():
     """
     engine.send_did("WRITE", "通断操作C012", "01")
     engine.wait(3)
-    engine.send_did("WRITE", "通断操作C012", "81",taid=0xffffffff,gid_type="BIT1")
+    engine.send_did("WRITE", "通断操作C012", "81",taid=0xffffffff, gid_type="BIT1")

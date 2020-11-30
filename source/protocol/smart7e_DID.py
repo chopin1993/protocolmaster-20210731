@@ -234,7 +234,7 @@ class DIDRemote(Register):
             else:
                 txt += " no data"
         else:
-            name = ErrorCode(value=self.error_code).name
+            name = ErrorCode.value_to_name(self.error_code)
             txt += "error:{}".format(name)
         return txt
 

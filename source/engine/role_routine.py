@@ -91,8 +91,8 @@ class RoleRoutine(Routine):
                                            ack=ack)
         self.wait_event(timeout)
 
-    def wait(self, seconds, allowed_message):
-        self.validate = NoMessage(allowed_message)
+    def wait(self, seconds, allowed_message, said=None):
+        self.validate = NoMessage(allowed_message, src=self.device.get_dst_addr(said))
         self.wait_event(seconds)
 
     def expect_multi_dids(self, cmd, *args,
@@ -146,9 +146,13 @@ class RoleRoutine(Routine):
             log_rcv_frame(self.name+" report ignone", data)
             return
 
-        if data is not None:
-            log_rcv_frame(self.name, data)
         if self.validate is not None:
+            if data is not None:
+                if data.said != self.validate.src:
+                    log_rcv_frame("said mismatch ignore " + self.name, data)
+                    return
+                else:
+                    log_rcv_frame(self.name, data)
             valid, msg = self.validate(data)
             if valid:
                 TestEngine.instance().add_normal_operation(self.name, "expect success", msg)
@@ -159,6 +163,8 @@ class RoleRoutine(Routine):
             self.timer.stop()
             self.validate = None
             self.is_expect_boradcast = False
+        else:
+            log_rcv_frame("no validator ignore " + self.name, data)
 
     def ack_report_message(self, data):
         if data is None:
