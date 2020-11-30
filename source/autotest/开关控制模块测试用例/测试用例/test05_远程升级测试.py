@@ -113,7 +113,6 @@ def test_兼容性升级测试():
     4、再次升级回最新发布版本版应用程序：ESACT-1A(v1.4)-20171020升级至ESACT-1A(v1.5)-20200805
     5、升级成功后再次应用程序版本验证和参数验证，版本号变更，其余的参数不变
     """
-    pass
     # 为满足自动化测试的一致性，采用先升级回上一版程序，再升级至本版测试程序的方式，验证升级的兼容性
     # 此处测试完毕，人工增加测试，采用烧写程序的方式，模拟上一版程序，且被配置使用，升级至本版测试程序 
     # 升级前查看版本和配置信息
@@ -121,7 +120,34 @@ def test_兼容性升级测试():
     engine.update("ESACT-1S1A(v1.4)-20171020.bin")
     engine.wait(30)
     # 升级后查看版本和配置信息
-    check_update_configure(version=mcu_release_version)
+    # （因为v1.4版本不支持新增的数据标识C060和E019，所以会报错00 04，属于正常现象）
+    engine.send_did("READ", "设备描述信息设备制造商0003")
+    engine.expect_did("READ", "设备描述信息设备制造商0003", mcu_release_version)
+
+    engine.send_did("READ", "适配层版本号0606")
+    engine.expect_did("READ", "适配层版本号0606", config["适配层版本号0606"])
+    engine.send_did("READ", "网络层版本号060A")
+    engine.expect_did("READ", "网络层版本号060A", config["网络层版本号060A"])
+    engine.send_multi_dids("READ",
+                           "设备类型0001", "",
+                           "设备描述信息设备制造商0003", "",
+                           "DKEY0005", "",
+                           "SN0007", "")
+    engine.expect_multi_dids("READ",
+                             "设备类型0001", config["设备类型0001"],
+                             "设备描述信息设备制造商0003", mcu_release_version,
+                             "DKEY0005", config["DKEY0005"],
+                             "SN0007", config["SN0007"])
+    engine.send_did("READ", "继电器上电状态C060")
+    engine.expect_did("READ", "继电器上电状态C060", "04 00")
+    engine.send_did("READ", "继电器过零点动作延迟时间C020", "01")
+    engine.expect_did("READ", "继电器过零点动作延迟时间C020", "01 20 20")
+    engine.send_did("READ", "主动上报使能标志D005")
+    engine.expect_did("READ", "主动上报使能标志D005", 传感器类型="未知", 上报命令="上报网关")
+    engine.send_did("READ", "设备运行状态信息统计E019", E019设备信息项="延时关闭时间毫秒")
+    engine.expect_did("READ", "设备运行状态信息统计E019", "04 00")
+
+
     engine.update("ESACT-1S1A(v1.5)-20200805.bin")
     engine.wait(30)
     # 升级后再次查看版本和配置信息

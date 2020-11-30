@@ -10,6 +10,7 @@ def power_off_test(time=15):
     前置工装通断电
     抄控器通过报文控制大功率计量遥控开关通断，实现给测试设备的通断电
     """
+    engine.add_doc_info("前置工装通断电")
     engine.wait(seconds=1)  # 保证和之前的测试存在1s间隔
     engine.send_did("WRITE", "通断操作C012", "01", taid=778856)
     engine.expect_did("WRITE", "通断操作C012", "00", said=778856)
@@ -26,6 +27,9 @@ def clear_gw_info():
     r"4aid+2panid+2pw+4gid+2sid"
     """
     config = engine.get_config()
+    # 发送退网报文
+    engine.send_did("WRITE", "退网通知060B", 退网设备=config["测试设备地址"])
+
 
     engine.send_local_msg("设置PANID", 0)
     engine.expect_local_msg("确认")

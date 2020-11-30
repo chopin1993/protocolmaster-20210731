@@ -74,6 +74,7 @@ def test_APP设备搜索对设备搜索时间的测试():
     3、针对设备搜索时间为300s时，连续运行3次，每次的报文回复时间不一致，则测试合格
     :return:
     """
+
     engine.add_doc_info("测试开关控制模块针对设备搜索时间的响应情况： 要求结果是随机上报")
     for i in range(3):
         device_search0008(search_time=10, search_type="31 71 10 10")
@@ -178,6 +179,7 @@ def test_APP设备指示0009():
     engine.send_did("WRITE", "通断操作C012", "01")
     engine.expect_did("WRITE", "通断操作C012", "00")
 
+
 def test_APP设备指示中断电测试():
     """
     07_APP设备指示中断电测试
@@ -194,6 +196,7 @@ def test_APP设备指示中断电测试():
     power_off_test()
     engine.send_did("READ", "设备描述信息设备制造商0003")
     engine.expect_did("READ", "设备描述信息设备制造商0003", config["设备描述信息设备制造商0003"])
+
 
 def test_静默时间000B():
     """
@@ -320,7 +323,7 @@ def test_设备入网后不再支持设备搜索():
 
     engine.send_did("SEARCH", "APP设备搜索0008", 搜索类型="未注册节点", 搜索时间=10,
                     设备类型="31 71 10 10", taid=0xFFFFFFFF, gids=[0], gid_type="U8")
-    engine.wait((10+1), allowed_message=False)
+    engine.wait((10 + 1), allowed_message=False)
 
     engine.add_doc_info("3、测试设备清除PANID后，设备再次响应设备搜索")
     clear_gw_info()  # 清除网关PANID信息，模拟出厂设备
