@@ -173,61 +173,61 @@
         }
     },
     "04_状态同步测试": {
-        "enable": false,
+        "enable": true,
         "paras": {},
         "subcase": {
             "01_测试前环境搭建": {
-                "enable": false,
+                "enable": true,
                 "paras": {},
                 "subcase": {}
             },
             "02_添加上报测试": {
-                "enable": false,
+                "enable": true,
                 "paras": {},
                 "subcase": {}
             },
             "03_上电上报测试": {
-                "enable": false,
+                "enable": true,
                 "paras": {},
                 "subcase": {}
             },
             "04_配置订阅者信息": {
-                "enable": false,
+                "enable": true,
                 "paras": {},
                 "subcase": {}
             },
             "05_订阅者上报顺序测试": {
-                "enable": false,
+                "enable": true,
                 "paras": {},
                 "subcase": {}
             },
             "06_默认参数同时上报设备和网关": {
-                "enable": false,
+                "enable": true,
                 "paras": {},
                 "subcase": {}
             },
             "07_不上报": {
-                "enable": false,
+                "enable": true,
                 "paras": {},
                 "subcase": {}
             },
             "08_只上报网关": {
-                "enable": false,
+                "enable": true,
                 "paras": {},
                 "subcase": {}
             },
             "09_只上报设备": {
-                "enable": false,
+                "enable": true,
                 "paras": {},
                 "subcase": {}
             },
             "10_网关无应答时设备上报的重试机制": {
-                "enable": false,
+                "enable": true,
                 "paras": {},
                 "subcase": {}
             },
             "11_广播报文控制测试": {
-                "enable": false,
+                "enable": true,
                 "paras": {},
                 "subcase": {}
             }
@@ -301,11 +301,11 @@
         }
     },
     "_test": {
-        "enable": true,
+        "enable": false,
         "paras": {},
         "subcase": {
             "ceshi": {
-                "enable": true,
+                "enable": false,
                 "paras": {},
                 "subcase": {}
             }

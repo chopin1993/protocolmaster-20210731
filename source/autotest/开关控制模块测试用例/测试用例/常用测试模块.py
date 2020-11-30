@@ -18,7 +18,7 @@ def power_off_test(time=15):
     engine.send_did("WRITE", "通断操作C012", "81", taid=778856)
     engine.expect_did("WRITE", "通断操作C012", "01", said=778856)
     if time != 0:
-         engine.wait(seconds=time)  # 普通载波设备上电初始化时间约10s，预留足够时间供载波初始化
+        engine.wait(seconds=time)  # 普通载波设备上电初始化时间约10s，预留足够时间供载波初始化
 
 
 def clear_gw_info():
@@ -29,7 +29,6 @@ def clear_gw_info():
     config = engine.get_config()
     # 发送退网报文
     engine.send_did("WRITE", "退网通知060B", 退网设备=config["测试设备地址"])
-
 
     engine.send_local_msg("设置PANID", 0)
     engine.expect_local_msg("确认")
@@ -64,9 +63,8 @@ def set_gw_info():
 def set_subscriber(name, aid):
     """
     配置订阅者信息
-    按照不同的数量配置订阅者，
-    开关控制模块最多支持3个订阅，
-    超过3个时自动将最早的订阅者替换
+    配置订阅者成功后，需要订阅者实际控制被测设备，
+    便于被测设备记住订阅者
     """
     panel = engine.create_role(name, aid)
     panel.send_did("WRITE", "通断操作C012", "81")

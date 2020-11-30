@@ -701,6 +701,7 @@ def test_只上报网关():
     panel03 = set_subscriber("订阅者3", 23)
     # 1、本地直接控制开关，不上报订阅者，只上报网关(仅机械开关控制模块支持)
     # 2、手机客户端单点控制（网关控制）——被控设备状态立即回复网关，状态同步不上报订阅者
+    engine.add_doc_info("2、手机客户端单点控制（网关控制）——被控设备状态立即回复网关，状态同步不上报订阅者")
     engine.add_doc_info("网关单点控制")
     engine.send_did("WRITE", "通断操作C012", "81")
     engine.expect_did("WRITE", "通断操作C012", "01")
@@ -710,15 +711,17 @@ def test_只上报网关():
     engine.wait(10, allowed_message=False)
     # 3、手机客户端情景模式控制（网关控制）——被控设备状态按组地址顺序上报，状态同步不上报订阅者，只上报网关
     engine.send_did("WRITE", "通断操作C012", "81", taid=0xFFFFFFFF, gids=[7, 8, 9, 10, 11], gid_type="BIT1")
+    # 情景模式控制后，第一次上报时间为1.3+0.5*2=2.3s，允许1s误差存在
     engine.expect_multi_dids("REPORT",
                              "通断操作C012", "01",
-                             "导致状态改变的控制设备AIDC01A", config["抄控器默认源地址"], timeout=2, ack=True)
+                             "导致状态改变的控制设备AIDC01A", config["抄控器默认源地址"], timeout=3.3, ack=True)
     engine.wait(10, allowed_message=False)
 
     engine.send_did("WRITE", "通断操作C012", "01", taid=0xFFFFFFFF, gids=[7, 8, 9, 10, 11], gid_type="BIT1")
+    # 情景模式控制后，第一次上报时间为1.3+0.5*2=2.3s，允许1s误差存在
     engine.expect_multi_dids("REPORT",
                              "通断操作C012", "00",
-                             "导致状态改变的控制设备AIDC01A", config["抄控器默认源地址"], timeout=2, ack=True)
+                             "导致状态改变的控制设备AIDC01A", config["抄控器默认源地址"], timeout=3.3, ack=True)
     engine.wait(10, allowed_message=False)
 
     # 4、订阅者01单点控制——被控设备状态立即回复订阅者01，状态同步不上报订阅者02、订阅者03，只上报网关
@@ -735,11 +738,13 @@ def test_只上报网关():
     engine.wait(10, allowed_message=False)
     # 5、订阅者01情景模式控制——被控设备状态按组地址顺序上报，状态同步不上报订阅者01、订阅者02、订阅者03，只上报网关
     panel01.send_did("WRITE", "通断操作C012", "81", taid=0xFFFFFFFF, gids=[7, 8, 9, 10, 11], gid_type="BIT1")
-    engine.expect_multi_dids("REPORT", "通断操作C012", "01", "导致状态改变的控制设备AIDC01A", panel01.src, timeout=2, ack=True)
+    # 情景模式控制后，第一次上报时间为1.3+0.5*2=2.3s，允许1s误差存在
+    engine.expect_multi_dids("REPORT", "通断操作C012", "01", "导致状态改变的控制设备AIDC01A", panel01.src, timeout=3.3, ack=True)
     engine.wait(10, allowed_message=False)
 
     panel01.send_did("WRITE", "通断操作C012", "01", taid=0xFFFFFFFF, gids=[7, 8, 9, 10, 11], gid_type="BIT1")
-    engine.expect_multi_dids("REPORT", "通断操作C012", "00", "导致状态改变的控制设备AIDC01A", panel01.src, timeout=2, ack=True)
+    # 情景模式控制后，第一次上报时间为1.3+0.5*2=2.3s，允许1s误差存在
+    engine.expect_multi_dids("REPORT", "通断操作C012", "00", "导致状态改变的控制设备AIDC01A", panel01.src, timeout=3.3, ack=True)
     engine.wait(10, allowed_message=False)
 
     engine.report_check_enable_all(False)  # 关闭上报检测
@@ -757,6 +762,7 @@ def test_只上报设备():
     engine.report_check_enable_all(True)  # 打开上报检测
     power_off_test()
     # 设置为只上报网关模式
+    engine.add_doc_info("设置为只上报网关模式")
     engine.send_did("WRITE", "主动上报使能标志D005", 传感器类型="未知", 上报命令="上报设备")
     engine.expect_did("WRITE", "主动上报使能标志D005", 传感器类型="未知", 上报命令="上报设备")
     engine.send_did("READ", "主动上报使能标志D005")
@@ -766,7 +772,9 @@ def test_只上报设备():
     panel02 = set_subscriber("订阅者2", 22)
     panel03 = set_subscriber("订阅者3", 23)
     # 1、本地直接控制开关，1.3s后观察到上报订阅者，订阅者回复，不上报网关(仅机械开关控制模块支持)
+    engine.add_doc_info("1、本地直接控制开关，1.3s后观察到上报订阅者，订阅者回复，不上报网关(仅机械开关控制模块支持)")
     # 2、手机客户端单点控制（网关控制）——被控设备状态立即回复网关，状态同步先后上报订阅者
+    engine.add_doc_info("2、手机客户端单点控制（网关控制）——被控设备状态立即回复网关，状态同步先后上报订阅者")
     engine.add_doc_info("网关单点控制")
     engine.send_did("WRITE", "通断操作C012", "81")
     engine.expect_did("WRITE", "通断操作C012", "01")
@@ -781,6 +789,7 @@ def test_只上报设备():
     panel03.expect_did("NOTIFY", "通断操作C012", "00", timeout=2)
     engine.wait(10, allowed_message=False)
     # 3、手机客户端情景模式控制（网关控制）——被控设备状态按组地址顺序上报，状态同步先后上报订阅者，不上报网关
+    engine.add_doc_info("3、手机客户端情景模式控制（网关控制）——被控设备状态按组地址顺序上报，状态同步先后上报订阅者，不上报网关")
     engine.send_did("WRITE", "通断操作C012", "81", taid=0xFFFFFFFF, gids=[7, 8, 9, 10, 11], gid_type="BIT1")
     # 情景模式控制后，第一次上报时间为1.3+0.5*2=2.3s，允许1s误差存在
     panel01.expect_did("NOTIFY", "通断操作C012", "01", timeout=3.3)
@@ -796,6 +805,7 @@ def test_只上报设备():
     engine.wait(10, allowed_message=False)
 
     # 4、订阅者01单点控制——被控设备状态立即回复订阅者01，状态同步先后上报订阅者02、订阅者03，不上报网关
+    engine.add_doc_info("4、订阅者01单点控制——被控设备状态立即回复订阅者01，状态同步先后上报订阅者02、订阅者03，不上报网关")
     engine.add_doc_info("订阅者01单点控制")
     panel01.send_did("WRITE", "通断操作C012", "81")
     panel01.expect_did("WRITE", "通断操作C012", "01")
@@ -810,6 +820,7 @@ def test_只上报设备():
     panel03.expect_did("NOTIFY", "通断操作C012", "00", timeout=2)
     engine.wait(10, allowed_message=False)
     # 5、订阅者01情景模式控制——被控设备状态按组地址顺序上报，状态同步先后上报订阅者01、订阅者02、订阅者03，不上报网关
+    engine.add_doc_info("5、订阅者01情景模式控制——被控设备状态按组地址顺序上报，状态同步先后上报订阅者01、订阅者02、订阅者03，不上报网关")
     panel01.send_did("WRITE", "通断操作C012", "81", taid=0xFFFFFFFF, gids=[7, 8, 9, 10, 11], gid_type="BIT1")
     # 情景模式控制后，第一次上报时间为1.3+0.5*2=2.3s，允许1s误差存在
     panel01.expect_did("NOTIFY", "通断操作C012", "01", timeout=3.3)
@@ -841,6 +852,7 @@ def test_网关无应答时设备上报的重试机制():
     engine.report_check_enable_all(True)  # 打开上报检测
     power_off_test()
     # 设置为同时上报设备和网关模式
+    engine.add_doc_info("设置为同时上报设备和网关模式")
     engine.send_did("WRITE", "主动上报使能标志D005", 传感器类型="未知", 上报命令="同时上报设备和网关")
     engine.expect_did("WRITE", "主动上报使能标志D005", 传感器类型="未知", 上报命令="同时上报设备和网关")
     engine.send_did("READ", "主动上报使能标志D005")
@@ -850,6 +862,7 @@ def test_网关无应答时设备上报的重试机制():
     panel02 = set_subscriber("订阅者2", 22)
     panel03 = set_subscriber("订阅者3", 23)
     # 1、测试正常情况，网关正常应答
+    engine.add_doc_info("1、测试正常情况，网关正常应答")
     engine.add_doc_info("订阅者01单点控制")
     panel01.send_did("WRITE", "通断操作C012", "81")
     panel01.expect_did("WRITE", "通断操作C012", "01")
@@ -868,6 +881,7 @@ def test_网关无应答时设备上报的重试机制():
     engine.expect_multi_dids("REPORT", "通断操作C012", "00", "导致状态改变的控制设备AIDC01A", panel01.src, timeout=1, ack=True)
     engine.wait(10, allowed_message=False)
     # 2、测试网关不应答异常情况，进行10s、100s重试，重试结束则本次添加上报结束
+    engine.add_doc_info("2、测试网关不应答异常情况，进行10s、100s重试，重试结束则本次添加上报结束")
     engine.add_doc_info("订阅者01单点控制")
     panel01.send_did("WRITE", "通断操作C012", "81")
     panel01.expect_did("WRITE", "通断操作C012", "01")
@@ -895,6 +909,7 @@ def test_网关无应答时设备上报的重试机制():
     engine.wait(100, allowed_message=False)
 
     # 3、如果10s重试上报过程中，收到网关应答，不再进行100重试上报
+    engine.add_doc_info("3、如果10s重试上报过程中，收到网关应答，不再进行100重试上报")
     engine.add_doc_info("订阅者01单点控制")
     panel01.send_did("WRITE", "通断操作C012", "81")
     panel01.expect_did("WRITE", "通断操作C012", "01")
@@ -914,10 +929,11 @@ def test_网关无应答时设备上报的重试机制():
     panel03.expect_did("NOTIFY", "通断操作C012", "00", timeout=2)
     engine.expect_multi_dids("REPORT", "通断操作C012", "00", "导致状态改变的控制设备AIDC01A", panel01.src, timeout=1)
     engine.wait(9.5, allowed_message=False)
-    engine.expect_multi_dids("REPORT", "通断操作C012", "01", "导致状态改变的控制设备AIDC01A", panel01.src, timeout=1, ack=True)
+    engine.expect_multi_dids("REPORT", "通断操作C012", "00", "导致状态改变的控制设备AIDC01A", panel01.src, timeout=1, ack=True)
     engine.wait(120, allowed_message=False)
 
     # 4、上报过程中，收到新的控制命令，本次重试上报结束，开始新的上报流程
+    engine.add_doc_info("4、上报过程中，收到新的控制命令，本次重试上报结束，开始新的上报流程")
     engine.add_doc_info("订阅者01单点控制")
     panel01.send_did("WRITE", "通断操作C012", "81")
     panel01.expect_did("WRITE", "通断操作C012", "01")
@@ -933,6 +949,7 @@ def test_网关无应答时设备上报的重试机制():
     engine.wait(10, allowed_message=False)
 
     # 5、如果10s重试上报过程中，收到新的控制命令，本次重试上报结束，开始新的上报流程
+    engine.add_doc_info("5、如果10s重试上报过程中，收到新的控制命令，本次重试上报结束，开始新的上报流程")
     engine.add_doc_info("订阅者01单点控制")
     panel01.send_did("WRITE", "通断操作C012", "81")
     panel01.expect_did("WRITE", "通断操作C012", "01")
@@ -955,7 +972,7 @@ def test_网关无应答时设备上报的重试机制():
     engine.wait(100, allowed_message=False)
 
     # 6、如果100s重试上报过程中，收到新的控制命令，本次重试上报结束，开始新的上报流程
-
+    engine.add_doc_info("6、如果100s重试上报过程中，收到新的控制命令，本次重试上报结束，开始新的上报流程")
     engine.add_doc_info("订阅者01单点控制")
     panel01.send_did("WRITE", "通断操作C012", "81")
     panel01.expect_did("WRITE", "通断操作C012", "01")
@@ -967,7 +984,6 @@ def test_网关无应答时设备上报的重试机制():
     engine.expect_multi_dids("REPORT", "通断操作C012", "01", "导致状态改变的控制设备AIDC01A", panel01.src, timeout=1)
     engine.wait(50, allowed_message=False)
 
-    engine.add_doc_info("如果100s重试上报过程中，收到新的控制命令，本次重试上报结束，开始新的上报流程")
     panel01.send_did("WRITE", "通断操作C012", "01")
     panel01.expect_did("WRITE", "通断操作C012", "00")
 
