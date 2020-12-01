@@ -9,7 +9,7 @@ from .常用测试模块 import *
 
 config = engine.get_config()
 # 开关控制模块应用程序发布版本
-mcu_release_version= "ESACT-1A(v1.4)-20171020"
+mcu_release_version = "ESACT-1A(v1.4)-20171020"
 # 开关控制模块应用程序同版本号测试版本
 mcu_update_version = "ESACT-1A(v1.5)-20200808"
 # 载波适配层和网络层程序测试版本
@@ -147,11 +147,11 @@ def test_兼容性升级测试():
     engine.send_did("READ", "设备运行状态信息统计E019", E019设备信息项="延时关闭时间毫秒")
     engine.expect_did("READ", "设备运行状态信息统计E019", "04 00")
 
-
     engine.update("ESACT-1S1A(v1.5)-20200805.bin")
     engine.wait(30)
     # 升级后再次查看版本和配置信息
     check_update_configure(version=config["设备描述信息设备制造商0003"])
+
 
 def test_断点续传():
     """
@@ -164,20 +164,20 @@ def test_断点续传():
     # 读版本号及参数
     check_update_configure(version=config["设备描述信息设备制造商0003"])
 
-    def controller_fun(seq):
-        if seq < 10:
+    def update_func(seq):
+        if seq < 30:
             return seq
         else:
             return None
 
-    engine.update("ESACT-1S1A(v1.5)-20200808.bin", controller_fun)
+    engine.update("ESACT-1S1A(v1.5)-20200808.bin", update_func)
     engine.wait(2)
     # 读版本号及参数
     check_update_configure(version=config["设备描述信息设备制造商0003"])
     engine.wait(180)
 
     reqs = engine.update("ESACT-1S1A(v1.5)-20200808.bin")
-    if reqs[0] != 10:
+    if reqs[0] != 30:
         engine.add_fail_test("断点续传失败")
     engine.wait(30, tips="设备升级完成，校验版本")
 
@@ -196,13 +196,13 @@ def test_断电重传():
     # 读版本号及参数
     check_update_configure(version=mcu_update_version)
 
-    def controller_fun(seq):
+    def update_func(seq):
         if seq < 10:
             return seq
         else:
             return None
 
-    engine.update("ESACT-1S1A(v1.5)-20200805.bin", controller_fun)
+    engine.update("ESACT-1S1A(v1.5)-20200805.bin", update_func)
     engine.wait(20, tips="请给设备断电")
     #  断电再次验证版本及参数
     power_off_test()
@@ -225,19 +225,31 @@ def test_升级过程中被控制():
     升级过程中被单点控制、情景模式控制，均可以正常响应
     """
 
-    def controller_fun(seq):
-        import time
-        if seq % 20 == 0:
-            engine.send_did("WRITE", "通断操作C012", "81")
-            engine.expect_did("WRITE", "通断操作C012", "01")
-        elif seq % 20 == 2:
-            engine.send_did("WRITE", "通断操作C012", "01")
-            engine.expect_did("WRITE", "通断操作C012", "00")
-        return seq
+    # def controller_fun(seq):
+    #     import time
+    #     if seq % 20 == 0:
+    #         engine.send_did("WRITE", "通断操作C012", "81")
+    #         engine.expect_did("WRITE", "通断操作C012", "01")
+    #     elif seq % 20 == 2:
+    #         engine.send_did("WRITE", "通断操作C012", "01")
+    #         engine.expect_did("WRITE", "通断操作C012", "00")
+    #     return seq
+    def device_ctrl(second):
+        if second == 10:
+            engine.wait(3)
+            for i in range(10):
+                if i % 2 == 0:
+                    engine.send_did("WRITE", "通断操作C012", "81")
+                    engine.expect_did("WRITE", "通断操作C012", "01")
+                    engine.wait(1)
+                else:
+                    engine.send_did("WRITE", "通断操作C012", "01")
+                    engine.expect_did("WRITE", "通断操作C012", "00")
+                    engine.wait(1)
 
     check_update_configure(version=config["设备描述信息设备制造商0003"])
 
-    engine.update("ESACT-1S1A(v1.5)-20200808.bin", controller_fun)
+    engine.update("ESACT-1S1A(v1.5)-20200808.bin", None, device_ctrl)
     engine.wait(30, tips="设备升级完成，校验版本")
     # 升级后
     check_update_configure(version=mcu_update_version)
@@ -252,22 +264,8 @@ def test_升级成功瞬间断电():
     # 升级前，查询版本为
     check_update_configure(version=mcu_update_version)
 
-    def controller_fun(seq):
-        if seq == 65535:
-            import time
-            time.sleep(1)  # 保证和之前的测试存在1s间隔
-            engine.send_did("WRITE", "通断操作C012", "01", taid=778856)
-            engine.expect_did("WRITE", "通断操作C012", "00", said=778856)
-            time.sleep(5)  # 充分断电
-            engine.send_did("WRITE", "通断操作C012", "81", taid=778856)
-            engine.expect_did("WRITE", "通断操作C012", "01", said=778856)
-            time.sleep(15)  # 普通载波设备上电初始化时间约10s，预留足够时间供载波初始化
-            return None
-        else:
-            return seq
-
-    engine.update("ESACT-1S1A(v1.5)-20200805.bin", controller_fun)
-
+    engine.update("ESACT-1S1A(v1.5)-20200805.bin")
+    power_off_test()
     engine.wait(30)
     # 升级后，查询版本为ESACT-1S1A(v1.5)-20200805
     check_update_configure(version=config["设备描述信息设备制造商0003"])
