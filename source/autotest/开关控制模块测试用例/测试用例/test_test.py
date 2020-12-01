@@ -34,3 +34,15 @@ def test_ceshi():
     engine.wait(20, allowed_message=False)
 
     engine.report_check_enable_all(False)
+
+
+def test_time():
+    """
+    测试时间的准确性
+    """
+    import time
+    for i in range(10):
+        tick = time.time()
+        engine.wait(19.5, allowed_message=False)
+        passed = time.time() - tick
+        print("time cost:", passed)

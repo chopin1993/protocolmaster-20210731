@@ -227,10 +227,10 @@ def test_升级过程中被控制():
 
     def controller_fun(seq):
         import time
-        if seq % 40 == 0:
+        if seq % 20 == 0:
             engine.send_did("WRITE", "通断操作C012", "81")
             engine.expect_did("WRITE", "通断操作C012", "01")
-        elif seq % 40 == 2:
+        elif seq % 20 == 2:
             engine.send_did("WRITE", "通断操作C012", "01")
             engine.expect_did("WRITE", "通断操作C012", "00")
         return seq

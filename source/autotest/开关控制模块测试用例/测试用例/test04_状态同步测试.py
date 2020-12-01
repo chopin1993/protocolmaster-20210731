@@ -50,7 +50,7 @@ def test_添加上报():
     engine.wait(14.5, allowed_message=False)
     engine.expect_multi_dids("REPORT",
                              "通断操作C012", "00",
-                             "导致状态改变的控制设备AIDC01A", config["测试设备地址"], timeout=1, ack=True)
+                             "导致状态改变的控制设备AIDC01A", config["测试设备地址"], timeout=2, ack=True)
     # 测试入网结束，再次测试开关控制模块添加入网，需要发送退网通知060B
     engine.send_did("WRITE", "退网通知060B", 退网设备=config["测试设备地址"])
 
@@ -59,15 +59,15 @@ def test_添加上报():
     engine.wait(14.5, allowed_message=False)
     engine.expect_multi_dids("REPORT",
                              "通断操作C012", "00",
-                             "导致状态改变的控制设备AIDC01A", config["测试设备地址"], timeout=1)
+                             "导致状态改变的控制设备AIDC01A", config["测试设备地址"], timeout=2)
     engine.wait(9.5, allowed_message=False)
     engine.expect_multi_dids("REPORT",
                              "通断操作C012", "00",
-                             "导致状态改变的控制设备AIDC01A", config["测试设备地址"], timeout=1)
-    engine.wait(99.5, allowed_message=False)
+                             "导致状态改变的控制设备AIDC01A", config["测试设备地址"], timeout=2)
+    engine.wait(99, allowed_message=False)
     engine.expect_multi_dids("REPORT",
                              "通断操作C012", "00",
-                             "导致状态改变的控制设备AIDC01A", config["测试设备地址"], timeout=1)
+                             "导致状态改变的控制设备AIDC01A", config["测试设备地址"], timeout=2)
     engine.wait(20, allowed_message=False)
     engine.send_did("WRITE", "退网通知060B", 退网设备=config["测试设备地址"])
 
@@ -76,11 +76,11 @@ def test_添加上报():
     engine.wait(14.5, allowed_message=False)
     engine.expect_multi_dids("REPORT",
                              "通断操作C012", "00",
-                             "导致状态改变的控制设备AIDC01A", config["测试设备地址"], timeout=1)
+                             "导致状态改变的控制设备AIDC01A", config["测试设备地址"], timeout=2)
     engine.wait(9.5, allowed_message=False)
     engine.expect_multi_dids("REPORT",
                              "通断操作C012", "00",
-                             "导致状态改变的控制设备AIDC01A", config["测试设备地址"], timeout=1, ack=True)
+                             "导致状态改变的控制设备AIDC01A", config["测试设备地址"], timeout=2, ack=True)
     engine.wait(120, allowed_message=False)
     engine.send_did("WRITE", "退网通知060B", 退网设备=config["测试设备地址"])
 
@@ -109,7 +109,7 @@ def test_添加上报():
     engine.wait(14.5, allowed_message=False)
     engine.expect_multi_dids("REPORT",
                              "通断操作C012", "00",
-                             "导致状态改变的控制设备AIDC01A", config["测试设备地址"], timeout=1)
+                             "导致状态改变的控制设备AIDC01A", config["测试设备地址"], timeout=2)
     engine.send_did("WRITE", "通断操作C012", "81")
     engine.expect_did("WRITE", "通断操作C012", "01")
     engine.wait(1)
@@ -135,7 +135,7 @@ def test_添加上报():
     engine.wait(14.5, allowed_message=False)
     engine.expect_multi_dids("REPORT",
                              "通断操作C012", "01",
-                             "导致状态改变的控制设备AIDC01A", config["测试设备地址"], timeout=1, ack=True)
+                             "导致状态改变的控制设备AIDC01A", config["测试设备地址"], timeout=2, ack=True)
     engine.send_did("WRITE", "通断操作C012", "01")
     engine.expect_did("WRITE", "通断操作C012", "00")
     engine.report_check_enable_all(False)  # 关闭上报检测
@@ -169,7 +169,7 @@ def test_上电上报():
     engine.wait(14.5, allowed_message=False)
     engine.expect_multi_dids("REPORT",
                              "通断操作C012", "**",
-                             "导致状态改变的控制设备AIDC01A", config["测试设备地址"], timeout=1)
+                             "导致状态改变的控制设备AIDC01A", config["测试设备地址"], timeout=2)
     # 前端工装断电重启，模拟上电上报,并且重新上电后后续报文立即计时
     engine.send_local_msg("设置PANID", 1000)
     engine.expect_local_msg("确认")
@@ -189,7 +189,7 @@ def test_上电上报():
     engine.wait(14.5, allowed_message=False)
     engine.expect_multi_dids("REPORT",
                              "通断操作C012", "**",
-                             "导致状态改变的控制设备AIDC01A", config["测试设备地址"], timeout=1)
+                             "导致状态改变的控制设备AIDC01A", config["测试设备地址"], timeout=2)
     # 前端工装断电重启，模拟上电上报,并且重新上电后后续报文立即计时
     power_off_test(time=0)
     # sid = 8时，上电上报时间 = 60+sid% 100 =68s
@@ -210,11 +210,11 @@ def test_上电上报():
     engine.wait(9.5, allowed_message=False)
     engine.expect_multi_dids("REPORT",
                              "通断操作C012", "**",
-                             "导致状态改变的控制设备AIDC01A", config["测试设备地址"], timeout=1)
-    engine.wait(99.5, allowed_message=False)
+                             "导致状态改变的控制设备AIDC01A", config["测试设备地址"], timeout=2)
+    engine.wait(99, allowed_message=False)
     engine.expect_multi_dids("REPORT",
                              "通断操作C012", "**",
-                             "导致状态改变的控制设备AIDC01A", config["测试设备地址"], timeout=1)
+                             "导致状态改变的控制设备AIDC01A", config["测试设备地址"], timeout=2)
     engine.wait(20, allowed_message=False)
 
     # 如果10s重试上报过程中，收到网关应答，不再进行100重试上报
@@ -229,7 +229,7 @@ def test_上电上报():
     engine.wait(9.5, allowed_message=False)
     engine.expect_multi_dids("REPORT",
                              "通断操作C012", "**",
-                             "导致状态改变的控制设备AIDC01A", config["测试设备地址"], timeout=1, ack=True)
+                             "导致状态改变的控制设备AIDC01A", config["测试设备地址"], timeout=2, ack=True)
     engine.wait(120, allowed_message=False)
 
     engine.add_doc_info("5、测试上电上报前的过程中，是否可以正常被控制通断"
@@ -878,7 +878,7 @@ def test_网关无应答时设备上报的重试机制():
 
     panel02.expect_did("NOTIFY", "通断操作C012", "00", timeout=2)
     panel03.expect_did("NOTIFY", "通断操作C012", "00", timeout=2)
-    engine.expect_multi_dids("REPORT", "通断操作C012", "00", "导致状态改变的控制设备AIDC01A", panel01.src, timeout=1, ack=True)
+    engine.expect_multi_dids("REPORT", "通断操作C012", "00", "导致状态改变的控制设备AIDC01A", panel01.src, timeout=2, ack=True)
     engine.wait(10, allowed_message=False)
     # 2、测试网关不应答异常情况，进行10s、100s重试，重试结束则本次添加上报结束
     engine.add_doc_info("2、测试网关不应答异常情况，进行10s、100s重试，重试结束则本次添加上报结束")
@@ -888,11 +888,11 @@ def test_网关无应答时设备上报的重试机制():
 
     panel02.expect_did("NOTIFY", "通断操作C012", "01", timeout=2)
     panel03.expect_did("NOTIFY", "通断操作C012", "01", timeout=2)
-    engine.expect_multi_dids("REPORT", "通断操作C012", "01", "导致状态改变的控制设备AIDC01A", panel01.src, timeout=1)
+    engine.expect_multi_dids("REPORT", "通断操作C012", "01", "导致状态改变的控制设备AIDC01A", panel01.src, timeout=2)
     engine.wait(9.5, allowed_message=False)
-    engine.expect_multi_dids("REPORT", "通断操作C012", "01", "导致状态改变的控制设备AIDC01A", panel01.src, timeout=1)
-    engine.wait(99.5, allowed_message=False)
-    engine.expect_multi_dids("REPORT", "通断操作C012", "01", "导致状态改变的控制设备AIDC01A", panel01.src, timeout=1)
+    engine.expect_multi_dids("REPORT", "通断操作C012", "01", "导致状态改变的控制设备AIDC01A", panel01.src, timeout=2)
+    engine.wait(99, allowed_message=False)
+    engine.expect_multi_dids("REPORT", "通断操作C012", "01", "导致状态改变的控制设备AIDC01A", panel01.src, timeout=2)
     engine.wait(100, allowed_message=False)
 
     engine.add_doc_info("订阅者01单点控制")
@@ -901,11 +901,11 @@ def test_网关无应答时设备上报的重试机制():
 
     panel02.expect_did("NOTIFY", "通断操作C012", "00", timeout=2)
     panel03.expect_did("NOTIFY", "通断操作C012", "00", timeout=2)
-    engine.expect_multi_dids("REPORT", "通断操作C012", "00", "导致状态改变的控制设备AIDC01A", panel01.src, timeout=1)
+    engine.expect_multi_dids("REPORT", "通断操作C012", "00", "导致状态改变的控制设备AIDC01A", panel01.src, timeout=2)
     engine.wait(9.5, allowed_message=False)
-    engine.expect_multi_dids("REPORT", "通断操作C012", "00", "导致状态改变的控制设备AIDC01A", panel01.src, timeout=1)
-    engine.wait(99.5, allowed_message=False)
-    engine.expect_multi_dids("REPORT", "通断操作C012", "00", "导致状态改变的控制设备AIDC01A", panel01.src, timeout=1)
+    engine.expect_multi_dids("REPORT", "通断操作C012", "00", "导致状态改变的控制设备AIDC01A", panel01.src, timeout=2)
+    engine.wait(99, allowed_message=False)
+    engine.expect_multi_dids("REPORT", "通断操作C012", "00", "导致状态改变的控制设备AIDC01A", panel01.src, timeout=2)
     engine.wait(100, allowed_message=False)
 
     # 3、如果10s重试上报过程中，收到网关应答，不再进行100重试上报
@@ -916,9 +916,9 @@ def test_网关无应答时设备上报的重试机制():
 
     panel02.expect_did("NOTIFY", "通断操作C012", "01", timeout=2)
     panel03.expect_did("NOTIFY", "通断操作C012", "01", timeout=2)
-    engine.expect_multi_dids("REPORT", "通断操作C012", "01", "导致状态改变的控制设备AIDC01A", panel01.src, timeout=1)
+    engine.expect_multi_dids("REPORT", "通断操作C012", "01", "导致状态改变的控制设备AIDC01A", panel01.src, timeout=2)
     engine.wait(9.5, allowed_message=False)
-    engine.expect_multi_dids("REPORT", "通断操作C012", "01", "导致状态改变的控制设备AIDC01A", panel01.src, timeout=1, ack=True)
+    engine.expect_multi_dids("REPORT", "通断操作C012", "01", "导致状态改变的控制设备AIDC01A", panel01.src, timeout=2, ack=True)
     engine.wait(120, allowed_message=False)
 
     engine.add_doc_info("订阅者01单点控制")
@@ -927,9 +927,9 @@ def test_网关无应答时设备上报的重试机制():
 
     panel02.expect_did("NOTIFY", "通断操作C012", "00", timeout=2)
     panel03.expect_did("NOTIFY", "通断操作C012", "00", timeout=2)
-    engine.expect_multi_dids("REPORT", "通断操作C012", "00", "导致状态改变的控制设备AIDC01A", panel01.src, timeout=1)
+    engine.expect_multi_dids("REPORT", "通断操作C012", "00", "导致状态改变的控制设备AIDC01A", panel01.src, timeout=2)
     engine.wait(9.5, allowed_message=False)
-    engine.expect_multi_dids("REPORT", "通断操作C012", "00", "导致状态改变的控制设备AIDC01A", panel01.src, timeout=1, ack=True)
+    engine.expect_multi_dids("REPORT", "通断操作C012", "00", "导致状态改变的控制设备AIDC01A", panel01.src, timeout=2, ack=True)
     engine.wait(120, allowed_message=False)
 
     # 4、上报过程中，收到新的控制命令，本次重试上报结束，开始新的上报流程
@@ -945,7 +945,7 @@ def test_网关无应答时设备上报的重试机制():
 
     panel02.expect_did("NOTIFY", "通断操作C012", "00", timeout=2)
     panel03.expect_did("NOTIFY", "通断操作C012", "00", timeout=2)
-    engine.expect_multi_dids("REPORT", "通断操作C012", "00", "导致状态改变的控制设备AIDC01A", panel01.src, timeout=1, ack=True)
+    engine.expect_multi_dids("REPORT", "通断操作C012", "00", "导致状态改变的控制设备AIDC01A", panel01.src, timeout=2, ack=True)
     engine.wait(10, allowed_message=False)
 
     # 5、如果10s重试上报过程中，收到新的控制命令，本次重试上报结束，开始新的上报流程
@@ -956,7 +956,7 @@ def test_网关无应答时设备上报的重试机制():
 
     panel02.expect_did("NOTIFY", "通断操作C012", "01", timeout=2)
     panel03.expect_did("NOTIFY", "通断操作C012", "01", timeout=2)
-    engine.expect_multi_dids("REPORT", "通断操作C012", "01", "导致状态改变的控制设备AIDC01A", panel01.src, timeout=1)
+    engine.expect_multi_dids("REPORT", "通断操作C012", "01", "导致状态改变的控制设备AIDC01A", panel01.src, timeout=2)
     engine.wait(5, allowed_message=False)
     engine.add_doc_info("如果10s重试上报过程中，收到新的控制命令，本次重试上报结束，开始新的上报流程")
     panel01.send_did("WRITE", "通断操作C012", "01")
@@ -964,11 +964,11 @@ def test_网关无应答时设备上报的重试机制():
 
     panel02.expect_did("NOTIFY", "通断操作C012", "00", timeout=2)
     panel03.expect_did("NOTIFY", "通断操作C012", "00", timeout=2)
-    engine.expect_multi_dids("REPORT", "通断操作C012", "00", "导致状态改变的控制设备AIDC01A", panel01.src, timeout=1)
+    engine.expect_multi_dids("REPORT", "通断操作C012", "00", "导致状态改变的控制设备AIDC01A", panel01.src, timeout=2)
     engine.wait(9.5, allowed_message=False)
-    engine.expect_multi_dids("REPORT", "通断操作C012", "00", "导致状态改变的控制设备AIDC01A", panel01.src, timeout=1)
-    engine.wait(99.5, allowed_message=False)
-    engine.expect_multi_dids("REPORT", "通断操作C012", "00", "导致状态改变的控制设备AIDC01A", panel01.src, timeout=1)
+    engine.expect_multi_dids("REPORT", "通断操作C012", "00", "导致状态改变的控制设备AIDC01A", panel01.src, timeout=2)
+    engine.wait(99, allowed_message=False)
+    engine.expect_multi_dids("REPORT", "通断操作C012", "00", "导致状态改变的控制设备AIDC01A", panel01.src, timeout=2)
     engine.wait(100, allowed_message=False)
 
     # 6、如果100s重试上报过程中，收到新的控制命令，本次重试上报结束，开始新的上报流程
@@ -979,9 +979,9 @@ def test_网关无应答时设备上报的重试机制():
 
     panel02.expect_did("NOTIFY", "通断操作C012", "01", timeout=2)
     panel03.expect_did("NOTIFY", "通断操作C012", "01", timeout=2)
-    engine.expect_multi_dids("REPORT", "通断操作C012", "01", "导致状态改变的控制设备AIDC01A", panel01.src, timeout=1)
+    engine.expect_multi_dids("REPORT", "通断操作C012", "01", "导致状态改变的控制设备AIDC01A", panel01.src, timeout=2)
     engine.wait(9.5, allowed_message=False)
-    engine.expect_multi_dids("REPORT", "通断操作C012", "01", "导致状态改变的控制设备AIDC01A", panel01.src, timeout=1)
+    engine.expect_multi_dids("REPORT", "通断操作C012", "01", "导致状态改变的控制设备AIDC01A", panel01.src, timeout=2)
     engine.wait(50, allowed_message=False)
 
     panel01.send_did("WRITE", "通断操作C012", "01")
@@ -989,11 +989,11 @@ def test_网关无应答时设备上报的重试机制():
 
     panel02.expect_did("NOTIFY", "通断操作C012", "00", timeout=2)
     panel03.expect_did("NOTIFY", "通断操作C012", "00", timeout=2)
-    engine.expect_multi_dids("REPORT", "通断操作C012", "00", "导致状态改变的控制设备AIDC01A", panel01.src, timeout=1)
+    engine.expect_multi_dids("REPORT", "通断操作C012", "00", "导致状态改变的控制设备AIDC01A", panel01.src, timeout=2)
     engine.wait(9.5, allowed_message=False)
-    engine.expect_multi_dids("REPORT", "通断操作C012", "00", "导致状态改变的控制设备AIDC01A", panel01.src, timeout=1)
-    engine.wait(99.5, allowed_message=False)
-    engine.expect_multi_dids("REPORT", "通断操作C012", "00", "导致状态改变的控制设备AIDC01A", panel01.src, timeout=1)
+    engine.expect_multi_dids("REPORT", "通断操作C012", "00", "导致状态改变的控制设备AIDC01A", panel01.src, timeout=2)
+    engine.wait(99, allowed_message=False)
+    engine.expect_multi_dids("REPORT", "通断操作C012", "00", "导致状态改变的控制设备AIDC01A", panel01.src, timeout=2)
     engine.wait(100, allowed_message=False)
 
     engine.report_check_enable_all(False)  # 关闭上报检测
