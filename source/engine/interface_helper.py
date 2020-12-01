@@ -30,19 +30,25 @@ def _parse_doc_string(doc_string):
     return names[0],brief
 
 
-def gather_all_test(variables):
-    import types
-    tests = []
-    for key, value in variables.items():
-        if key.startswith("test") and isinstance(value,types.FunctionType):
-            tests.append(value)
-    return tests
-
 def key(data):
     if data.startswith("init"):
         return "0000_" +data
     else:
         return "1111_" +data
+
+def gather_all_test(variables):
+    import types
+    tests = []
+    inits = []
+    for key, value in variables.items():
+        if isinstance(value,types.FunctionType):
+            if key.startswith("init"):
+                inits.append(value)
+            if key.startswith("test"):
+                tests.append(value)
+    for init in inits[::-1]:
+        tests.insert(0, init)
+    return tests
 
 def parse_func_testcase():
     public_dir = os.path.join(TestEngine.instance().output_dir, "测试用例")

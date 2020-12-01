@@ -1,7 +1,6 @@
 # encoding:utf-8
 # 导入测试引擎
-import engine
-from .常用测试模块 import *
+from autotest.公共用例.常用测试模块 import *
 
 测试组说明 = "test"
 

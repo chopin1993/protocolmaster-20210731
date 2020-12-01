@@ -192,6 +192,7 @@ def update(file_name,  update_func=None, control_func=None, block_size=128):
     from tools.filetool import get_config_file
     from protocol.smart7e_protocol import CMD
     files = []
+    file_name = file_name + ".bin"
     updater = TestEngine.instance().get_updater()
     file_name1 = os.path.join(TestEngine.instance().output_dir, file_name)
     files.append(file_name1)
