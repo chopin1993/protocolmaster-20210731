@@ -37,7 +37,8 @@ class DIDRemote(Register):
         if gids is not None:
             gid = GID(gid_type, gids)
         did_class = DIDRemote.find_class_by_name(name)
-        assert did_class != None, name
+        if did_class is None:
+            raise ValueError("did not exist")
         if isinstance(value, str):
             value = hexstr2bytes(value)
         did = did_class(value, gid=gid, **kwargs)

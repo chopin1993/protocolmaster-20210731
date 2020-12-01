@@ -4,6 +4,7 @@ from PyQt5.QtCore import QObject, pyqtSignal
 import pickle
 from copy import deepcopy
 from register import Register
+from user_exceptions import MeidaException
 
 class MediaOptions(object):
     def __init__(self, key, options, label_text=None, show_options=None,select_id=0):
@@ -33,7 +34,7 @@ class MediaOptions(object):
             if option == value:
                 self.select_id = i
                 return
-        raise ValueError("only support {0},but get {1}".format(self.get_options(), value))
+        raise MeidaException("only support {0},but get {1}".format(self.get_options(), value))
 
 
 class MediaText(object):

@@ -7,3 +7,6 @@ class FoundClassException(Exception):
         Exception.__init__(self, err)
         self.class_name = class_name
 
+class MeidaException(Exception):
+    def __init__(self, info):
+        Exception.__init__(self, info)

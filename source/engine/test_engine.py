@@ -9,6 +9,7 @@ from PyQt5.QtCore import QTimer,QCoreApplication
 import time
 from engine.validator import *
 import weakref
+from user_exceptions import MeidaException
 
 
 def get_current_time_str():
@@ -132,10 +133,14 @@ class TestEngine(object):
             case.clear()
             try:
                 func()
+            except MeidaException as e:
+                logging.exception(e)
+                raise e
             except Exception as e:
-                msg = e.__traceback__.tb_frame.f_globals["__file__"]
-                msg += "  linenumber:{0}".format(e.__traceback__.tb_lineno)
-                self.add_fail_test("engine", "exception", "测试运行异常_" + msg)
+                msg = "异常原因:{}\nfile:{} line:{}".format(str(e),
+                                                         e.__traceback__.tb_frame.f_globals["__file__"],
+                                                         e.__traceback__.tb_lineno)
+                self.add_fail_test("engine", "exception", msg)
                 logging.exception(e)
         if valids is None:
             valids = self.get_valid_infos()
