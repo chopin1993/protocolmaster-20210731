@@ -62,6 +62,9 @@ class UpdateRoutine(Routine):
     """
     主要用来处理升级事务
     """
+    UPDATEING=0
+    SUSPEND=1
+    STOP=2
     def __init__(self, name, src, device):
         super(UpdateRoutine, self).__init__(name, device)
         self.src = src
@@ -69,8 +72,8 @@ class UpdateRoutine(Routine):
         self.send_idx = 0
         self.block_size = 128
         self.parser= None
-        self.control_func = None
-        self.updating = False
+        self.update_func = None
+        self.status = self.STOP
         self.resend = 0
         self.snd_seqs = []
         self.rcv_seqs = []
@@ -78,27 +81,42 @@ class UpdateRoutine(Routine):
     def timeout_handle(self):
         self.handle_rcv_msg(None)
 
-    def update(self, cmd, file_name, block_size=128, control_func=None):
+    def update(self, cmd, file_name, block_size=128, update_func=None, control_func=None):
         self.snd_seqs = []
         self.rcv_seqs = []
         self.file_name = file_name
         self.block_size = block_size
-        self.control_func = _default_control_func if control_func is None else control_func
+        self.update_func = _default_control_func if update_func is None else update_func
+        self.control_func = control_func
         if not os.path.exists(file_name):
             TestEngine.instance().add_fail_test(self.name, "fail", self.file_name + " 不存在")
             return
         self.parser = UpdaterFileParser(cmd, self.file_name)
         self.send_idx = 0
         self.send_update_package(self.send_idx)
-        self.updating = True
+        self.status = self.UPDATEING
         self.wait_event(4)
         add_doc_info("snd seq:" + str(self.snd_seqs))
         add_doc_info("rcv seq:" + str(self.rcv_seqs))
         return self.rcv_seqs
 
+    def wait_event(self, timeout):
+        self.timer.start(int(timeout * 1000))
+        tick = time.time()
+        last = 0
+        while self.get_remaining_time() > 0:
+            QCoreApplication.instance().processEvents()
+            if self.control_func is not None:
+                current = int(time.time() - tick)
+                if last != current:
+                    last = current
+                    self.status = self.SUSPEND
+                    self.control_func(current)
+                    self.status= self.UPDATEING
+
     def get_remaining_time(self):
         remaining = super(UpdateRoutine, self).get_remaining_time()
-        if self.updating or remaining>0:
+        if self.status!=self.STOP or remaining>0:
             return max(remaining, 1)
         else:
             return 0
@@ -109,40 +127,43 @@ class UpdateRoutine(Routine):
         fbd = self.parser.get_package(idx, self.block_size)
         dst = self.device.get_dst_addr(None)
         data = Smart7EData(self.src, dst, fbd)
-        logging.info("snd %s", str(data))
-        logging.info("txt %s", data.to_readable_str())
+        logging.info("update snd %s", str(data))
+        logging.info("update txt %s", data.to_readable_str())
         self.device.write(data)
 
     def handle_rcv_msg(self, data):
         if data is not None:
-            logging.info("rcv %s", str(data))
-            logging.info("txt %s", data.to_readable_str())
+            logging.info("update rcv %s", str(data))
+            logging.info("update txt %s", data.to_readable_str())
 
-        if not self.updating:
+        if self.status == self.STOP:
             return
-
-        if data is None:
-             if self.resend < 10:
-                add_doc_info("resend package {0}  次数 {1}".format(self.send_idx, self.resend))
-                self.resend += 1
-                self.send_update_package(self.send_idx)
-                self.timer.start(4000)
-                return
-             else:
-                add_fail_test("没有回复")
-                self.updating = False
-                self.timer.stop()
-                return
-        self.resend = 0
-        self.rcv_seqs.append(data.fbd.seq)
-        seq = self.control_func(data.fbd.seq)
-        if seq is not None and seq != 0xffff:
-            self.send_update_package(seq)
+        elif self.status == self.SUSPEND:
             self.timer.start(4000)
         else:
-            if seq == 0xffff:
-                add_doc_info("升级成功")
+            if data is None:
+                if self.resend < 10:
+                    add_doc_info("resend package {0}  次数 {1}".format(self.send_idx, self.resend))
+                    self.resend += 1
+                    self.send_update_package(self.send_idx)
+                    self.timer.start(4000)
+                    return
+                else:
+                    add_fail_test("没有回复")
+                    self.status = self.STOP
+                    self.timer.stop()
+                return
             else:
-                add_doc_info("手动停止升级")
-            self.updating = False
-            self.timer.stop()
+                self.resend = 0
+                self.rcv_seqs.append(data.fbd.seq)
+                seq = self.update_func(data.fbd.seq)
+                if seq is not None and seq != 0xffff:
+                    self.send_update_package(seq)
+                    self.timer.start(4000)
+                else:
+                    if seq == 0xffff:
+                        add_doc_info("升级成功")
+                    else:
+                        add_doc_info("手动停止升级")
+                    self.status = self.STOP
+                    self.timer.stop()

@@ -65,7 +65,9 @@ class SerialMedia(Media):
     def send(self, data):
         try:
             if self.serial is not None and self.serial.is_open:
-                self.serial.write(data)
+                len_ = len(data)
+                snd_len = self.serial.write(data)
+                assert len_ == snd_len
             else:
                 self.error.emit(u"串口未打开")
                 self.close()

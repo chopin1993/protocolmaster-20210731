@@ -97,9 +97,10 @@ class RemoteFBD(DataFragment):
             if frame.is_boardcast():
                 gid = decoder.decoder_for_object(GID, **kwargs)
                 kwargs['gid'] = gid
-            did = decoder.decode_u16()
-            didunit = decoder.decoder_for_object(DIDRemote.find_class_by_did(did), **kwargs)
-            self.didunits.append(didunit)
+            if decoder.left_bytes() >= 3:
+                did = decoder.decode_u16()
+                didunit = decoder.decoder_for_object(DIDRemote.find_class_by_did(did), **kwargs)
+                self.didunits.append(didunit)
 
     def __str__(self):
        text = "{}[{}]".format(self.cmd.name, u8tohexstr(self.cmd.value))

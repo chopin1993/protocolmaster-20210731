@@ -86,13 +86,26 @@ def test_pwoeroff_start():
 
 def test_update_control():
     "升级+控制"
-    def controller_fun(seq):
-        if seq % 40 == 0:
-            engine.send_did("WRITE", "通断操作C012", "81")
-            engine.expect_did("WRITE", "通断操作C012", "01")
-        return seq
+    def device_ctrl(second):
+        if second == 3:
+            engine.wait(3)
+            for i in range(10):
+                if i %2 == 0:
+                    engine.send_did("WRITE", "通断操作C012", "81")
+                    engine.expect_did("WRITE", "通断操作C012", "01", timeout=9)
+                    engine.wait(3)
+                else:
+                    engine.send_did("WRITE", "通断操作C012", "01")
+                    engine.expect_did("WRITE", "通断操作C012", "00", timeout=9)
+                    engine.wait(3)
+
+    engine.send_did("WRITE", "通断操作C012", "81")
+    engine.expect_did("WRITE", "通断操作C012", "01", timeout=9)
+    engine.wait(3)
+    engine.send_did("WRITE", "通断操作C012", "01")
+    engine.expect_did("WRITE", "通断操作C012", "00", timeout=9)
 
     assert_version2()
-    engine.update("ESACT-1S1A(v1.5)-20200805.bin", controller_fun)
-    engine.wait(50, tips="设备升级完成，校验版本")
+    engine.update("ESACT-1S1A(v1.5)-20200805.bin", None, device_ctrl)
+    engine.wait(40, tips="设备升级完成，校验版本")
     assert_version1()

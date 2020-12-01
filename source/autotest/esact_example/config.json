@@ -47,7 +47,7 @@
         "paras": {},
         "subcase": {
             "did测试": {
-                "enable": false,
+                "enable": true,
                 "paras": {},
                 "subcase": {}
             },
@@ -57,12 +57,12 @@
                 "subcase": {}
             },
             "参数测试": {
-                "enable": false,
+                "enable": true,
                 "paras": {},
                 "subcase": {}
             },
             "字符串反转": {
-                "enable": false,
+                "enable": true,
                 "paras": {},
                 "subcase": {}
             }

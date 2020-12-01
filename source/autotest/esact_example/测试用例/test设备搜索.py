@@ -19,7 +19,7 @@ def test_device_search():
     """
     设备搜索测试
     """
-    #clear_gw_info()
+    clear_gw_info()
 
     config = engine.get_config()
 

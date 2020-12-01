@@ -223,7 +223,15 @@ class Routine(object):
 
     def wait_event(self, timeout):
         self.timer.start(int(timeout*1000))
-        self.device.wait_event()
+        total = self.get_remaining_time()
+        while True:
+            left = self.get_remaining_time()
+            if total - left >= 10:
+                total = left
+                logging.info("left %ds", total)
+            if left == 0:
+                break
+            QCoreApplication.instance().processEvents()
 
     def handle_rcv_msg(self, msg):
         if msg is not None:
@@ -291,29 +299,6 @@ class Device(object):
             return TestEngine.instance().get_test_dev_addr()
         else:
             return dst
-
-    def get_waiting_time(self):
-        left_time = 0
-        cnt = 0
-        for role in self.roles:
-            remaining = role.get_remaining_time()
-            if remaining > 0:
-                cnt += 1
-                left_time = max(remaining, left_time)
-        return left_time, cnt
-
-    def wait_event(self):
-        current,cnt = self.get_waiting_time()
-        if cnt > 1:
-            return
-        while True:
-            time,cnt = self.get_waiting_time()
-            if current - time >= 10:
-                current = time
-                logging.info("left %ds", current)
-            if time == 0:
-                break
-            QCoreApplication.instance().processEvents()
 
     def write(self, data):
         self.legal_devices.add(data.taid)

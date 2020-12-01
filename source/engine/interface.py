@@ -181,11 +181,12 @@ def expect_local_msg(cmd, value=None, **kwargs):
     role.expect_local_msg(cmd, value, **kwargs)
 
 
-def update(file_name,  control_func=None, block_size=128):
+def update(file_name,  update_func=None, control_func=None, block_size=128):
     """
     升级程序
     :param file_name:程序升级名称
-    :param control_func:控制程序。func的参数是请求的包，返回的是要发送的包。返回None表示不予回复。
+    :param update_func:控制程序。func的参数是请求的包，返回的是要发送的包。返回None表示不予回复。此函数不能发送和expect报文
+    :param control_func:升级过程中发送报文的函数。参数是升级用的时间，此函数可以发送和expect报文。
     :return 设备请求的seqs列表。
     """
     from tools.filetool import get_config_file
@@ -195,11 +196,11 @@ def update(file_name,  control_func=None, block_size=128):
     file_name1 = os.path.join(TestEngine.instance().output_dir, file_name)
     files.append(file_name1)
     if os.path.exists(file_name1):
-        return updater.update(CMD.UPDATE, file_name1, block_size, control_func)
+        return updater.update(CMD.UPDATE, file_name1, block_size, update_func, control_func)
     file_name2 = get_config_file(os.path.join("升级文件",file_name))
     files.append(file_name2)
     if os.path.exists(file_name2):
-        return updater.update(CMD.UPDATE_PLC, file_name2, block_size, control_func)
+        return updater.update(CMD.UPDATE_PLC, file_name2, block_size, update_func, control_func)
     raise FileNotFoundError(str(files))
 
 
