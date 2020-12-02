@@ -1,6 +1,6 @@
 # encoding:utf-8
 # 导入测试引擎
-from autotest.公共用例.常用测试模块 import *
+from .常用测试模块 import *
 
 测试组说明 = "状态同步测试"
 """
@@ -409,6 +409,7 @@ def test_配置订阅者():
     engine.report_check_enable_all(False)  # 关闭上报检测
 
 
+
 def test_订阅者上报顺序测试():
     """
     05_订阅者上报顺序测试
@@ -433,18 +434,9 @@ def test_订阅者上报顺序测试():
     panel03 = set_subscriber("订阅者3", 23)
     # 网关控制
     engine.add_doc_info("网关控制")
-    engine.send_did("WRITE", "通断操作C012", "81")
-    engine.expect_did("WRITE", "通断操作C012", "01")
-    panel01.expect_did("NOTIFY", "通断操作C012", "01", timeout=2)
-    panel02.expect_did("NOTIFY", "通断操作C012", "01", timeout=2)
-    panel03.expect_did("NOTIFY", "通断操作C012", "01", timeout=2)
-    engine.wait(10, allowed_message=False)
-    engine.send_did("WRITE", "通断操作C012", "01")
-    engine.expect_did("WRITE", "通断操作C012", "00")
-    panel01.expect_did("NOTIFY", "通断操作C012", "00", timeout=2)
-    panel02.expect_did("NOTIFY", "通断操作C012", "00", timeout=2)
-    panel03.expect_did("NOTIFY", "通断操作C012", "00", timeout=2)
-    engine.wait(10, allowed_message=False)
+    report_expect([panel01,panel02,panel03], "81", "01")
+    report_expect([panel01, panel02, panel03], "01", "01")
+
     # 订阅者4控制一次，发现上报的顺序变成订阅者4、订阅者2、订阅者3
     # 配置订阅者后，使用网关控制后，回复网关，并上报订阅者
     engine.add_doc_info("订阅者4控制一次后：")

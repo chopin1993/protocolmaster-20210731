@@ -2,25 +2,6 @@
 # 导入测试引擎
 import engine
 
-
-# from .常用测试模块 import *
-
-def power_off_test(time=15):
-    """
-    前置工装通断电
-    抄控器通过报文控制大功率计量遥控开关通断，实现给测试设备的通断电
-    """
-    engine.add_doc_info("前置工装通断电")
-    engine.wait(seconds=1)  # 保证和之前的测试存在1s间隔
-    engine.send_did("WRITE", "通断操作C012", "01", taid=778856)
-    engine.expect_did("WRITE", "通断操作C012", "00", said=778856)
-    engine.wait(seconds=5)  # 充分断电
-    engine.send_did("WRITE", "通断操作C012", "81", taid=778856)
-    engine.expect_did("WRITE", "通断操作C012", "01", said=778856)
-    if time != 0:
-        engine.wait(seconds=time)  # 普通载波设备上电初始化时间约10s，预留足够时间供载波初始化
-
-
 def clear_gw_info():
     """
     清除网关PANID信息，模拟出厂设备
@@ -60,18 +41,4 @@ def set_gw_info():
     engine.expect_did("WRITE", "载波芯片注册信息0603", "** ** ** ** ** **", check_seq=False)
 
 
-def set_subscriber(name, aid):
-    """
-    配置订阅者信息
-    配置订阅者成功后，需要订阅者实际控制被测设备，
-    便于被测设备记住订阅者
-    """
-    panel = engine.create_role(name, aid)
-    panel.send_did("WRITE", "通断操作C012", "81")
-    panel.expect_did("WRITE", "通断操作C012", "01")
-    engine.wait(0.5)
-    panel.send_did("WRITE", "通断操作C012", "01")
-    panel.expect_did("WRITE", "通断操作C012", "00")
-    engine.wait(0.5)
-    return panel
 
