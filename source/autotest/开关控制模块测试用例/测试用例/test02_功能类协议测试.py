@@ -1,5 +1,5 @@
 # encoding:utf-8
-from autotest.公共用例.常用测试模块 import *
+from autotest.公共用例.public常用测试模块 import *
 
 测试组说明 = "功能类报文测试"
 
