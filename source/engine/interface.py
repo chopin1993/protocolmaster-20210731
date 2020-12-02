@@ -7,6 +7,7 @@ from PyQt5.QtWidgets import QApplication
 import sys
 from engine.case_editor import CaseEditor
 from .interface_helper import *
+from user_exceptions import MeidaException
 
 
 def config(infos):

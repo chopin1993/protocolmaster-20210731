@@ -269,7 +269,7 @@ class Device(object):
         self.legal_devices.add(TestEngine.instance().get_test_dev_addr())
 
     def config_com(self, **kwargs):
-        self.media.config(**kwargs)
+        return self.media.config(**kwargs)
 
     def create_role(self, name, src):
         self.legal_devices.add(src)
