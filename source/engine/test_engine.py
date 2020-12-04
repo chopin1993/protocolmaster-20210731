@@ -10,7 +10,8 @@ import time
 from engine.validator import *
 import weakref
 from user_exceptions import MeidaException
-
+from protocol.monitor7e_protocol import *
+from protocol.fifo_buffer import FifoBuffer
 
 def get_current_time_str():
     cur = time.time()
@@ -44,6 +45,7 @@ class TestEngine(object):
         self.running = False
         self.report_enable = False
         self.fail_idx = 0
+        self.fifo = FifoBuffer()
 
     def get_all_role(self):
         return self.com_medias[0].roles
@@ -67,7 +69,7 @@ class TestEngine(object):
         return self.config["测试设备地址"]
 
     def create_com_device(self, name):
-        device = Device(name)
+        device = TestEquiment(name)
         self.com_medias.append(device)
         return device
 
@@ -251,11 +253,11 @@ class Routine(object):
 
 
 
-class Device(object):
+class TestEquiment(object):
     """
     串口相关的设备
     """
-    def __init__(self, name, media="SerialMedia", protocol="Smart7eProtocol"):
+    def __init__(self, name, media="SerialMedia", protocol="Monitor7eProtocol"):
         self.name = name
         self.media = Media.create_sub_class(media)
         self.protocol = Protocol.create_sub_class(protocol)
@@ -267,9 +269,14 @@ class Device(object):
         self.local_routine = None
         self.legal_devices = set()
         self.legal_devices.add(TestEngine.instance().get_test_dev_addr())
+        self.buffer = FifoBuffer()
 
     def config_com(self, **kwargs):
-        return self.media.config(**kwargs)
+        setting = UARTSettingFbd(baudrate=kwargs['baudrate'], parity=Parity.无校验)
+        data = Monitor7EData.create_uart_message(setting, UARTCmd.W_SETTING)
+        ret = self.media.config(**kwargs)
+        self.write(data)
+        return ret
 
     def create_role(self, name, src):
         self.legal_devices.add(src)
@@ -294,7 +301,7 @@ class Device(object):
             self.roles.append(self.local_routine)
             self.roles.append(self.updater)
         self.local_routine.send_local_msg("设置应用层地址", src)
-        self.local_routine.expect_local_msg(["确认", "否认"], timeout=2)
+        self.local_routine.expect_local_msg(["确认", "否认"], timeout=2000)
         self.local_routine.send_local_msg("设置透传模式", 1)
         self.local_routine.expect_local_msg("确认")
         return role
@@ -306,11 +313,17 @@ class Device(object):
             return dst
 
     def write(self, data):
-        self.legal_devices.add(data.taid)
+        if isinstance(data, Smart7EData):
+            self.legal_devices.add(data.taid)
+            data = Monitor7EData.create_uart_message(data, cmd=UARTCmd.W_DATA)
+        else:
+            pass
+            #log_snd_frame("测试工装", data, only_log=True)
+        log_snd_frame("测试工装", data, only_log=True)
         self.session.write(data)
 
-    def handle_rcv_msg(self, data):
 
+    def handle_plc_msg(self, data):
         if data.is_local():
             self.local_routine.handle_rcv_msg(data)
             return
@@ -332,3 +345,24 @@ class Device(object):
                 else:
                     if data.taid == role.src:
                         role.handle_rcv_msg(data)
+
+    def handle_rcv_msg(self, monitor_data):
+       if monitor_data.is_uart_data():
+           log_rcv_frame("测试工装", monitor_data, only_log=True)
+           self.buffer.receive(monitor_data.data)
+           buffer_data = self.buffer.peek(-1)
+           protocol = Smart7eProtocol()
+           decoder = BinaryDecoder()
+           (found, start, length) = protocol.find_frame_in_buff(buffer_data)
+           if found:
+               self.buffer.read(start + length)
+               frame_data = buffer_data[start:start + length]
+               decoder.set_data(frame_data)
+               monitor_data = protocol.decode(decoder)
+               self.handle_plc_msg(monitor_data)
+           else:
+               if self.buffer.data_length() > 5000:
+                   logging.warning("test engine buff too big %d, we will clear all buff", self.buffer.data_length())
+                   self.buffer.read(self.buffer.read(self.buffer.data_length()))
+       else:
+           log_rcv_frame("测试工装", monitor_data, only_log=True)

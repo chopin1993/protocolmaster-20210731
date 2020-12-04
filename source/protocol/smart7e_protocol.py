@@ -206,25 +206,8 @@ class Smart7EData(DataFragment):
 class Smart7eProtocol(Protocol):
 
     def __init__(self):
-        super(Smart7eProtocol, self).__init__()
-        self.image_data = None
-        self.did_unit = None
+        super(Smart7eProtocol, self).__init__(Smart7EData)
 
-    def __str__(self):
-        return self.name
-
-    def decode(self, decoder):
-        return decoder.decoder_for_object(Smart7EData)
-
-    def to_readable_str(self, text):
-        data = hexstr2bytes(text)
-        found, start, datalen = self.find_frame_in_buff(data)
-        if found:
-            data = data[start:start+datalen]
-            data = BinaryDecoder.data2object(Smart7EData, data)
-            return data.to_readable_str()
-        else:
-            return "no valid frame"
 
     @staticmethod
     def find_frame_in_buff(data):

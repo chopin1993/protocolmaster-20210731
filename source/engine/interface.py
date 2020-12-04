@@ -1,14 +1,11 @@
 #encoding:utf-8
-import os
-import logging
-logging.basicConfig(format='%(asctime)s - %(levelname)s: %(message)s', level=logging.DEBUG)
+from tools.esloging import *
 from PyQt5.QtCore import QCoreApplication
 from PyQt5.QtWidgets import QApplication
 import sys
 from engine.case_editor import CaseEditor
 from .interface_helper import *
 from user_exceptions import MeidaException
-
 
 def config(infos):
     """

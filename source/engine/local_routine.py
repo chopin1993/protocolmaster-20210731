@@ -2,7 +2,7 @@ from tools.converter import *
 import types
 import weakref
 from engine.validator import *
-from .test_engine import TestEngine,Device,log_snd_frame,log_rcv_frame
+from .test_engine import TestEngine,TestEquiment,log_snd_frame,log_rcv_frame
 import logging
 from .test_engine import Routine
 
@@ -11,7 +11,7 @@ class LocalRoutine(Routine):
     """
     主要用来处理单个did，上报和联动测试
     """
-    def __init__(self, name, device:Device):
+    def __init__(self, name, device:TestEquiment):
         super(LocalRoutine, self).__init__(name, device)
 
     def send_local_msg(self, cmd, value, **kwargs):

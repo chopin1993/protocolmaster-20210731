@@ -2,7 +2,7 @@ from tools.converter import *
 import types
 import weakref
 from engine.validator import *
-from .test_engine import TestEngine,Device,log_snd_frame,log_rcv_frame,Routine
+from .test_engine import TestEngine,TestEquiment,log_snd_frame,log_rcv_frame,Routine
 import logging
 
 
@@ -10,7 +10,7 @@ class RoleRoutine(Routine):
     """
     主要用来处理单个did，上报和联动测试
     """
-    def __init__(self, name, src, device:Device):
+    def __init__(self, name, src, device:TestEquiment):
         super(RoleRoutine, self).__init__(name, device)
         self.src = src
         self.current_seq = None

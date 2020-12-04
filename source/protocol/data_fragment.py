@@ -31,3 +31,6 @@ class DataFragment(object):
             txt += " "
             txt += str(unit)
         return txt
+
+    def to_readable_str(self):
+        return str(self)

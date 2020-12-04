@@ -7,6 +7,7 @@ from PyQt5.QtCore import *
 from PyQt5.QtGui import *
 from PyQt5.QtWidgets import *
 import types
+from enum import Enum
 
 def to_number(txt):
     if txt is "":
@@ -246,6 +247,8 @@ class DataU32(DataMetaType):
 
 class DataU8Enum(DataMetaType):
     def __init__(self, name=None, value=None, decoder=None, name_dict=None):
+        if isinstance(value, Enum):
+            value = str(value)
         super(DataU8Enum, self).__init__(name, value, decoder)
         self.name_dict = name_dict
 
@@ -273,6 +276,21 @@ class DataU8Enum(DataMetaType):
 
     def decode(self, decoder, **kwargs):
         self._value = decoder.decode_u8()
+
+    @property
+    def value(self):
+        return self._value
+
+    @value.setter
+    def value(self, value):
+        if isinstance(value, Enum):
+            value = value.name
+        if isinstance(value, str):
+            self._value = self.str2value(value)
+        else:
+            self._value = value
+        if self.widget is not None:
+            self.widget.value_widget.setText(self.value_str())
 
     def value_str(self):
         for key, value in self.name_dict.items():

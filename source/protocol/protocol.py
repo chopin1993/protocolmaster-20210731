@@ -1,5 +1,6 @@
 # encoding:utf-8
-from tools.converter  import str2hexstr
+from tools.converter import str2hexstr, hexstr2bytes
+from .codec import BinaryDecoder,BinaryEncoder
 from register import Register
 
 def find_head(buff, start, head):
@@ -20,69 +21,29 @@ def find_head(buff, start, head):
 
 class Protocol(Register):
 
-    @staticmethod
-    def create_frame(self, *args, **kwargs):
-        pass
-
-    @staticmethod
-    def create_raw_frame(data):
-        pro = Protocol()
-        pro.raw_data = data
-        return pro
-
-    def __init__(self):
-        self.data_fragments = []
-        self.raw_data = None
-
-    def _get_min_length(self):
-        length = 0
-        for fragment in self.data_fragments:
-            length += fragment.get_min_length()
-        return length
+    def __init__(self, data_cls):
+        super().__init__()
+        self.data_cls = data_cls
 
     def __str__(self):
-        return "{0} no data analyse \n".format(self.__class__.__name__)
+        return self.name
 
-    def _get_frame_len(self, data ,decoder):
-        decoder.data = data
-        data_fragments =  decoder.decode_for_object(self)
-        length = 0
-        for data_fragment in data_fragments:
-            length += data_fragment.get_length()
-        return length
-
-    def find_frame_in_buff(self, data, decoder):
-        start_pos = 0
-        found = 0
-        min_length = self._get_min_length()
-        left_length = len(data)
-        while left_length >=  min_length:
-            frame_data = data[start_pos:]
-            for fragment in self.data_fragments:
-                if not fragment.fit(frame_data):
-                    start_pos += 1
-                    found = False
-                    break;
-            if found:
-                return True, start_pos, self._get_frame_len(data[start_pos:], decoder)
-
-        return False, 0, 0
-
-
-    def add_fragment(self, fragment):
-        self.data_fragments.append(fragment)
-
-    def encode(self, encoder):
-        print("error not handle encode")
-        pass
+    def find_frame_in_buff(self, data):
+        """
+        :param data:数据
+        :return: (是否有完整帧，起始位置，帧长度)
+        """
+        raise NotImplementedError
 
     def decode(self, decoder):
-        datas = dict()
-        for fragment in self.data_fragments:
-            fragment.set_depends(self.gather_fragments(fragment.decode_depends, datas))
-            datas[fragment.name] = decoder.encode_object(fragment)
-        return datas
+        return decoder.decoder_for_object(self.data_cls)
 
-    def to_readable_str(self, hex_text):
-        return "no text tranlation"
-
+    def to_readable_str(self, text):
+        data = hexstr2bytes(text)
+        found, start, datalen = self.find_frame_in_buff(data)
+        if found:
+            data = data[start:start+datalen]
+            data = BinaryDecoder.data2object(self.data_cls, data)
+            return data.to_readable_str()
+        else:
+            return "no valid frame"

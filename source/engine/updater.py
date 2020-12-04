@@ -1,4 +1,4 @@
-from .test_engine import TestEngine,Device,log_snd_frame,log_rcv_frame
+from .test_engine import TestEngine,TestEquiment,log_snd_frame,log_rcv_frame
 from .interface import *
 import os
 from protocol.codec import BinaryDecoder,BinaryEncoder
