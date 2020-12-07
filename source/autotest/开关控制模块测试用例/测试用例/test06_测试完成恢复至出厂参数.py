@@ -14,22 +14,13 @@ def test_测试完成恢复出厂参数():
     """
     # 清除前置测试工装和测试设备的PANID密钥
     engine.add_doc_info("清除前置测试工装和测试设备的PANID")
-    # 清除前置测试工装的PANID
-    engine.send_local_msg("设置PANID", 0)
-    engine.expect_local_msg("确认")
-    engine.send_did("WRITE", "载波芯片注册信息0603",
-                    aid=778856,
-                    panid=0,
-                    pw=39751,
-                    device_gid=config["抄控器默认源地址"],
-                    sid=1,
-                    taid=778856)
+    engine.report_check_enable_all(True)
 
-    engine.expect_did("WRITE", "载波芯片注册信息0603", "** ** ** ** ** **", said=778856, check_seq=False)
-    engine.wait(20)
+    # 清除前置测试工装的PANID
+    clear_gw_info(aid=config["前置通断电工装AID"], pw=config["前置通断电工装PWD"])
     # 清除测试设备的PANID
     clear_gw_info()
-    engine.wait(20)
+    engine.report_check_enable_all(False)
 
     # 所有的状态和配置参数恢复至出厂参数
     engine.add_doc_info("所有的状态和配置参数恢复至出厂参数")
@@ -45,7 +36,7 @@ def test_测试完成恢复出厂参数():
     engine.send_did("WRITE", "设备运行状态信息统计E019", E019设备信息项="延时关闭时间毫秒", 时间=0)
     engine.expect_did("WRITE", "设备运行状态信息统计E019", E019设备信息项="延时关闭时间毫秒", 时间=0)
     # 前置工装通断电，然后进行测试参数验证
-    power_off_test()
+    power_control()
     engine.send_did("READ", "通断操作C012")
     engine.expect_did("READ", "通断操作C012", "00")
     engine.send_did("READ", "继电器上电状态C060")

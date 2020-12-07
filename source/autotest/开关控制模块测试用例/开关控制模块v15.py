@@ -25,6 +25,9 @@ config["适配层物料编码0602"] = "83676800004"
 config["适配层版本号0606"] = "ESMD-AD63(v2.2)-20170826"
 config["网络层物料编码0609"] = "83676800003"
 config["网络层版本号060A"] = "SSC1663-PLC(v1.0)-20171011"
+# 定义前置通断电工装AID和PWD
+config["前置通断电工装AID"] = 778856
+config["前置通断电工装PWD"] = 39751
 engine.config(config)
 
 if __name__ == "__main__":
