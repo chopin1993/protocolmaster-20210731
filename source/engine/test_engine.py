@@ -46,6 +46,7 @@ class TestEngine(object):
         self.report_enable = False
         self.fail_idx = 0
         self.fifo = FifoBuffer()
+        self.output_doc_dir = None
 
     def get_all_role(self):
         return self.com_medias[0].roles
@@ -113,7 +114,7 @@ class TestEngine(object):
         total, passed, failes = self.summary(valids)
         self.doc_engine.write_summary(total, passed, failes, valids)
         self.doc_engine.write_detail(valids)
-        self.doc_engine.save_doc(self.output_dir)
+        self.doc_engine.save_doc(self.get_output_doc_dir())
 
     def get_valid_infos(self):
         valids = []
@@ -130,6 +131,10 @@ class TestEngine(object):
 
     def run_all_test(self, valids=None):
         self.running = True
+
+        from tools.esloging import log_init
+        log_init(TestEngine.instance().get_output_doc_dir())
+
         def run_test(case):
             func = case.func
             case.clear()
@@ -191,21 +196,40 @@ class TestEngine(object):
     def set_output_dir(self, path):
         self.output_dir = path
 
+    def get_output_doc_dir(self):
+        time_str = time.strftime('%Y-%m-%d-%H-%M-%S', time.localtime(time.time()))
+        self.output_doc_dir = os.path.join(self.output_dir, "测试报告")
+        if not os.path.exists(self.output_doc_dir):
+            os.mkdir(self.output_doc_dir)
+        self.output_doc_dir = os.path.join(self.output_dir, "测试报告",time_str)
+        if not os.path.exists(self.output_doc_dir):
+            os.mkdir(self.output_doc_dir)
+        return self.output_doc_dir
+
+
 
 def log_snd_frame(name, data, only_log=False):
     if not only_log:
         TestEngine.instance().add_normal_operation(name, "snd", str(data))
         TestEngine.instance().add_normal_operation(name, "annotation", data.to_readable_str())
-    logging.info("%s snd %s", name, str(data))
-    logging.info("%s txt %s", name, data.to_readable_str())
+    if name in ["被测设备","测试工装"]:
+        logger = logging.getLogger(name)
+    else:
+        logger = logging.getLogger()
+    logger.info("%s snd %s", name, str(data))
+    logger.info("%s txt %s", name, data.to_readable_str())
 
 
 def log_rcv_frame(name, data, only_log=False):
     if not only_log:
         TestEngine.instance().add_normal_operation(name, "rcv", str(data))
         TestEngine.instance().add_normal_operation(name, "annotation", data.to_readable_str())
-    logging.info("%s rcv %s",name, str(data))
-    logging.info("%s txt %s",name, data.to_readable_str())
+    if name in ["被测设备","测试工装"]:
+        logger = logging.getLogger(name)
+    else:
+        logger = logging.getLogger()
+    logger.info("%s rcv %s",name, str(data))
+    logger.info("%s txt %s",name, data.to_readable_str())
 
 
 class Routine(object):
@@ -316,9 +340,6 @@ class TestEquiment(object):
         if isinstance(data, Smart7EData):
             self.legal_devices.add(data.taid)
             data = Monitor7EData.create_uart_message(data, cmd=UARTCmd.W_DATA)
-        else:
-            pass
-            #log_snd_frame("测试工装", data, only_log=True)
         log_snd_frame("测试工装", data, only_log=True)
         self.session.write(data)
 
@@ -347,8 +368,8 @@ class TestEquiment(object):
                         role.handle_rcv_msg(data)
 
     def handle_rcv_msg(self, monitor_data):
-       if monitor_data.is_uart_data():
-           log_rcv_frame("测试工装", monitor_data, only_log=True)
+        log_rcv_frame("测试工装", monitor_data, only_log=True)
+        if monitor_data.is_uart_data():
            self.buffer.receive(monitor_data.data)
            buffer_data = self.buffer.peek(-1)
            protocol = Smart7eProtocol()
@@ -364,5 +385,5 @@ class TestEquiment(object):
                if self.buffer.data_length() > 5000:
                    logging.warning("test engine buff too big %d, we will clear all buff", self.buffer.data_length())
                    self.buffer.read(self.buffer.read(self.buffer.data_length()))
-       else:
+        else:
            log_rcv_frame("测试工装", monitor_data, only_log=True)

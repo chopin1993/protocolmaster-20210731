@@ -1,0 +1,6 @@
+
+
+class ProbeDevice(object):
+    pass
+
+

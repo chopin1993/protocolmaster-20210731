@@ -194,11 +194,20 @@ class Monitor7EData(DataFragment):
             output += bytes([byte])
         return output
 
+    def get_cmd_name(self):
+        enum_dict = {
+            HardwareEnum.UART:UARTCmd,
+            HardwareEnum.SPI:SPICmd,
+            HardwareEnum.GPIO:GPIOCmd,
+            HardwareEnum.RELAY:RELAYCmd
+        }
+        return enum_dict[self.hardware].value_to_name(self.cmd)
+
     def to_readable_str(self):
         interface = (self.hardware.value << 4) | self.group
         text = "interface[{}] 功能:{} channel:{} cmd[{}]:{} len[{}]:{} data:{}".format(\
             u8tohexstr(interface),self.hardware.name,self.group,\
-            u8tohexstr(self.cmd),self.cmd,\
+            u8tohexstr(self.cmd),self.get_cmd_name(),\
             u8tohexstr(self.len),self.len,\
             str2hexstr(self.data))
         return text

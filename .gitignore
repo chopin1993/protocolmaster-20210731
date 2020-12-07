@@ -41,5 +41,8 @@
 *.render.md
 /test/test.db
 /test/.*xlsx
+/test/*.txt
 /doc/python入门教程/render/*
 /source/autotest/**/*.docx
+/source/autotest/**/*.txt
+

@@ -1,18 +1,20 @@
 import engine
 
+device_type = "FF FF 02 00 11 02 01 00"
 def test_software_version():
     """
     did测试
     did可以为字符串，可以是Number，也可以是字符串形式的Number
     """
     engine.send_did("READ", "设备类型0001")
-    engine.expect_did("READ", "设备类型0001", "FF FF 18 00 01 00 01 00")
+    match_pattern = "** ** ** ** ** ** ** **"
+    engine.expect_did("READ", "设备类型0001", match_pattern)
 
     engine.send_did("read", 0x0001)
-    engine.expect_did("READ", "设备类型0001", "FF FF 18 00 01 00 01 00")
+    engine.expect_did("READ", "设备类型0001", match_pattern)
 
     engine.send_did("READ", "0x0001")
-    engine.expect_did("READ", "设备类型0001", "FF FF 18 00 01 00 01 00")
+    engine.expect_did("READ", "设备类型0001", match_pattern)
 
     engine.send_did("READ", "0001")
     engine.expect_did("READ", "设备类型0001", "** ** ** ** ** ** ** **")
@@ -23,7 +25,7 @@ def test_device_type():
     did可以为字符串，可以是Number，也可以是字符串形式的Number
     """
     engine.send_did("READ", "设备类型0001")
-    engine.expect_did("READ", "设备类型0001", "FF FF 18 00 01 00 01 00")
+    engine.expect_did("READ", "设备类型0001", device_type)
 
 
 def test_did_para():

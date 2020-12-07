@@ -115,11 +115,7 @@ class DocxEngine(object):
         self.document.add_paragraph(body, style='fail')
 
     def save_doc(self,output_dir):
-       output_dir = os.path.join(output_dir, "测试报告")
-       if not os.path.exists(output_dir):
-           os.mkdir(output_dir)
-       time_str = time.strftime('%Y-%m-%d-%H-%M-%S', time.localtime(time.time()))
-       name = self.name+"_"+time_str+".docx"
+       name = self.name+".docx"
        name = os.path.join(output_dir,name)
        logging.info("generate doc %s",name)
        self.document.save(name)
