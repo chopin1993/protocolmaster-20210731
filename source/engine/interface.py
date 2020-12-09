@@ -233,7 +233,7 @@ def create_role(name, address):
     :param name:陪测设备名称
     :param address: 陪测设备地址
     """
-    return TestEngine.instance().get_default_device().create_role(name,address)
+    return TestEngine.instance().get_default_equiment().create_role(name, address)
 
 
 def add_fail_test(msg):
@@ -273,3 +273,54 @@ def report_check_enable_all(enable):
     :param enable: True: 检测上报报文 False:忽略上报报文。默认设备忽略上报报文
     """
     TestEngine.instance().report_enable = enable
+
+
+def control_relay(channel, value):
+    """
+    控制工装继电器的开关
+    :param channel:继电器通道
+    :param status:继电器通道
+    """
+    equiment = TestEngine.instance().get_default_equiment()
+    equiment.control_relay(channel, value)
+
+
+def expect_cross_zero_status(channel, value):
+    """
+    过零检测电路状态
+    :param channel:过零通道
+    :param value:期望过零电路状态
+    """
+    equiment = TestEngine.instance().get_default_equiment()
+    equiment.expect_cross_zero_status(channel, value)
+
+
+def set_device_input(sensor, value, channel=0):
+    """
+    设置设备的传感器输入值
+    :param channel:     传感器通道
+    :param senor:       温度 = 1
+                        湿度 = 2
+                        电压 = 3
+                        电流 = 4
+                        电阻 = 5
+                        雷达人体存在 = 11
+                        光学人体存在 = 12
+                        红外传感器 = 13
+                        插卡取电 = 21
+                        大量程照度 = 31
+                        自然光照度 = 32
+                        照度 = 33
+                        继电器输出 = 41
+                        光耦输出 = 42
+                        可控硅输出 = 43
+                        按键输入 = 51
+                        干节点输入 = 52
+                        干簧管输入 = 53
+                        二进制输入 = 61
+                        二进制输出 = 62
+                        字节类型 = 80
+    :param value:   设备值，可以是字符串（“00 12”）或者是整数
+    """
+    equiment = TestEngine.instance().get_default_equiment()
+    equiment.set_device_input(sensor, value, channel)

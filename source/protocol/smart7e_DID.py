@@ -21,6 +21,7 @@ def cmd_filter(suffixs, cmd):
         ids = "w"
     return ids in suffixs
 
+
 class DIDRemote(Register):
     DID=0xff00
     MEMBERS = []

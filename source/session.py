@@ -7,13 +7,14 @@ from PyQt5.QtCore import QObject, pyqtSignal,QTimer
 from tools.converter import bytearray2str,str2bytearray
 from protocol import Protocol
 import datetime
+import logging
 from copy import deepcopy
-from protocol.data_fragment import DataFragment
+from protocol.data_fragment import DataMetaType,DataByteArray
 
 class SessionSuit(QObject):
-    data_ready = pyqtSignal(DataFragment)
-    data_snd = pyqtSignal(DataFragment)
-    data_clean = pyqtSignal(DataFragment)
+    data_ready = pyqtSignal(DataMetaType)
+    data_snd = pyqtSignal(DataMetaType)
+    data_clean = pyqtSignal(DataMetaType)
     @staticmethod
     def create_binary_suit(media, protocol):
         encoder = BinaryEncoder()
@@ -71,10 +72,10 @@ class SessionSuit(QObject):
                 break
 
     def clear_data(self):
-        print("clear data")
         data = self.buffer.read(-1)
         if len(data) > 0:
-            self.data_clean.emit(self.protocol.create_raw_frame(data))
+            self.data_clean.emit(DataByteArray(value=data))
+            logging.warning("noise data" ,str2hexstr(data))
         self.bytes_timer.stop()
 
     def write(self, data, **kwargs):

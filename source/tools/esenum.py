@@ -4,6 +4,8 @@ class EsEnum(Enum):
 
     @classmethod
     def to_enum(cls, value):
+        if value is None:
+            return None
         if isinstance(value, str):
             value = value.upper()
             if value in cls.name_dict():
@@ -28,7 +30,7 @@ class EsEnum(Enum):
     @classmethod
     def value_to_name(cls,value):
         dict_ = cls.name_dict()
-        for key,value in dict_.items():
-            if value == value:
+        for key,value_ in dict_.items():
+            if value == value_:
                 return key
         return "unknown"

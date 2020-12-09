@@ -10,7 +10,7 @@ import time
 from engine.validator import *
 import weakref
 from user_exceptions import MeidaException
-from protocol.monitor7e_protocol import *
+from protocol.monitor9e_protocol import *
 from protocol.fifo_buffer import FifoBuffer
 
 def get_current_time_str():
@@ -60,7 +60,7 @@ class TestEngine(object):
     def get_local_routine(self):
         return self.com_medias[0].local_routine
 
-    def get_default_device(self):
+    def get_default_equiment(self):
         return self.com_medias[0]
 
     def config_test_program_name(self, name):
@@ -133,7 +133,7 @@ class TestEngine(object):
         self.running = True
 
         from tools.esloging import log_init
-        log_init(TestEngine.instance().get_output_doc_dir())
+        log_init(TestEngine.instance().get_output_doc_dir(True))
 
         def run_test(case):
             func = case.func
@@ -170,6 +170,7 @@ class TestEngine(object):
         self.generate_test_report(valids)
         self.running = False
 
+
     def is_exist_config(self):
         file_path = os.path.join(self.output_dir, "config.json")
         return os.path.exists(file_path)
@@ -196,14 +197,15 @@ class TestEngine(object):
     def set_output_dir(self, path):
         self.output_dir = path
 
-    def get_output_doc_dir(self):
-        time_str = time.strftime('%Y-%m-%d-%H-%M-%S', time.localtime(time.time()))
-        self.output_doc_dir = os.path.join(self.output_dir, "测试报告")
-        if not os.path.exists(self.output_doc_dir):
-            os.mkdir(self.output_doc_dir)
-        self.output_doc_dir = os.path.join(self.output_dir, "测试报告",time_str)
-        if not os.path.exists(self.output_doc_dir):
-            os.mkdir(self.output_doc_dir)
+    def get_output_doc_dir(self, refresh=False):
+        if refresh or self.output_doc_dir is None:
+            time_str = time.strftime('%Y-%m-%d-%H-%M-%S', time.localtime(time.time()))
+            self.output_doc_dir = os.path.join(self.output_dir, "测试报告")
+            if not os.path.exists(self.output_doc_dir):
+                os.mkdir(self.output_doc_dir)
+            self.output_doc_dir = os.path.join(self.output_dir, "测试报告",time_str)
+            if not os.path.exists(self.output_doc_dir):
+                os.mkdir(self.output_doc_dir)
         return self.output_doc_dir
 
 
@@ -214,22 +216,34 @@ def log_snd_frame(name, data, only_log=False):
         TestEngine.instance().add_normal_operation(name, "annotation", data.to_readable_str())
     if name in ["被测设备","测试工装"]:
         logger = logging.getLogger(name)
+        logger.info("snd %s", str(data))
+        logger.info("txt %s", data.to_readable_str())
     else:
         logger = logging.getLogger()
-    logger.info("%s snd %s", name, str(data))
-    logger.info("%s txt %s", name, data.to_readable_str())
+        logger.info("%s snd %s", name, str(data))
+        logger.info("%s txt %s", name, data.to_readable_str())
+
+
+def log_info(name, msg, *args, **kwargs):
+    if name in ["被测设备", "测试工装", "被测设备.raw"]:
+        logger = logging.getLogger(name)
+    else:
+        logger = logging.getLogger()
+    logger.info(msg, *args, **kwargs)
 
 
 def log_rcv_frame(name, data, only_log=False):
     if not only_log:
         TestEngine.instance().add_normal_operation(name, "rcv", str(data))
         TestEngine.instance().add_normal_operation(name, "annotation", data.to_readable_str())
-    if name in ["被测设备","测试工装"]:
+    if name in ["被测设备","测试工装","被测设备.raw"]:
         logger = logging.getLogger(name)
+        logger.info("rcv %s", str(data))
+        logger.info("txt %s", data.to_readable_str())
     else:
         logger = logging.getLogger()
-    logger.info("%s rcv %s",name, str(data))
-    logger.info("%s txt %s",name, data.to_readable_str())
+        logger.info("%s rcv %s",name, str(data))
+        logger.info("%s txt %s",name, data.to_readable_str())
 
 
 class Routine(object):
@@ -294,6 +308,26 @@ class TestEquiment(object):
         self.legal_devices = set()
         self.legal_devices.add(TestEngine.instance().get_test_dev_addr())
         self.buffer = FifoBuffer()
+        self.timer = QTimer()
+        self.timer.timeout.connect(self.timeout_handle)
+        self.validate = None
+
+    def timeout_handle(self):
+        self.timer.stop()
+        self.validate = None
+        TestEngine.instance().add_fail_test(self.name, "expect fail", "没有回复")
+
+    def wait_event(self, timeout):
+        self.timer.start(int(timeout*1000))
+        total = self.get_remaining_time()
+        while True:
+            left = self.get_remaining_time()
+            if total - left >= 10:
+                total = left
+                logging.info("left %ds", total)
+            if left == 0:
+                break
+            QCoreApplication.instance().processEvents()
 
     def config_com(self, **kwargs):
         setting = UARTSettingFbd(baudrate=kwargs['baudrate'], parity=Parity.无校验)
@@ -343,6 +377,20 @@ class TestEquiment(object):
         log_snd_frame("测试工装", data, only_log=True)
         self.session.write(data)
 
+    def set_device_input(self, sensor, value, channel):
+        data = SPIData(msg_type=sensor, data=value, chn=channel)
+        mointor_data = Monitor7EData.create_spi_message(data)
+        self.write(mointor_data)
+
+    def expect_cross_zero_status(self, channel, value):
+        mointor_data = Monitor7EData.create_relay_message(channel, value)
+        self.write(mointor_data)
+        self.validate =
+        self.wait_event(2)
+
+    def control_relay(self,channel, value):
+        mointor_data = Monitor7EData.create_relay_message(channel, value)
+        self.write(mointor_data)
 
     def handle_plc_msg(self, data):
         if data.is_local():
@@ -368,22 +416,36 @@ class TestEquiment(object):
                         role.handle_rcv_msg(data)
 
     def handle_rcv_msg(self, monitor_data):
-        log_rcv_frame("测试工装", monitor_data, only_log=True)
-        if monitor_data.is_uart_data():
-           self.buffer.receive(monitor_data.data)
-           buffer_data = self.buffer.peek(-1)
-           protocol = Smart7eProtocol()
-           decoder = BinaryDecoder()
-           (found, start, length) = protocol.find_frame_in_buff(buffer_data)
-           if found:
-               self.buffer.read(start + length)
-               frame_data = buffer_data[start:start + length]
-               decoder.set_data(frame_data)
-               monitor_data = protocol.decode(decoder)
-               self.handle_plc_msg(monitor_data)
-           else:
-               if self.buffer.data_length() > 5000:
-                   logging.warning("test engine buff too big %d, we will clear all buff", self.buffer.data_length())
-                   self.buffer.read(self.buffer.read(self.buffer.data_length()))
-        else:
-           log_rcv_frame("测试工装", monitor_data, only_log=True)
+        try:
+            log_rcv_frame("测试工装", monitor_data, only_log=True)
+            if monitor_data.is_uart_data():
+               self.buffer.receive(monitor_data.data)
+               buffer_data = self.buffer.peek(-1)
+               protocol = Smart7eProtocol()
+               decoder = BinaryDecoder()
+               (found, start, length) = protocol.find_frame_in_buff(buffer_data)
+               if found:
+                   self.buffer.read(start + length)
+                   frame_data = buffer_data[start:start + length]
+                   decoder.set_data(frame_data)
+                   monitor_data = protocol.decode(decoder)
+                   self.handle_plc_msg(monitor_data)
+               else:
+                   if self.buffer.data_length() > 300:
+                       logging.warning("test engine buff too big %d, we will clear all buff", self.buffer.data_length())
+                       self.buffer.read(self.buffer.read(self.buffer.data_length()))
+            elif monitor_data.is_spi_data():
+                from engine.probe_device import ProbeDevice
+                ProbeDevice.handle_spi_msg(monitor_data)
+            elif monitor_data.is_crosszero_data() and self.validate is not None:
+                valid, msg = self.validate(monitor_data)
+                if valid:
+                    TestEngine.instance().add_normal_operation(self.name, "expect success", msg)
+                else:
+                    TestEngine.instance().add_fail_test(self.name, "expect fail", msg)
+                self.validate = None
+                self.timer.stop()
+            else:
+                logging.warning("ignore msg %s", str(monitor_data))
+        except Exception as e:
+            logging.exception(e)

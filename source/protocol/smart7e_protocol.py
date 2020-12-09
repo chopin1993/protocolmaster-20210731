@@ -10,7 +10,7 @@ from .data_fragment import DataFragment
 from .DataMetaType import *
 from .smart_utils import *
 from .smart7e_DID import *
-
+import logging
 SMART_7e_HEAD = bytes([0x7e])
 
 
@@ -48,6 +48,8 @@ class UpdateFBD(DataFragment):
         encoder.encode_bytes(self.data)
 
     def decode(self, decoder):
+        if decoder.left_bytes() <6:
+            return
         self.seq = decoder.decode_u16()
         self.ack = decoder.decode_u8()
         self.crc = decoder.decode_bytes(2)
@@ -229,7 +231,8 @@ class Smart7eProtocol(Protocol):
                 start_pos += 1
                 continue
             if frame_data[11 + data_len] != checksum(frame_data[0:data_len + 11]):
-                print("check error")
+                logging.warning("smart7e check error")
+                start_pos += 1
                 show_time = True
             else:
                 return True,start_pos,data_len+12

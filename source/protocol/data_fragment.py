@@ -2,7 +2,7 @@
 from .DataMetaType import *
 
 
-class DataFragment(object):
+class DataFragment(DataMetaType):
     def __init__(self):
         self.units = []
 
@@ -34,3 +34,4 @@ class DataFragment(object):
 
     def to_readable_str(self):
         return str(self)
+

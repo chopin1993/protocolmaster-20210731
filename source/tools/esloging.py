@@ -4,9 +4,14 @@ import os
 def log_init(path):
     format = logging.Formatter('%(asctime)s - %(levelname)s: %(message)s')
     root = logging.getLogger()
+    add_handlers = []
     for handle in root.handlers:
         if isinstance(handle, logging.StreamHandler) or isinstance( handle,logging.FileHandler):
-            root.removeHandler(handle)
+            pass
+        else:
+            add_handlers.append(handle)
+    root.handlers.clear()
+    root.handlers.extend(add_handlers)
     root.setLevel(logging.DEBUG)
 
     stream = logging.StreamHandler()
@@ -32,4 +37,11 @@ def log_init(path):
     device_log.setFormatter(format)
     device_under_test.addHandler(device_log)
     device_under_test.propagate = False
+
+    device_raw = logging.getLogger("被测设备.raw")
+    device_raw.handlers.clear()
+    device_raw_logger = logging.FileHandler(os.path.join(path,"被测设备_raw.txt"), encoding="utf-8")
+    device_raw_logger.setFormatter(format)
+    device_raw.addHandler(device_raw_logger)
+    device_raw.propagate = False
 

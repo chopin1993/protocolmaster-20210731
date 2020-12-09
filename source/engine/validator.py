@@ -156,3 +156,18 @@ class SmartDataValidator(Validator):
             if self.fbd(smartData.fbd.data):
                 return False, error_msg("fbd", self.fbd,  smartData.fbd.data)
         return True, "验证成功"
+
+
+class MonitorCrossZeroValidator(Validator):
+    def __init__(self, channel, status):
+        self.channel = channel
+        self.status = status
+
+    def __call__(self, monitordata):
+        if self.channel != monitordata.group:
+            return False, error_msg("group", self.channel, monitordata.group)
+        elif  self.status != monitordata.data[0]:
+            return False, error_msg("status", self.status, monitordata.data[0])
+        else:
+            return True, "验证成功"
+
