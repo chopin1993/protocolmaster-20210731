@@ -46,3 +46,5 @@
 /source/autotest/**/*.docx
 /source/autotest/**/*.txt
 
+/test/test_file.bin
+/doc/todo

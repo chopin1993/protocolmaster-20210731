@@ -217,8 +217,8 @@ class Monitor7EData(DataFragment):
         return Monitor7EData(hardware=HardwareEnum.UART, group=group, cmd=cmd, data=data)
 
     @staticmethod
-    def create_spi_message(data,  group=0):
-        return Monitor7EData(hardware=HardwareEnum.SPI, group=group, cmd=SPICmd.DATA, data=data)
+    def create_spi_message(data,  group=0, cmd=SPICmd.W_DATA):
+        return Monitor7EData(hardware=HardwareEnum.SPI, group=group, cmd=cmd, data=data)
 
     @staticmethod
     def create_relay_message(channel, status, cmd=RELAYCmd.W_DATA):
@@ -234,6 +234,7 @@ class Monitor7EData(DataFragment):
     def __init__(self, hardware=None, group=0, cmd=None, data=bytes(), decoder=None):
         if hardware == 0xf:
             group = 0xf
+        self.raw_data = None
         self.hardware = hardware
         self.group = group
         self.cmd = self.to_enum_cmd(cmd) if cmd else None
@@ -295,12 +296,12 @@ class Monitor7EData(DataFragment):
         i = 0
         flag = 0
         for byte in data:
-            if flag == 0x20:
-                byte ^= 0x20
-                flag = 0
             if byte == 0x7d:
                 flag = 0x20
                 continue
+            if flag == 0x20:
+                byte ^= 0x20
+                flag = 0
             output += bytes([byte])
         return output
 
@@ -338,7 +339,7 @@ class Monitor7EData(DataFragment):
         return text
 
     def __str__(self):
-        data = BinaryEncoder.object2data(self)
+        data = self.raw_data if self.raw_data is not None else BinaryEncoder.object2data(self)
         return str2hexstr(data)
 
 

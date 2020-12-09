@@ -359,7 +359,7 @@ class TestEquiment(object):
             self.roles.append(self.local_routine)
             self.roles.append(self.updater)
         self.local_routine.send_local_msg("设置应用层地址", src)
-        self.local_routine.expect_local_msg(["确认", "否认"], timeout=2000)
+        self.local_routine.expect_local_msg(["确认", "否认"], timeout=2)
         self.local_routine.send_local_msg("设置透传模式", 1)
         self.local_routine.expect_local_msg("确认")
         return role
@@ -385,7 +385,7 @@ class TestEquiment(object):
     def expect_cross_zero_status(self, channel, value):
         mointor_data = Monitor7EData.create_relay_message(channel, value)
         self.write(mointor_data)
-        self.validate =
+        self.validate = MonitorCrossZeroValidator(channel, value)
         self.wait_event(2)
 
     def control_relay(self,channel, value):
@@ -398,7 +398,7 @@ class TestEquiment(object):
             return
 
         if data.said not in self.legal_devices:
-            #log_rcv_frame("ignore:", data, only_log=True)
+            log_rcv_frame("ignore:", data, only_log=True)
             return
 
         if data.is_update():

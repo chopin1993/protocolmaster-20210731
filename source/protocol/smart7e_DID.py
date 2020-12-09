@@ -1,17 +1,15 @@
 #encoding:utf-8
-from enum import Enum
-import json
-from json import JSONDecodeError
 from protocol.DataMetaType import *
 from copy import deepcopy
-from tools.converter import *
 import logging
-import os
 import re
 from collections import OrderedDict
 from .smart_utils import *
 from tools.filetool import get_config_file
 from tools.converter import *
+import importlib
+from tools.filetool import get_file_list
+import os
 
 def cmd_filter(suffixs, cmd):
     ids = cmd
@@ -249,8 +247,32 @@ def create_remote_class(name, did, member,type_name=""):
     cls.TYPE_NAME = type_name
     return cls
 
+
+user_func_dict = None
+
+
+def get_user_fun(name):
+    global user_func_dict
+    if user_func_dict is None:
+        user_func_dict = {}
+        files = get_file_list(os.path.join(os.path.dirname(__file__), "dids"))
+        for mod_name in files:
+            if mod_name.startswith("__"):
+                continue
+            mod = importlib.import_module("protocol.dids." + os.path.splitext(mod_name)[0])
+            names = getattr(mod,"SUPPORT_NAMES")
+            encode_func = getattr(mod, "encode_value")
+            decode_func = getattr(mod, "decode_value")
+            to_value_func = getattr(mod, "to_value", None)
+            value_str_func = getattr(mod, "value_str", None)
+            for key in names:
+                assert key not in user_func_dict,"{} have exist in vs config".format(key)
+                user_func_dict[key] = (encode_func, decode_func, to_value_func, value_str_func)
+    assert name in user_func_dict
+    return user_func_dict[name]
+
+
 def _create_did_class(did_type, did, member_patterns, did_name):
-    from .smart7e_DID_user import get_user_fun
     member_configs = re.findall(r"[(（]([\w.]*)[,，]([\w]*)[,，]([_\w]*)[)）]", member_patterns)
     members = []
     for meta_type, attr, name in member_configs:
@@ -405,7 +427,7 @@ def sync_xls_dids():
     _parse_local_cmd(workbook.sheet_by_name("localcmd"))
     logging.info("load  %d dids ok!!!!!",len(DIDRemote.get_did_dict()))
 
-def get_value_txt(enum_key, value):
+def to_xls_enum_name(enum_key, value):
     value_dict = enum_dict[enum_key]
     for key,value1 in value_dict.items():
         if value1 == value:

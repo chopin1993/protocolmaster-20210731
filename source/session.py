@@ -53,8 +53,8 @@ class SessionSuit(QObject):
             data = self.buffer.peek(-1)
             (found, start, length) = protocol.find_frame_in_buff(data)
             if found:
-                self.buffer.read(start + length)
-                #print(datetime.datetime.now(),"length:",len(data[0:start + length])," rcv", str2hexstr(data[0:start + length]))
+                raw_data = self.buffer.read(start + length)
+                #logging.info("rev raw: %s",str2hexstr(raw_data))
                 frame_data = data[start:start+length]
                 self.decoder.set_data(frame_data)
                 data = protocol.decode(self.decoder)
