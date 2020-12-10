@@ -13,9 +13,9 @@ def assert_version2():
 
 def test_update1():
     """
-    升级ESACT-1S1A(v1.5)-20200805
+    升级ESTK-B-5A(v1.11)-20201210.bin
     """
-    engine.update("ESACT-1S1A(v1.5)-20200805.bin")
+    engine.update("ESTK-B-5A(v1.12)-20201210")
     engine.wait(30)
     assert_version1()
 

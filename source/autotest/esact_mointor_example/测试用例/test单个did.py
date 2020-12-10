@@ -51,14 +51,3 @@ def test_r_string():
     engine.send_did("READ", "0004")
     engine.expect_did("READ", "0004", "SSC1663-ADPT-V30A012")
 
-def test_debug_mode():
-    """
-    调试模式
-    """
-    # 触发SWB总线探测
-    # 系统复位
-    # 清除系统所有信息
-    config = engine.get_config()
-    engine.send_did("WRITE", "自动测试FC00", 密码=config["设备密码"], 自动测试命令="触发SWB总线探测")
-    engine.expect_did("WRITE", "自动测试FC00", 密码=config["设备密码"], 自动测试命令="触发SWB总线探测")
-

@@ -166,7 +166,6 @@ class Smart7EData(DataFragment):
             fbd_data = self.fbd
         else:
             fbd_data = encoder.object2data(self.fbd)
-
         encoder.encode_u8(len(fbd_data))
         encoder.encode_str(fbd_data)
         encoder.encode_u8(checksum(encoder.get_data()))
