@@ -3,12 +3,16 @@ from protocol.monitor9e_protocol import *
 from protocol.fifo_buffer import FifoBuffer
 import logging
 from protocol.smart7e_protocol import  Smart7eProtocol
+import engine
 
 class ProbeDevice(object):
     _instance = None
 
     @staticmethod
     def handle_spi_msg(msg):
+        if not ProbeDevice.instance().probe_connected:
+            ProbeDevice.instance().probe_connected = True
+            engine.add_doc_info("\n\n***************监测器探测成功，测试将充分利用监测器信息**********\n\n")
         log_rcv_frame("被测设备.raw", msg, only_log=True)
         cmd = SPICmd.to_enum(msg.cmd)
         if cmd in [SPICmd.MOINTOR_DETECT_NOTIFY]:
@@ -17,6 +21,7 @@ class ProbeDevice(object):
             log_info("被测设备", "同步调试总线")
         elif cmd in [SPICmd.DEVICE_ID]:
             device_info = msg.get_parsed_data()
+            log_info("被测设备", "device info:%s", str(device_info))
             ProbeDevice.instance().set_device_info(device_info)
         elif cmd in [SPICmd.DATA]:
             spi_data = msg.get_parsed_data()
@@ -37,6 +42,7 @@ class ProbeDevice(object):
         self.rcv_frames = []
         self.snd_frames = []
         self.sensor_status = {}
+        self.probe_connected = False
 
     def append_rcv_frame(self, frame):
         if len(self.rcv_frames) > 10:
@@ -52,7 +58,7 @@ class ProbeDevice(object):
 
     def set_device_info(self, info):
         self.info = info
-        log_info("被测设备","device info:%s",str(self.info))
+
 
     def rcv_probe_msg(self, spi_msg):
         if spi_msg.is_plc_rcv():
@@ -84,5 +90,6 @@ class ProbeDevice(object):
         self.sensor_status = {}
         self.rcv_frames = []
         self.snd_frames = []
+        self.probe_connected = False
 
 

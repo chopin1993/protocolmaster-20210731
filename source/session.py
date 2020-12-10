@@ -75,7 +75,7 @@ class SessionSuit(QObject):
         data = self.buffer.read(-1)
         if len(data) > 0:
             self.data_clean.emit(DataByteArray(value=data))
-            logging.warning("noise data" ,str2hexstr(data))
+            logging.warning("noise data %s" ,str2hexstr(data))
         self.bytes_timer.stop()
 
     def write(self, data, **kwargs):

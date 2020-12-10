@@ -134,6 +134,8 @@ class TestEngine(object):
 
         from tools.esloging import log_init
         log_init(TestEngine.instance().get_output_doc_dir(True))
+        from engine.probe_device import ProbeDevice
+        ProbeDevice.instance().clear_status()
 
         def run_test(case):
             func = case.func
