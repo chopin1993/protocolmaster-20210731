@@ -23,7 +23,8 @@ class DataFragment(DataMetaType):
 
     def decode(self, decoder):
         for unit in self.units:
-            unit.decode(decoder)
+            if decoder.left_bytes() >0:
+                unit.decode(decoder)
 
     def __str__(self):
         txt = ""

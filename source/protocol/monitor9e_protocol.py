@@ -53,6 +53,7 @@ class Parity(EsEnum):
       偶校验=2
 
 
+
 class SPIMessageType(EsEnum):
     温度 = 1
     湿度 = 2

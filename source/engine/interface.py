@@ -7,6 +7,7 @@ from engine.case_editor import CaseEditor
 from .interface_helper import *
 from user_exceptions import MeidaException
 
+
 def config(infos):
     """
     配置项目基本信息
@@ -14,12 +15,7 @@ def config(infos):
     """
     TestEngine.instance().config = infos
     TestEngine.instance().config_test_program_name(infos["测试程序名称"])
-    com = TestEngine.instance().create_com_device(infos["串口"])
-    def init_func():
-        nonlocal com
-        com.config_com(port=infos["串口"], baudrate=infos["波特率"], parity=infos["校验位"])
-        com.create_role("monitor", infos["抄控器默认源地址"])
-    TestEngine.instance().group_begin("测试配置信息", init_func,None)
+    TestEngine.instance().create_com_device(infos["串口"])
 
 
 def get_config():
@@ -284,6 +280,18 @@ def control_relay(channel, value):
     equiment = TestEngine.instance().get_default_equiment()
     equiment.control_relay(channel, value)
 
+
+def setting_uart(channel, baudrate, parity):
+    """
+    配置监控器的串口
+    :param channel:通道
+    :param baudrate:波特率
+    :param parity:校验位 奇校验、偶校验、无校验
+    """
+    equiment = TestEngine.instance().get_default_equiment()
+    config = get_config()
+    equiment.config_com(port=config["串口"], baudrate=config["波特率"], parity=config["校验位"])
+    equiment.setting_uart(channel, baudrate, parity)
 
 def expect_cross_zero_status(channel, value):
     """

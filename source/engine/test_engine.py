@@ -127,7 +127,7 @@ class TestEngine(object):
         return self.running
 
     def run_single_case(self,case):
-        return self.run_all_test([self.all_infos[0], case])
+        return self.run_all_test([self.all_infos[0],case])
 
     def run_all_test(self, valids=None):
         self.running = True
@@ -317,6 +317,11 @@ class TestEquiment(object):
         self.cross_zero_validater = None
         TestEngine.instance().add_fail_test(self.name, "expect fail", "没有回复")
 
+    def get_remaining_time(self):
+        if self.timer.isActive():
+            return max(1,self.timer.remainingTime()//1000)
+        return 0
+
     def wait_event(self, timeout):
         self.timer.start(int(timeout*1000))
         total = self.get_remaining_time()
@@ -330,10 +335,7 @@ class TestEquiment(object):
             QCoreApplication.instance().processEvents()
 
     def config_com(self, **kwargs):
-        setting = UARTSettingFbd(baudrate=kwargs['baudrate'], parity=Parity.无校验)
-        data = Monitor7EData.create_uart_message(setting, UARTCmd.W_SETTING)
         ret = self.media.config(**kwargs)
-        self.write(data)
         return ret
 
     def create_role(self, name, src):
@@ -346,8 +348,6 @@ class TestEquiment(object):
                     role.name = name
                     self.local_routine.send_local_msg("设置应用层地址", src)
                     self.local_routine.expect_local_msg(["确认", "否认"], timeout=2)
-                    self.local_routine.send_local_msg("设置透传模式", 1)
-                    self.local_routine.expect_local_msg("确认")
                     return role
         role = RoleRoutine(name, src, self)
         self.roles.append(role)
@@ -360,8 +360,6 @@ class TestEquiment(object):
             self.roles.append(self.updater)
         self.local_routine.send_local_msg("设置应用层地址", src)
         self.local_routine.expect_local_msg(["确认", "否认"], timeout=2)
-        self.local_routine.send_local_msg("设置透传模式", 1)
-        self.local_routine.expect_local_msg("确认")
         return role
 
     def get_dst_addr(self, dst=None):
@@ -400,10 +398,21 @@ class TestEquiment(object):
             msg = error_msg("sensor {} data".format(sensor.name), expect_data, real_data)
             TestEngine.instance().add_fail_test("equiment", "fail", msg)
 
-
     def control_relay(self,channel, value):
         mointor_data = Monitor7EData.create_relay_message(channel, value)
         self.write(mointor_data)
+
+    def setting_uart(self,  channel, baudrate, parity=Parity.无校验):
+        convert_dict ={"Even":"偶校验","Odd":"奇校验","None":"无校验"}
+        if parity in convert_dict:
+           parity = convert_dict[parity]
+        parity = Parity.to_enum(parity)
+        setting = UARTSettingFbd(baudrate=baudrate, parity=parity)
+        data = Monitor7EData.create_uart_message(setting, UARTCmd.W_SETTING, group=channel)
+        self.write(data)
+        data = Monitor7EData.create_uart_message(bytes(), UARTCmd.SETTING, group=channel)
+        self.write(data)
+
 
     def handle_plc_msg(self, data):
         if data.is_local():
