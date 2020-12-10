@@ -68,7 +68,8 @@ class ProbeDevice(object):
         else:
             self.set_sensor_status(spi_msg.chn, spi_msg.msg_type, spi_msg.data)
 
-    def get_sensor_status(self, chn, msg_type, status):
+    def get_sensor_status(self, chn, msg_type):
+        msg_type = SPIMessageType.to_enum(msg_type)
         key = "{}-{}".format(msg_type.name, chn)
         if key in self.sensor_status:
             return self.sensor_status[key]

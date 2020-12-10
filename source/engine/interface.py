@@ -295,32 +295,78 @@ def expect_cross_zero_status(channel, value):
     equiment.expect_cross_zero_status(channel, value)
 
 
-def set_device_input(sensor, value, channel=0):
+def set_device_sensor_status(sensor, value=bytes(), channel=0):
     """
     设置设备的传感器输入值
-    :param channel:     传感器通道
-    :param senor:       温度 = 1
+    :param senor:       以下类型是U32类型
+                        温度 = 1
                         湿度 = 2
                         电压 = 3
                         电流 = 4
                         电阻 = 5
+                        大量程照度 = 31
+                        自然光照度 = 32
+                        照度 = 33
+
+                        以下传感器是U8类型
                         雷达人体存在 = 11
                         光学人体存在 = 12
                         红外传感器 = 13
                         插卡取电 = 21
-                        大量程照度 = 31
-                        自然光照度 = 32
-                        照度 = 33
                         继电器输出 = 41
                         光耦输出 = 42
                         可控硅输出 = 43
-                        按键输入 = 51
                         干节点输入 = 52
                         干簧管输入 = 53
                         二进制输入 = 61
                         二进制输出 = 62
+
+                        枚举类型：
+                        按键输入 = 51 1:短按 2:长按
+
                         字节类型 = 80
-    :param value:   设备值，可以是字符串（“00 12”）或者是整数
+    :param value:  根据传感器类型赋值,使用默认值表示传感器状态
+    :param channel: 传感器通道
     """
     equiment = TestEngine.instance().get_default_equiment()
-    equiment.set_device_input(sensor, value, channel)
+    equiment.set_device_sensor_status(sensor, value, channel)
+
+def expect_device_output_status(sensor, value, channel=0, wait_time=0):
+    """
+    通过监测器检查设备的状态
+    :param sensor:
+    :param senor:      以下类型是U32类型
+                        温度 = 1
+                        湿度 = 2
+                        电压 = 3
+                        电流 = 4
+                        电阻 = 5
+                        大量程照度 = 31
+                        自然光照度 = 32
+                        照度 = 33
+
+                        以下传感器是U8类型
+                        雷达人体存在 = 11
+                        光学人体存在 = 12
+                        红外传感器 = 13
+                        插卡取电 = 21
+                        继电器输出 = 41
+                        光耦输出 = 42
+                        可控硅输出 = 43
+                        干节点输入 = 52
+                        干簧管输入 = 53
+                        二进制输入 = 61
+                        二进制输出 = 62
+
+                        枚举类型：
+                        按键输入 = 51 1:短按 2:长按
+
+                        字节类型 = 80
+    :param value: 根据传感器类型赋值
+    :param channel: 传感器通道
+    :param wait_time:检测状态之前等待的时间
+    """
+    if wait_time > 0:
+        wait(wait_time)
+    equiment = TestEngine.instance().get_default_equiment()
+    equiment.expect_device_output_status(sensor, value, channel)

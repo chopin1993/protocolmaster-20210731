@@ -18,9 +18,9 @@ class NoMessage(Validator):
 
     def __call__(self, data):
         if not self.allowed_message and data is not None:
-            return False, "验证失败,等待时收到异常报文"
+            return False, "等待验证失败,收到异常报文"
         else:
-            return True, "验证成功"
+            return True, "等待验证成功"
     def __str__(self):
         return "允许收到信息" if self.allowed_message else "不允许收到信息"
 
@@ -38,7 +38,7 @@ class SmartLocalValidator(Validator):
 
     def __call__(self, data):
         if data is None:
-            return False, "验证失败, 没有收到回复报文"
+            return False, "本地通信报文验证失败, 没有收到回复报文"
         is_local = data.is_local()
         if not is_local:
             return False, error_msg("address","local","non local")
@@ -54,7 +54,7 @@ class SmartLocalValidator(Validator):
         if not cmd_valid:
             return False, error_msg("cmd", self.cmd, fbd.cmd)
 
-        return True, "验证成功"
+        return True, "本地报文验证成功"
 
 
 class BytesCompare(Validator):
@@ -155,7 +155,7 @@ class SmartDataValidator(Validator):
         else:
             if self.fbd(smartData.fbd.data):
                 return False, error_msg("fbd", self.fbd,  smartData.fbd.data)
-        return True, "验证成功"
+        return True, "报文验证成功"
 
 
 class MonitorCrossZeroValidator(Validator):
@@ -169,5 +169,5 @@ class MonitorCrossZeroValidator(Validator):
         elif  self.status != monitordata.data[0]:
             return False, error_msg("status", self.status, monitordata.data[0])
         else:
-            return True, "验证成功"
+            return True, "过零检测 channel:{} status:{} 验证成功".format(self.channel, self.status)
 

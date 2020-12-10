@@ -58,7 +58,7 @@ class DataMetaType(Register):
         3. 接收时，将数据放到widget进行显示
         4. 接收时，将数据解析为对人类友好的txt
         '''
-        self.name = name
+        self.name = name if name else ""
         self._value = value
         self.attr = attr
         self.extra = []

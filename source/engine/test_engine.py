@@ -310,11 +310,11 @@ class TestEquiment(object):
         self.buffer = FifoBuffer()
         self.timer = QTimer()
         self.timer.timeout.connect(self.timeout_handle)
-        self.validate = None
+        self.cross_zero_validater = None
 
     def timeout_handle(self):
         self.timer.stop()
-        self.validate = None
+        self.cross_zero_validater = None
         TestEngine.instance().add_fail_test(self.name, "expect fail", "没有回复")
 
     def wait_event(self, timeout):
@@ -377,7 +377,7 @@ class TestEquiment(object):
         log_snd_frame("测试工装", data, only_log=True)
         self.session.write(data)
 
-    def set_device_input(self, sensor, value, channel):
+    def set_device_sensor_status(self, sensor, value, channel):
         data = SPIData(msg_type=sensor, data=value, chn=channel)
         mointor_data = Monitor7EData.create_spi_message(data)
         self.write(mointor_data)
@@ -385,8 +385,21 @@ class TestEquiment(object):
     def expect_cross_zero_status(self, channel, value):
         mointor_data = Monitor7EData.create_relay_message(channel, value)
         self.write(mointor_data)
-        self.validate = MonitorCrossZeroValidator(channel, value)
+        self.cross_zero_validater = MonitorCrossZeroValidator(channel, value)
         self.wait_event(2)
+
+    def expect_device_output_status(self, sensor, value, channel):
+        from .probe_device import ProbeDevice
+        sensor = SPIMessageType.to_enum(sensor)
+        real_data = ProbeDevice.instance().get_sensor_status(channel, sensor)
+        expect_data = SPIData.encode_data(sensor, value)
+        if real_data == expect_data:
+            msg = "传感器{}验证成功, status {}".format(sensor.name, str2hexstr(real_data))
+            TestEngine.instance().add_normal_operation("equiment", "doc", msg)
+        else:
+            msg = error_msg("sensor {} data".format(sensor.name), expect_data, real_data)
+            TestEngine.instance().add_fail_test("equiment", "fail", msg)
+
 
     def control_relay(self,channel, value):
         mointor_data = Monitor7EData.create_relay_message(channel, value)
@@ -415,6 +428,7 @@ class TestEquiment(object):
                     if data.taid == role.src:
                         role.handle_rcv_msg(data)
 
+
     def handle_rcv_msg(self, monitor_data):
         try:
             log_rcv_frame("测试工装", monitor_data, only_log=True)
@@ -437,13 +451,13 @@ class TestEquiment(object):
             elif monitor_data.is_spi_data():
                 from engine.probe_device import ProbeDevice
                 ProbeDevice.handle_spi_msg(monitor_data)
-            elif monitor_data.is_crosszero_data() and self.validate is not None:
-                valid, msg = self.validate(monitor_data)
+            elif monitor_data.is_crosszero_data() and self.cross_zero_validater is not None:
+                valid, msg = self.cross_zero_validater(monitor_data)
                 if valid:
                     TestEngine.instance().add_normal_operation(self.name, "expect success", msg)
                 else:
                     TestEngine.instance().add_fail_test(self.name, "expect fail", msg)
-                self.validate = None
+                self.cross_zero_validater = None
                 self.timer.stop()
             else:
                 logging.warning("ignore msg %s", str(monitor_data))

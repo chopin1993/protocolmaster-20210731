@@ -133,17 +133,22 @@ class SPIData(MonitorUnit):
         super(SPIData, self).__init__()
         self.chn = chn
         self.msg_type = SPIMessageType.to_enum(msg_type)
-        if isinstance(data, str):
-            data = hexstr2bytes(data)
         if data is not None and not isinstance(data, (bytes,bytearray)):
-            cls = self.get_data_parse_cls(self.msg_type)
-            data = BinaryEncoder.object2data(cls(name="", value=data))
+            data = SPIData.encode_data(msg_type, data)
         self.data = data
         if decoder is not None:
             self.decode(decoder)
 
     @staticmethod
-    def get_data_parse_cls(msg_type):
+    def encode_data(msg_type, value):
+        msg_type = SPIMessageType.to_enum(msg_type)
+        unit = SPIData.get_data_parse_object(msg_type)
+        unit.value = value
+        data = BinaryEncoder.object2data(unit)
+        return data
+
+    @staticmethod
+    def get_data_parse_object(msg_type):
         if msg_type in [SPIMessageType.二进制输入,\
                              SPIMessageType.二进制输出,\
                              SPIMessageType.光学人体存在,\
@@ -151,12 +156,14 @@ class SPIData(MonitorUnit):
                              SPIMessageType.雷达人体存在,\
                              SPIMessageType.可控硅输出,\
                              SPIMessageType.干节点输入,\
-                             SPIMessageType.按键输入,\
                              SPIMessageType.继电器输出,\
                              SPIMessageType.干簧管输入,\
                              SPIMessageType.插卡取电,\
                              SPIMessageType.光耦输出]:
-            return DataU8
+            return DataU8()
+        elif msg_type in [SPIMessageType.按键输入]:
+            name_dict={"短按":1, "长按":2}
+            return DataU8Enum(name_dict=name_dict)
         elif msg_type in [SPIMessageType.温度,\
                                SPIMessageType.湿度,\
                                SPIMessageType.大量程照度,\
@@ -168,9 +175,9 @@ class SPIData(MonitorUnit):
                                ]:
             return DataU32
         elif msg_type in [SPIMessageType.字节类型]:
-            return DataByteArray
+            return DataByteArray()
         else:
-            return DataByteArray
+            return DataByteArray()
 
     def is_plc_rcv(self):
         return self.msg_type == SPIMessageType.字节类型 and self.chn == BytesChannelEnum.PLC_RCV.value
