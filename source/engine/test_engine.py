@@ -98,6 +98,7 @@ class TestEngine(object):
 
     def add_normal_operation(self,role, tag, msg):
         self.current_test.add_normal_operation(role, tag, msg, get_current_time_str())
+        logging.info(msg)
 
     def summary(self, infos):
         total, passed = 0,0
@@ -378,27 +379,39 @@ class TestEquiment(object):
         self.session.write(data)
 
     def set_device_sensor_status(self, sensor, value, channel):
+        sensor = SPIMessageType.to_enum(sensor)
+        from .probe_device import ProbeDevice
+        if not ProbeDevice.instance().probe_connected:
+            msg = "Probe Not Connected,忽略设置传感器{} status {} channel:{}".format(sensor.name, value,  channel)
+            TestEngine.instance().add_normal_operation("equiment", "doc", msg)
+            return
         data = SPIData(msg_type=sensor, data=value, chn=channel)
         mointor_data = Monitor7EData.create_spi_message(data)
         self.write(mointor_data)
+
+    def expect_device_output_status(self, sensor, value, channel):
+        sensor = SPIMessageType.to_enum(sensor)
+
+        from .probe_device import ProbeDevice
+        if not ProbeDevice.instance().probe_connected:
+            msg = "Probe Not Connected,忽略检测传感器{} status {} channel:{}".format(sensor.name, value,  channel)
+            TestEngine.instance().add_normal_operation("equiment", "doc", msg)
+            return
+
+        real_data = ProbeDevice.instance().get_sensor_status(channel, sensor)
+        expect_data = SPIData.encode_data(sensor, value)
+        if real_data == expect_data:
+            msg = "传感器{}验证成功, status:{} channel:{}".format(sensor.name, str2hexstr(real_data), channel)
+            TestEngine.instance().add_normal_operation("equiment", "doc", msg)
+        else:
+            msg = error_msg("sensor:{} channel:{} data".format(sensor.name, channel), expect_data, real_data)
+            TestEngine.instance().add_fail_test("equiment", "fail", msg)
 
     def expect_cross_zero_status(self, channel, value):
         mointor_data = Monitor7EData.create_relay_message(channel, value)
         self.write(mointor_data)
         self.cross_zero_validater = MonitorCrossZeroValidator(channel, value)
         self.wait_event(2)
-
-    def expect_device_output_status(self, sensor, value, channel):
-        from .probe_device import ProbeDevice
-        sensor = SPIMessageType.to_enum(sensor)
-        real_data = ProbeDevice.instance().get_sensor_status(channel, sensor)
-        expect_data = SPIData.encode_data(sensor, value)
-        if real_data == expect_data:
-            msg = "传感器{}验证成功, status {}".format(sensor.name, str2hexstr(real_data))
-            TestEngine.instance().add_normal_operation("equiment", "doc", msg)
-        else:
-            msg = error_msg("sensor {} data".format(sensor.name), expect_data, real_data)
-            TestEngine.instance().add_fail_test("equiment", "fail", msg)
 
     def control_relay(self,channel, value):
         mointor_data = Monitor7EData.create_relay_message(channel, value)

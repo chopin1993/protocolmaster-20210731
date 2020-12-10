@@ -246,7 +246,6 @@ def add_doc_info(msg):
     :param msg: 测试辅助信息
     """
     TestEngine.instance().add_normal_operation("", "doc", msg)
-    logging.info(msg)
 
 
 def wait(seconds, allowed_message=True, said=None,tips=""):
