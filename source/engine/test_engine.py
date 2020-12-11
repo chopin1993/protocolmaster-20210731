@@ -225,6 +225,8 @@ class TestEngine(object):
 
 
 def log_snd_frame(name, data, only_log=False):
+    if data is None:
+        return
     if not only_log:
         TestEngine.instance().add_normal_operation(name, "snd", str(data))
         TestEngine.instance().add_normal_operation(name, "annotation", data.to_readable_str())
@@ -248,6 +250,8 @@ def log_info(name, msg, *args, **kwargs):
 
 
 def log_rcv_frame(name, data, only_log=False):
+    if data is None:
+        return
     if not only_log:
         TestEngine.instance().add_normal_operation(name, "rcv", str(data))
         TestEngine.instance().add_normal_operation(name, "annotation", data.to_readable_str())
@@ -359,35 +363,35 @@ class TestEquiment(object):
         ret = self.media.config(**kwargs)
         return ret
 
-    def create_role(self, name, src):
-        self.legal_devices.add(src)
+    def create_role(self, name, said):
+        self.legal_devices.add(said)
         from .role_routine import RoleRoutine
         from .local_routine import LocalRoutine
         for role in self.roles:
             if isinstance(role, RoleRoutine):
-                if role.src == src:
+                if role.said == said:
                     role.name = name
-                    self.local_routine.send_local_msg("设置应用层地址", src)
+                    self.local_routine.send_local_msg("设置应用层地址", said)
                     self.local_routine.expect_local_msg(["确认", "否认"], timeout=2)
                     return role
-        role = RoleRoutine(name, src, self)
+        role = RoleRoutine(name, said, self)
         self.roles.append(role)
         if self.default_role is None:
             self.default_role = role
             from engine.updater import UpdateRoutine
-            self.updater = UpdateRoutine("updater", src, self)
+            self.updater = UpdateRoutine("updater", said, self)
             self.local_routine = LocalRoutine("local", self)
             self.roles.append(self.local_routine)
             self.roles.append(self.updater)
-        self.local_routine.send_local_msg("设置应用层地址", src)
+        self.local_routine.send_local_msg("设置应用层地址", said)
         self.local_routine.expect_local_msg(["确认", "否认"], timeout=2)
         return role
 
-    def get_dst_addr(self, dst=None):
-        if dst is None:
+    def get_taid(self, taid=None):
+        if taid is None:
             return TestEngine.instance().get_test_dev_addr()
         else:
-            return dst
+            return taid
 
     def write(self, data):
         from .probe_device import ProbeDevice
@@ -492,7 +496,7 @@ class TestEquiment(object):
                     if role.is_expect_boradcast:
                         role.handle_rcv_msg(data)
                 else:
-                    if data.taid == role.src:
+                    if data.taid == role.said:
                         role.handle_rcv_msg(data)
 
 

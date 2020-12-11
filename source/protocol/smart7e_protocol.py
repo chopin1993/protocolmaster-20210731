@@ -113,13 +113,13 @@ class RemoteFBD(DataFragment):
 
 class Smart7EData(DataFragment):
     SEQ = 0
-    def __init__(self, src=None, dst=None, fbd=None, decoder=None):
+    def __init__(self, said=None, taid=None, fbd=None, decoder=None):
         self.data = None
         if decoder is not None:
             self.decode(decoder)
         else:
-            self.said = src
-            self.taid = dst
+            self.said = said
+            self.taid = taid
             self.fbd = fbd
             self.seq = Smart7EData.SEQ
             Smart7EData.SEQ +=1

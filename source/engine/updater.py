@@ -65,9 +65,9 @@ class UpdateRoutine(Routine):
     UPDATEING=0
     SUSPEND=1
     STOP=2
-    def __init__(self, name, src, device):
+    def __init__(self, name, said, device):
         super(UpdateRoutine, self).__init__(name, device)
-        self.src = src
+        self.said = said
         self.file_name = None
         self.send_idx = 0
         self.block_size = 128
@@ -125,8 +125,8 @@ class UpdateRoutine(Routine):
         self.send_idx = idx
         self.snd_seqs.append(idx)
         fbd = self.parser.get_package(idx, self.block_size)
-        dst = self.device.get_dst_addr(None)
-        data = Smart7EData(self.src, dst, fbd)
+        taid = self.device.get_taid(None)
+        data = Smart7EData(self.said, taid, fbd)
         logging.info("update snd %s", str(data))
         logging.info("update txt %s", data.to_readable_str())
         self.device.write(data)

@@ -111,7 +111,7 @@ def expect_multi_dids(cmd, *args,
                            said=said,
                            check_seq=check_seq)
 
-def boardcast_send_multi_dids(cmd, *args):
+def broadcast_send_multi_dids(cmd, *args):
     """
     :param cmd:支持“READ”,"WRITE","REPORT","NOTIFY"
     :param args:gid1, gidtyp1,did1,value1,gid2,gidtyp2 did2,value2...gid1,gidtyp1,did和value顺序排列
@@ -120,9 +120,9 @@ def boardcast_send_multi_dids(cmd, *args):
     role.send_multi_dids(cmd, *args, taid=0xffffffff)
 
 
-def boardcast_expect_multi_dids(cmd, *args,
-                      timeout=2, ack=False, said=None,
-                      check_seq=True):
+def broadcast_expect_multi_dids(cmd, *args,
+                                timeout=2, ack=False, said=None,
+                                check_seq=True):
     """
     期望收到多个广播did
     :param cmd:支持“READ”,"WRITE","REPORT","NOTIFY"

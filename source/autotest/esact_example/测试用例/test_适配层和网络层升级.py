@@ -16,7 +16,7 @@ def test_update1():
     """
     升级适配层
     """
-    engine.update("ESMD-AD63(v2.1)-20170210-update.bin")
+    engine.update("ESMD-AD63(v2.1)-20170210.bin")
 
 
 

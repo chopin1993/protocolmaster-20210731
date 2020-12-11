@@ -6,7 +6,7 @@ import engine
 config = dict()
 config["测试程序名称"] = r"ESACT-1A(v1.5)-20200805"
 # 定义抄控器的基本信息
-config["串口"] = "COM9"
+config["串口"] = "COM6"
 config["波特率"] = "9600"
 config["校验位"] = 'None'
 config["抄控器默认源地址"] = 20
@@ -25,6 +25,9 @@ config["适配层物料编码0602"] = "83676800004"
 config["适配层版本号0606"] = "ESMD-AD63(v2.2)-20170826"
 config["网络层物料编码0609"] = "83676800003"
 config["网络层版本号060A"] = "SSC1663-PLC(v1.0)-20171011"
+# 定义前置通断电工装AID和PWD
+config["前置通断电工装AID"] = 778856
+config["前置通断电工装PWD"] = 39751
 engine.config(config)
 
 if __name__ == "__main__":

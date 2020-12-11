@@ -11,10 +11,10 @@ class Validator(Register):
 
 
 class NoMessage(Validator):
-    def __init__(self,allowed_message=False,src=None):
+    def __init__(self, allowed_message=False, said=None):
         super(NoMessage, self).__init__()
         self.allowed_message = allowed_message
-        self.src = src
+        self.said = said
 
     def __call__(self, data):
         if not self.allowed_message and data is not None:
@@ -31,6 +31,7 @@ class SmartLocalValidator(Validator):
     def __init__(self, **kwargs):
         super(SmartLocalValidator, self).__init__()
         self.kwargs = kwargs
+        self.said = 0
         self.cmd = self.kwargs['cmd']
         if not isinstance(self.cmd, list):
             self.cmd = [self.cmd]
@@ -122,12 +123,12 @@ def error_msg(filed, expected, rcv):
 
 
 class SmartDataValidator(Validator):
-    def __init__(self, src, dst, cmd=None, gid=None,dids=None,fbd=None, seq=None, ack=False):
+    def __init__(self, said, taid, cmd=None, gid=None, dids=None, fbd=None, seq=None, ack=False):
         super(SmartDataValidator, self).__init__()
         self.cmd = cmd
         self.dids = dids
-        self.src = src
-        self.dst = dst
+        self.said = said
+        self.taid = taid
         self.ack = ack
         self.fbd = fbd
         self.seq = seq
@@ -137,10 +138,10 @@ class SmartDataValidator(Validator):
         if smartData is None:
             return False, "没有回复"
 
-        if  self.src != smartData.said:
-            return False,error_msg("said",self.src, smartData.said)
-        if self.dst != smartData.taid:
-            return False,error_msg("taid", self.dst, smartData.taid)
+        if  self.said != smartData.said:
+            return False,error_msg("said", self.said, smartData.said)
+        if self.taid != smartData.taid:
+            return False,error_msg("taid", self.taid, smartData.taid)
         if self.seq is not None and self.seq != (smartData.seq&0x7f):
             return False, error_msg("seq", self.seq, smartData.seq)
         if self.fbd is None:
