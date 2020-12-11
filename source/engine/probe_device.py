@@ -43,14 +43,20 @@ class ProbeDevice(object):
         self.snd_frames = []
         self.sensor_status = {}
         self.probe_connected = False
+        self.snd_hook = None
+        self.rcv_hook = None
 
     def append_rcv_frame(self, frame):
+        if self.rcv_hook:
+            self.rcv_hook(frame)
         if len(self.rcv_frames) > 10:
             self.rcv_frames.pop(0)
         self.rcv_frames.append(frame)
         log_rcv_frame("被测设备", frame, only_log=True)
 
     def append_snd_frame(self, frame):
+        if self.snd_hook:
+            self.snd_hook(frame)
         if len(self.snd_frames) > 10:
             self.snd_frames.pop(0)
         self.snd_frames.append(frame)
@@ -58,7 +64,6 @@ class ProbeDevice(object):
 
     def set_device_info(self, info):
         self.info = info
-
 
     def rcv_probe_msg(self, spi_msg):
         if spi_msg.is_plc_rcv():
@@ -91,5 +96,12 @@ class ProbeDevice(object):
         self.rcv_frames = []
         self.snd_frames = []
         self.probe_connected = False
+        self.snd_hook = None
+        self.rcv_hook = None
 
+    def install_snd_hook(self, hook):
+        self.snd_hook = hook
+
+    def install_rcv_hook(self, hook):
+        self.rcv_hook = hook
 

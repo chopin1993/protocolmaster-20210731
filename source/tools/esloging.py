@@ -45,3 +45,11 @@ def log_init(path):
     device_raw.addHandler(device_raw_logger)
     device_raw.propagate = False
 
+
+    ignore_logger = logging.getLogger("ignore")
+    ignore_logger.handlers.clear()
+    ignore_file = logging.FileHandler(os.path.join(path,"ignore.txt"), encoding="utf-8")
+    ignore_file.setFormatter(format)
+    ignore_logger.addHandler(ignore_file)
+    ignore_logger.propagate = False
+

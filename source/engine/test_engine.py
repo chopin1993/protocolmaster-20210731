@@ -47,6 +47,7 @@ class TestEngine(object):
         self.fail_idx = 0
         self.fifo = FifoBuffer()
         self.output_doc_dir = None
+        self.resend_cnt = 0
 
     def get_all_role(self):
         return self.com_medias[0].roles
@@ -98,7 +99,17 @@ class TestEngine(object):
 
     def add_normal_operation(self,role, tag, msg):
         self.current_test.add_normal_operation(role, tag, msg, get_current_time_str())
+        if tag == "snd":
+            logging.info("%s snd %s", role, msg)
+        elif tag == "rcv":
+            logging.info("%s rcv %s", role, msg)
+        else:
+            logging.info(msg)
+
+    def add_resend_operation(self, role, tag, msg):
+        self.current_test.add_normal_operation(role, tag, msg, get_current_time_str())
         logging.info(msg)
+        self.resend_cnt += 1
 
     def summary(self, infos):
         total, passed = 0,0
@@ -113,7 +124,7 @@ class TestEngine(object):
     def generate_test_report(self, valids):
         self.doc_engine.write_doc_head(self.test_name)
         total, passed, failes = self.summary(valids)
-        self.doc_engine.write_summary(total, passed, failes, valids)
+        self.doc_engine.write_summary(total, passed, failes, valids, self.resend_cnt)
         self.doc_engine.write_detail(valids)
         self.doc_engine.save_doc(self.get_output_doc_dir())
 
@@ -217,18 +228,19 @@ def log_snd_frame(name, data, only_log=False):
     if not only_log:
         TestEngine.instance().add_normal_operation(name, "snd", str(data))
         TestEngine.instance().add_normal_operation(name, "annotation", data.to_readable_str())
-    if name in ["被测设备","测试工装"]:
-        logger = logging.getLogger(name)
-        logger.info("snd %s", str(data))
-        logger.info("txt %s", data.to_readable_str())
     else:
-        logger = logging.getLogger()
-        logger.info("%s snd %s", name, str(data))
-        logger.info("%s txt %s", name, data.to_readable_str())
+        if name in ["被测设备","测试工装","被测设备.raw", "ignore"]:
+            logger = logging.getLogger(name)
+            logger.info("snd %s", str(data))
+            logger.info("txt %s", data.to_readable_str())
+        else:
+            logger = logging.getLogger()
+            logger.info("%s snd %s", name, str(data))
+            logger.info("%s txt %s", name, data.to_readable_str())
 
 
 def log_info(name, msg, *args, **kwargs):
-    if name in ["被测设备", "测试工装", "被测设备.raw"]:
+    if name in ["被测设备","测试工装","被测设备.raw", "ignore"]:
         logger = logging.getLogger(name)
     else:
         logger = logging.getLogger()
@@ -239,14 +251,15 @@ def log_rcv_frame(name, data, only_log=False):
     if not only_log:
         TestEngine.instance().add_normal_operation(name, "rcv", str(data))
         TestEngine.instance().add_normal_operation(name, "annotation", data.to_readable_str())
-    if name in ["被测设备","测试工装","被测设备.raw"]:
-        logger = logging.getLogger(name)
-        logger.info("rcv %s", str(data))
-        logger.info("txt %s", data.to_readable_str())
     else:
-        logger = logging.getLogger()
-        logger.info("%s rcv %s",name, str(data))
-        logger.info("%s txt %s",name, data.to_readable_str())
+        if name in ["被测设备","测试工装","被测设备.raw", "ignore"]:
+            logger = logging.getLogger(name)
+            logger.info("rcv %s", str(data))
+            logger.info("txt %s", data.to_readable_str())
+        else:
+            logger = logging.getLogger()
+            logger.info("%s rcv %s",name, str(data))
+            logger.info("%s txt %s",name, data.to_readable_str())
 
 
 class Routine(object):
@@ -312,11 +325,11 @@ class TestEquiment(object):
         self.legal_devices.add(TestEngine.instance().get_test_dev_addr())
         self.buffer = FifoBuffer()
         self.timer = QTimer()
-        self.timer.timeout.connect(self.timeout_handle)
+        self.connect_func = None
+        self.timer.setSingleShot(True)
         self.cross_zero_validater = None
 
-    def timeout_handle(self):
-        self.timer.stop()
+    def cross_zero_timeout(self):
         self.cross_zero_validater = None
         TestEngine.instance().add_fail_test(self.name, "expect fail", "没有回复")
 
@@ -325,7 +338,12 @@ class TestEquiment(object):
             return max(1,self.timer.remainingTime()//1000)
         return 0
 
-    def wait_event(self, timeout):
+    def wait_event(self, timeout, func=None):
+        if self.connect_func is not None:
+            self.timer.disconnect()
+            self.connect_func = func
+        if func is not None:
+            self.timer.timeout.connect(func)
         self.timer.start(int(timeout*1000))
         total = self.get_remaining_time()
         while True:
@@ -372,11 +390,35 @@ class TestEquiment(object):
             return dst
 
     def write(self, data):
+        from .probe_device import ProbeDevice
         if isinstance(data, Smart7EData):
             self.legal_devices.add(data.taid)
-            data = Monitor7EData.create_uart_message(data, cmd=UARTCmd.W_DATA)
-        log_snd_frame("测试工装", data, only_log=True)
-        self.session.write(data)
+            monitor_data = Monitor7EData.create_uart_message(data, cmd=UARTCmd.W_DATA)
+            log_snd_frame("测试工装", monitor_data, only_log=True)
+            if ProbeDevice.instance().probe_connected and data.taid == self.get_dst_addr():
+                rcv_ok = False
+                def receive_frame(frame):
+                    nonlocal rcv_ok
+                    if frame.said == frame.said and frame.seq == data.seq:
+                        self.timer.stop()
+                        rcv_ok = True
+                ProbeDevice.instance().install_rcv_hook(receive_frame)
+                self.session.write(monitor_data)
+                snd_cnt = 0
+                while snd_cnt <= 4:
+                    self.wait_event(2)
+                    if rcv_ok:
+                        break
+                    else:
+                        TestEngine.instance().add_resend_operation("", "doc", "probe not rcv messgae, resend {}".format(snd_cnt))
+                        self.session.write(monitor_data)
+                        snd_cnt += 1
+                ProbeDevice.instance().install_rcv_hook(None)
+            else:
+                self.session.write(monitor_data)
+        else:
+            log_snd_frame("测试工装", data, only_log=True)
+            self.session.write(data)
 
     def set_device_sensor_status(self, sensor, value, channel):
         sensor = SPIMessageType.to_enum(sensor)
@@ -411,7 +453,7 @@ class TestEquiment(object):
         mointor_data = Monitor7EData.create_relay_message(channel, value)
         self.write(mointor_data)
         self.cross_zero_validater = MonitorCrossZeroValidator(channel, value)
-        self.wait_event(2)
+        self.wait_event(2, self.cross_zero_timeout)
 
     def control_relay(self,channel, value):
         mointor_data = Monitor7EData.create_relay_message(channel, value)
@@ -427,6 +469,7 @@ class TestEquiment(object):
         self.write(data)
         data = Monitor7EData.create_uart_message(bytes(), UARTCmd.SETTING, group=channel)
         self.write(data)
+        self.wait_event(1)
 
 
     def handle_plc_msg(self, data):
@@ -435,7 +478,7 @@ class TestEquiment(object):
             return
 
         if data.said not in self.legal_devices:
-            log_rcv_frame("ignore:", data, only_log=True)
+            log_rcv_frame("ignore", data, only_log=True)
             return
 
         if data.is_update():

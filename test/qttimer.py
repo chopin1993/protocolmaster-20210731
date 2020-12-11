@@ -13,13 +13,12 @@ def timetout():
 def qttest_timer():
     global start_t
     timer = QTimer()
-
-    for i in range(10):
-        timer.timeout.connect(timetout)
-        start_t = time.time()
-        timer.start(22000)
-        while timer.remainingTime()>0:
-            QCoreApplication.instance().processEvents()
+    timer.setSingleShot(True)
+    timer.timeout.connect(timetout)
+    start_t = time.time()
+    timer.start(1000)
+    while True:
+        QCoreApplication.instance().processEvents()
 
 
 qttest_timer()

@@ -30,10 +30,10 @@ class DocxEngine(object):
         self.document.add_paragraph(" " * 35 + engine_version)
         self.document.add_page_break()
 
-    def write_summary(self, total, passed, fails, all_infos):
+    def write_summary(self, total, passed, fails, all_infos, resend_cnt):
         fails_cnt = len(fails)
         self.document.add_heading("概要", 1)
-        txt = "总测试用例:{0} 通过:{1} 失败:{2}".format(total, passed, fails_cnt)
+        txt = "总测试用例:{0} 通过:{1} 失败:{2} 重发次数:{3}".format(total, passed, fails_cnt, resend_cnt)
         self.document.add_paragraph(txt, style="important")
         self.document.add_heading("失败用例汇总", 2)
         table = self.document.add_table(rows=1, cols=3,style="Table Grid")

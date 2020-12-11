@@ -60,3 +60,15 @@ def test_reset_mode():
     engine.expect_device_output_status("继电器输出", 0)
 
 
+def test_cross_zero():
+    "测试过零检测"
+    engine.expect_cross_zero_status(0,0)
+
+
+def test_resend():
+    "重发测试"
+    engine.wait(10, tips="请断开监测器，测试重发")
+    config = engine.get_config()
+    engine.send_did("WRITE", "通断操作C012", "81")
+    engine.expect_did("WRITE", "通断操作C012", "01")
+
