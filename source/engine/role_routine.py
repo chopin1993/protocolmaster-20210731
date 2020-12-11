@@ -10,16 +10,16 @@ class RoleRoutine(Routine):
     """
     主要用来处理单个did，上报和联动测试
     """
-    def __init__(self, name, src, device:Device):
+    def __init__(self, name, said, device:Device):
         super(RoleRoutine, self).__init__(name, device)
-        self.src = src
+        self.said = said
         self.current_seq = None
 
     def send_did(self, cmd, did, value=None, taid=None, gids=None, gid_type="U16", **kwargs):
         gid, taid = self.get_gid(taid, gids, gid_type)
         fbd = RemoteFBD.create(cmd, did, value,gids=gids, gid_type=gid_type, **kwargs)
-        dst = self.device.get_dst_addr(taid)
-        data = Smart7EData(self.src, dst, fbd)
+        taid = self.device.get_taid(taid)
+        data = Smart7EData(self.said, taid, fbd)
         self.write(data)
 
     def get_gid(self, taid, gids, gid_type):
@@ -34,8 +34,8 @@ class RoleRoutine(Routine):
     def send_multi_dids(self, cmd, *args, taid=None):
         dids = [DIDRemote.create_did(name=args[i+2], value=args[i+3], gids=args[i],gid_type=args[i+1]) for i in range(0, len(args), 4)]
         fbd = RemoteFBD(cmd, dids)
-        dst = self.device.get_dst_addr(taid)
-        data = Smart7EData(self.src, dst, fbd)
+        taid = self.device.get_taid(taid)
+        data = Smart7EData(self.said, taid, fbd)
         self.write(data)
 
     def _create_did_validtor(self, did, value, gids=None, gid_type=None, **kwargs):
@@ -82,8 +82,8 @@ class RoleRoutine(Routine):
             self.is_expect_boradcast = True
             gid = GID(gid_type, gids)
             seq = None
-        self.validate = SmartDataValidator(src=self.device.get_dst_addr(said),
-                                           dst=self.src,
+        self.validate = SmartDataValidator(said=self.device.get_taid(said),
+                                           taid=self.said,
                                            cmd=cmd,
                                            dids=did,
                                            gid=gid,
@@ -92,7 +92,10 @@ class RoleRoutine(Routine):
         self.wait_event(timeout)
 
     def wait(self, seconds, allowed_message, said=None):
-        self.validate = NoMessage(allowed_message, src=self.device.get_dst_addr(said))
+        if allowed_message:
+            self.validate = None
+        else:
+            self.validate = NoMessage(allowed_message, said=self.device.get_taid(said))
         self.wait_event(seconds)
 
     def expect_multi_dids(self, cmd, *args,
@@ -114,9 +117,9 @@ class RoleRoutine(Routine):
                                             gids=args[i],
                                             gid_type=args[i+1])
             dids.append(did)
-        dst = self.device.get_dst_addr(said)
-        self.validate = SmartDataValidator(src=dst,
-                                           dst=self.src,
+        taid = self.device.get_taid(said)
+        self.validate = SmartDataValidator(said=taid,
+                                           taid=self.said,
                                            cmd=cmd,
                                            gid=gid,
                                            dids=dids,
@@ -127,14 +130,14 @@ class RoleRoutine(Routine):
     def send_raw(self, fbd, taid=None):
         if isinstance(fbd, str):
             fbd = hexstr2bytes(fbd)
-        dst = self.device.get_dst_addr(taid)
-        data = Smart7EData(self.src, dst, fbd)
+        taid = self.device.get_taid(taid)
+        data = Smart7EData(self.said, taid, fbd)
         self.write(data)
 
     def expect_raw(self, fbd, said=None, timeout=2):
         fbd = BytesCompare(fbd)
-        self.validate = SmartDataValidator(src=self.device.get_dst_addr(said),
-                                           dst=self.src,
+        self.validate = SmartDataValidator(said=self.device.get_taid(said),
+                                           taid=self.said,
                                            fbd = fbd)
         self.wait_event(timeout)
 
@@ -148,7 +151,7 @@ class RoleRoutine(Routine):
 
         if self.validate is not None:
             if data is not None:
-                if data.said != self.validate.src:
+                if data.said != self.validate.said:
                     log_rcv_frame("said mismatch ignore " + self.name, data)
                     return
                 else:
@@ -164,7 +167,12 @@ class RoleRoutine(Routine):
             self.validate = None
             self.is_expect_boradcast = False
         else:
-            log_rcv_frame("no validator ignore " + self.name, data)
+            if data is None:
+                self.timer.stop()
+                self.validate = None
+                self.is_expect_boradcast = False
+            else:
+                log_rcv_frame("no validator ignore " + self.name, data)
 
     def ack_report_message(self, data):
         if data is None:

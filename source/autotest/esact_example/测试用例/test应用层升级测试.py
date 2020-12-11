@@ -15,7 +15,7 @@ def test_update1():
     """
     升级ESACT-1S1A(v1.5)-20200805
     """
-    engine.update("ESACT-1S1A(v1.5)-20200805.bin")
+    engine.update("ESACT-1A(v1.5)-20200805.bin")
     engine.wait(30)
     assert_version1()
 
@@ -25,7 +25,7 @@ def test_update2():
     升级ESACT-1S1A(v1.5)-20200808
     """
     assert_version1()
-    engine.update("ESACT-1S1A(v1.5)-20200808.bin")
+    engine.update("ESACT-1A(v1.5)-20200808.bin")
     engine.wait(30)
     assert_version2()
 
@@ -41,7 +41,7 @@ def test_break_continue():
             return seq
         else:
             return None
-    engine.update("ESACT-1S1A(v1.5)-20200805.bin",controller_fun, )
+    engine.update("ESACT-1A(v1.5)-20200805.bin",controller_fun, )
     engine.wait(3)
 
     # 读版本号
@@ -51,7 +51,7 @@ def test_break_continue():
             engine.add_fail_test("没有断点续传")
         else:
            return seq
-    engine.update("ESACT-1S1A(v1.5)-20200805.bin",controller_fun2)
+    engine.update("ESACT-1A(v1.5)-20200805.bin",controller_fun2)
 
     engine.wait(30)
     assert_version1()
@@ -73,11 +73,11 @@ def test_pwoeroff_start():
             return seq
         else:
             return None
-    engine.update("ESACT-1S1A(v1.5)-20200808.bin",controller_fun)
+    engine.update("ESACT-1A(v1.5)-20200808.bin",controller_fun)
 
     engine.wait(20,tips="请给设备断电")
     # 断电
-    reqs = engine.update("ESACT-1S1A(v1.5)-20200808.bin")
+    reqs = engine.update("ESACT-1A(v1.5)-20200808.bin")
 
     if reqs[0] != 1:
         engine.add_fail_test("断电重传失败")
@@ -106,6 +106,6 @@ def test_update_control():
     engine.expect_did("WRITE", "通断操作C012", "00", timeout=9)
 
     assert_version2()
-    engine.update("ESACT-1S1A(v1.5)-20200805.bin", None, device_ctrl)
+    engine.update("ESACT-1A(v1.5)-20200805.bin", None, device_ctrl)
     engine.wait(40, tips="设备升级完成，校验版本")
     assert_version1()

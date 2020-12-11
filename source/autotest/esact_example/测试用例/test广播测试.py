@@ -20,17 +20,17 @@ def test_boardcat_mulit():
     """
     engine.send_did("WRITE", "通断操作C012", "01")
     engine.wait(3)
-    engine.boardcast_send_multi_dids("WRITE",
+    engine.broadcast_send_multi_dids("WRITE",
                                      [1, 2, 3], "BIT1","通断操作C012", "81",
                                      [2, 3, 4], "U8", "通断操作C012", "81",
                                      [3, 4, 5], "U16", "通断操作C012", "81",
-                                    )
+                                     )
     engine.wait(3)
-    engine.boardcast_send_multi_dids("WRITE",
+    engine.broadcast_send_multi_dids("WRITE",
                                      [1, 2, 3], "BIT1","通断操作C012", "01",
                                      [2, 3, 4], "U8", "通断操作C012", "01",
                                      [3, 4, 5], "U16", "通断操作C012", "01",
-                                    )
+                                     )
 
 
 def test_crash_multi():

@@ -1,6 +1,8 @@
 # encoding:utf-8
 from PyQt5.QtCore import *
 from PyQt5.QtGui import *
+from PyQt5.QtWidgets import QMainWindow, QApplication
+
 from protocol_master_ui import Ui_MainWindow
 import sys
 
@@ -8,13 +10,14 @@ from .application_plug import plug_register
 
 
 #@plug_register
-class SucessrRadioWindow(QMainWindow, Ui_MainWindow):
-    TCP  = 0
-    UART = 1
-    def __init__(self):
-        super(SucessrRadioWindow, self).__init__()
-        self.name = u"成功率统计"
-        self.label = QLabel(u"成功率统计 ",self)
+class SuccessRadioWindow(QMainWindow, Ui_MainWindow):
+    pass
+    # TCP  = 0
+    # UART = 1
+    # def __init__(self):
+    #     super(SuccessRadioWindow, self).__init__()
+    #     self.name = u"成功率统计"
+    #     self.label = QLabel(u"成功率统计 ",self)
     #     super(SucessrRadioWindow, self).__init__()
     #     self.setupUi(self)
     #     self.tableWidget.setColumnWidth(0,350)
@@ -141,10 +144,10 @@ class SucessrRadioWindow(QMainWindow, Ui_MainWindow):
     #             print "receive from unknown device,device is not found"
 
 
-if __name__ == '__main__':
-    app = QApplication(sys.argv)
-    ex = SucessrRadioWindow()
-    print QApplication.desktop().width(), QApplication.desktop().height()
-    ex.move((QApplication.desktop().width() - ex.width()) / 2, (QApplication.desktop().height() - ex.height()) / 2);
-    ex.show()
-    sys.exit(app.exec_())
+# if __name__ == '__main__':
+#     app = QApplication(sys.argv)
+#     ex = SuccessRadioWindow()
+#     print(QApplication.desktop().width(), QApplication.desktop().height())
+#     ex.move((QApplication.desktop().width() - ex.width()) / 2, (QApplication.desktop().height() - ex.height()) / 2);
+#     ex.show()
+#     sys.exit(app.exec_())
