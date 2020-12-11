@@ -87,6 +87,12 @@ class RemoteFBD(DataFragment):
         else:
             self.decode(decoder, **kwargs)
 
+    def is_applylication_layer(self):
+        for did in self.didunits:
+            if did.DID in [0x060b,0x0603]:
+                return False
+        return True
+
     def encode(self, encoder):
         encoder.encode_u8(self.cmd.value)
         for did in self.didunits:
@@ -138,6 +144,15 @@ class Smart7EData(DataFragment):
 
     def is_boardcast(self):
         return  self.taid == 0xffffffff
+
+    def is_applylication_layer(self):
+        if self.is_local():
+            return False
+        if  self.is_update() or self.is_boardcast():
+            return True
+        if  isinstance(self.fbd, RemoteFBD):
+            return self.fbd.is_applylication_layer()
+        return True
 
     def decode(self, decoder):
         self.data = decoder.data

@@ -2,7 +2,7 @@ from tools.converter import *
 import types
 import weakref
 from engine.validator import *
-from .test_engine import TestEngine,Device,log_snd_frame,log_rcv_frame,Routine
+from .test_engine import TestEngine,log_snd_frame,log_rcv_frame,Routine,TestEquiment
 import logging
 
 
@@ -10,10 +10,11 @@ class RoleRoutine(Routine):
     """
     主要用来处理单个did，上报和联动测试
     """
-    def __init__(self, name, said, device:Device):
+    def __init__(self, name, said, device:TestEquiment):
         super(RoleRoutine, self).__init__(name, device)
         self.said = said
         self.current_seq = None
+        self.waiting_send_frames = []
 
     def send_did(self, cmd, did, value=None, taid=None, gids=None, gid_type="U16", **kwargs):
         gid, taid = self.get_gid(taid, gids, gid_type)
@@ -91,6 +92,11 @@ class RoleRoutine(Routine):
                                            ack=ack)
         self.wait_event(timeout)
 
+    def wait_event(self, timeout):
+        super(RoleRoutine, self).wait_event(timeout)
+        for frame in self.waiting_send_frames:
+            self.write(frame)
+
     def wait(self, seconds, allowed_message, said=None):
         if allowed_message:
             self.validate = None
@@ -146,7 +152,7 @@ class RoleRoutine(Routine):
         if data is not None and \
                 data.fbd.cmd in [CMD.REPORT, CMD.NOTIFY] and \
                 not TestEngine.instance().report_enable:
-            log_rcv_frame(self.name+" report ignone", data)
+            log_rcv_frame(self.name+" report ignone" +"如果你想要检测上报，需要调用 engine.report_check_enable_all(True)", data)
             return
 
         if self.validate is not None:
@@ -178,7 +184,7 @@ class RoleRoutine(Routine):
         if data is None:
             return
         data = data.ack_message()
-        self.write(data)
+        self.waiting_send_frames.append(data)
 
     def write(self,data):
         log_snd_frame(self.name, data)

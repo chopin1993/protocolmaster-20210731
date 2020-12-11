@@ -68,7 +68,31 @@ def test_cross_zero():
 def test_resend():
     "重发测试"
     engine.wait(10, tips="请断开监测器，测试重发")
-    config = engine.get_config()
     engine.send_did("WRITE", "通断操作C012", "81")
     engine.expect_did("WRITE", "通断操作C012", "01")
+
+
+def start_report():
+    r"4aid+2panid+2pw+4gid+2sid"
+    config = engine.get_config()
+    engine.send_did("WRITE", "退网通知060B", 退网设备=config["测试设备地址"])
+    engine.wait(1)
+    engine.send_local_msg("设置PANID", 0)
+    engine.expect_local_msg("确认")
+    engine.send_did("WRITE", "载波芯片注册信息0603",
+                    aid=config["测试设备地址"],
+                    panid=0,
+                    pw=config["设备密码"],
+                    device_gid=config["抄控器默认源地址"],
+                    sid=1)
+    engine.expect_did("WRITE", "载波芯片注册信息0603", "** ** ** ** ** **",check_seq=False)
+
+def test_spi_input():
+    "自动捕捉spi的报文输出"
+    engine.report_check_enable_all(True)
+    start_report()
+    engine.wait(5, tips="请断开抄控器")
+    engine.expect_multi_dids("REPORT", "通断操作C012", "**", "导致状态改变的控制设备AIDC01A", "** ** ** **", timeout=20,ack=True)
+    engine.wait(20,allowed_message=False)
+    engine.report_check_enable_all(False)
 

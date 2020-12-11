@@ -399,7 +399,9 @@ class TestEquiment(object):
             self.legal_devices.add(data.taid)
             monitor_data = Monitor7EData.create_uart_message(data, cmd=UARTCmd.W_DATA)
             log_snd_frame("测试工装", monitor_data, only_log=True)
-            if ProbeDevice.instance().probe_connected and data.taid == self.get_dst_addr():
+            if ProbeDevice.instance().probe_connected and \
+                    data.taid == self.get_taid() and \
+                    data.is_applylication_layer():
                 rcv_ok = False
                 def receive_frame(frame):
                     nonlocal rcv_ok
