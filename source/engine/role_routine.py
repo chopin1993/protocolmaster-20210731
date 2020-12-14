@@ -4,7 +4,8 @@ import weakref
 from engine.validator import *
 from .test_engine import TestEngine,log_snd_frame,log_rcv_frame,Routine,TestEquiment
 import logging
-
+from .spy_device import SpyDevice
+import engine
 
 class RoleRoutine(Routine):
     """
@@ -38,6 +39,18 @@ class RoleRoutine(Routine):
         taid = self.device.get_taid(taid)
         data = Smart7EData(self.said, taid, fbd)
         self.write(data)
+
+    def timeout_handle(self):
+        if isinstance(self.validate, SmartDataValidator):
+            frames = SpyDevice.instance().get_snd_frames()[::-1]
+            for frame in frames:
+                if frame.taid == self.validate.taid:
+                    engine.add_doc_info("****warnging***抄控器没有收到数据，使用监控器数据代替进行测试")
+                    msg = "使用spy监控器数据代替进行抄控器数据"
+                    TestEngine.instance().add_fix_rcv_operation(self.name,"doc", msg)
+                    self.handle_rcv_msg(frame)
+                    return
+        self.handle_rcv_msg(None)
 
     def _create_did_validtor(self, did, value, gids=None, gid_type=None, **kwargs):
         did_cls = DIDRemote.find_class_by_name(did)
@@ -93,9 +106,11 @@ class RoleRoutine(Routine):
         self.wait_event(timeout)
 
     def wait_event(self, timeout):
+        SpyDevice.instance().clear_send_frames()
         super(RoleRoutine, self).wait_event(timeout)
         for frame in self.waiting_send_frames:
             self.write(frame)
+        self.waiting_send_frames = []
 
     def wait(self, seconds, allowed_message, said=None):
         if allowed_message:

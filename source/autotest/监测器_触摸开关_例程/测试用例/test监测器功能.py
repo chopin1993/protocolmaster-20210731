@@ -11,7 +11,6 @@ def test_input():
     engine.set_device_sensor_status("按键输入", 1)
     engine.wait(3)
     engine.expect_device_output_status("继电器输出", 0)
-
     engine.set_device_sensor_status("按键输入", "短按")
     engine.wait(3)
 
@@ -91,8 +90,13 @@ def test_spi_input():
     "自动捕捉spi的报文输出"
     engine.report_check_enable_all(True)
     start_report()
-    engine.wait(5, tips="请断开抄控器")
-    engine.expect_multi_dids("REPORT", "通断操作C012", "**", "导致状态改变的控制设备AIDC01A", "** ** ** **", timeout=20,ack=True)
-    engine.wait(20,allowed_message=False)
+    engine.expect_multi_dids("REPORT", "通断操作C012", "**", \
+                             "导致状态改变的控制设备AIDC01A", "** ** ** **", \
+                             timeout=20,ack=False)
+    engine.wait(5, tips="将抄控器断电")
+    engine.expect_multi_dids("REPORT", "通断操作C012", "**", \
+                             "导致状态改变的控制设备AIDC01A", "** ** ** **", \
+                             timeout=20,ack=True)
+    engine.wait(20, allowed_message=False)
     engine.report_check_enable_all(False)
 

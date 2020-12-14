@@ -48,6 +48,7 @@ class TestEngine(object):
         self.fifo = FifoBuffer()
         self.output_doc_dir = None
         self.resend_cnt = 0
+        self.fixrcv_cnt = 0
 
     def get_all_role(self):
         return self.com_medias[0].roles
@@ -111,6 +112,11 @@ class TestEngine(object):
         logging.info(msg)
         self.resend_cnt += 1
 
+    def add_fix_rcv_operation(self, role, tag, msg):
+        self.current_test.add_normal_operation(role, tag, msg, get_current_time_str())
+        logging.info(msg)
+        self.fixrcv_cnt += 1
+
     def summary(self, infos):
         total, passed = 0,0
         fails = []
@@ -124,7 +130,7 @@ class TestEngine(object):
     def generate_test_report(self, valids):
         self.doc_engine.write_doc_head(self.test_name)
         total, passed, failes = self.summary(valids)
-        self.doc_engine.write_summary(total, passed, failes, valids, self.resend_cnt)
+        self.doc_engine.write_summary(total, passed, failes, valids, self.resend_cnt, self.fixrcv_cnt)
         self.doc_engine.write_detail(valids)
         self.doc_engine.save_doc(self.get_output_doc_dir())
 
@@ -143,11 +149,13 @@ class TestEngine(object):
 
     def run_all_test(self, valids=None):
         self.running = True
-
+        self.fixrcv_cnt = 0
+        self.resend_cnt = 0
+        self.fail_idx = 0
         from tools.esloging import log_init
         log_init(TestEngine.instance().get_output_doc_dir(True))
-        from engine.probe_device import ProbeDevice
-        ProbeDevice.instance().clear_status()
+        from engine.spy_device import SpyDevice
+        SpyDevice.instance().clear_status()
 
         def run_test(case):
             func = case.func
@@ -183,7 +191,6 @@ class TestEngine(object):
                 logging.info("失败测试名称：%s 失败原因：%s", case.name, case.get_fail_msg())
         self.generate_test_report(valids)
         self.running = False
-
 
     def is_exist_config(self):
         file_path = os.path.join(self.output_dir, "config.json")
@@ -394,12 +401,12 @@ class TestEquiment(object):
             return taid
 
     def write(self, data):
-        from .probe_device import ProbeDevice
+        from .spy_device import SpyDevice
         if isinstance(data, Smart7EData):
             self.legal_devices.add(data.taid)
             monitor_data = Monitor7EData.create_uart_message(data, cmd=UARTCmd.W_DATA)
             log_snd_frame("测试工装", monitor_data, only_log=True)
-            if ProbeDevice.instance().probe_connected and \
+            if SpyDevice.instance().probe_connected and \
                     data.taid == self.get_taid() and \
                     data.is_applylication_layer():
                 rcv_ok = False
@@ -408,7 +415,7 @@ class TestEquiment(object):
                     if frame.said == frame.said and frame.seq == data.seq:
                         self.timer.stop()
                         rcv_ok = True
-                ProbeDevice.instance().install_rcv_hook(receive_frame)
+                SpyDevice.instance().install_rcv_hook(receive_frame)
                 self.session.write(monitor_data)
                 snd_cnt = 0
                 while snd_cnt <= 4:
@@ -419,7 +426,7 @@ class TestEquiment(object):
                         TestEngine.instance().add_resend_operation("", "doc", "probe not rcv messgae, resend {}".format(snd_cnt))
                         self.session.write(monitor_data)
                         snd_cnt += 1
-                ProbeDevice.instance().install_rcv_hook(None)
+                SpyDevice.instance().install_rcv_hook(None)
             else:
                 self.session.write(monitor_data)
         else:
@@ -428,8 +435,8 @@ class TestEquiment(object):
 
     def set_device_sensor_status(self, sensor, value, channel):
         sensor = SPIMessageType.to_enum(sensor)
-        from .probe_device import ProbeDevice
-        if not ProbeDevice.instance().probe_connected:
+        from .spy_device import SpyDevice
+        if not SpyDevice.instance().probe_connected:
             msg = "Probe Not Connected,忽略设置传感器{} status {} channel:{}".format(sensor.name, value,  channel)
             TestEngine.instance().add_normal_operation("equiment", "doc", msg)
             return
@@ -440,13 +447,13 @@ class TestEquiment(object):
     def expect_device_output_status(self, sensor, value, channel):
         sensor = SPIMessageType.to_enum(sensor)
 
-        from .probe_device import ProbeDevice
-        if not ProbeDevice.instance().probe_connected:
+        from .spy_device import SpyDevice
+        if not SpyDevice.instance().probe_connected:
             msg = "Probe Not Connected,忽略检测传感器{} status {} channel:{}".format(sensor.name, value,  channel)
             TestEngine.instance().add_normal_operation("equiment", "doc", msg)
             return
 
-        real_data = ProbeDevice.instance().get_sensor_status(channel, sensor)
+        real_data = SpyDevice.instance().get_sensor_status(channel, sensor)
         expect_data = SPIData.encode_data(sensor, value)
         if real_data == expect_data:
             msg = "传感器{}验证成功, status:{} channel:{}".format(sensor.name, str2hexstr(real_data), channel)
@@ -522,8 +529,8 @@ class TestEquiment(object):
                        logging.warning("test engine buff too big %d, we will clear all buff", self.buffer.data_length())
                        self.buffer.read(self.buffer.read(self.buffer.data_length()))
             elif monitor_data.is_spi_data():
-                from engine.probe_device import ProbeDevice
-                ProbeDevice.handle_spi_msg(monitor_data)
+                from engine.spy_device import SpyDevice
+                SpyDevice.handle_spi_msg(monitor_data)
             elif monitor_data.is_crosszero_data() and self.cross_zero_validater is not None:
                 valid, msg = self.cross_zero_validater(monitor_data)
                 if valid:

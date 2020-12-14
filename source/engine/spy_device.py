@@ -5,13 +5,13 @@ import logging
 from protocol.smart7e_protocol import  Smart7eProtocol
 import engine
 
-class ProbeDevice(object):
+class SpyDevice(object):
     _instance = None
 
     @staticmethod
     def handle_spi_msg(msg):
-        if not ProbeDevice.instance().probe_connected:
-            ProbeDevice.instance().probe_connected = True
+        if not SpyDevice.instance().probe_connected:
+            SpyDevice.instance().probe_connected = True
             engine.add_doc_info("\n\n***************监测器探测成功，测试将充分利用监测器信息**********\n\n")
         log_rcv_frame("被测设备.raw", msg, only_log=True)
         cmd = SPICmd.to_enum(msg.cmd)
@@ -22,18 +22,18 @@ class ProbeDevice(object):
         elif cmd in [SPICmd.DEVICE_ID]:
             device_info = msg.get_parsed_data()
             log_info("被测设备", "device info:%s", str(device_info))
-            ProbeDevice.instance().set_device_info(device_info)
+            SpyDevice.instance().set_device_info(device_info)
         elif cmd in [SPICmd.DATA]:
             spi_data = msg.get_parsed_data()
-            ProbeDevice.instance().rcv_probe_msg(spi_data)
+            SpyDevice.instance().rcv_probe_msg(spi_data)
         else:
             log_rcv_frame("被测设备","ignore " + msg, only_log=True)
 
     @staticmethod
     def instance():
-        if ProbeDevice._instance is None:
-            ProbeDevice._instance = ProbeDevice()
-        return ProbeDevice._instance
+        if SpyDevice._instance is None:
+            SpyDevice._instance = SpyDevice()
+        return SpyDevice._instance
 
     def __init__(self):
         self.rcv_proto = Smart7eProtocol()
@@ -61,6 +61,9 @@ class ProbeDevice(object):
             self.snd_frames.pop(0)
         self.snd_frames.append(frame)
         log_snd_frame("被测设备", frame, only_log=True)
+
+    def get_snd_frames(self):
+        return self.snd_frames
 
     def set_device_info(self, info):
         self.info = info
@@ -99,8 +102,8 @@ class ProbeDevice(object):
         self.snd_hook = None
         self.rcv_hook = None
 
-    def install_snd_hook(self, hook):
-        self.snd_hook = hook
+    def clear_send_frames(self):
+        self.snd_frames = []
 
     def install_rcv_hook(self, hook):
         self.rcv_hook = hook
