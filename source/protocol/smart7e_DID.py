@@ -149,12 +149,16 @@ class DIDRemote(Register):
         self.data = data
         self.reply = False
         self.gid = gid
+        self.report = False
         if 'ctx' in kwargs:
             self.ctx = kwargs["ctx"]
             self.reply = self.ctx.is_reply()
         else:
             self.ctx = None
             self.reply = False
+        if 'fbd' in kwargs:
+            self.report = kwargs["fbd"].is_report()
+
         for member in self.MEMBERS:
             if isinstance(member, DataMetaType):
                 self.declare_metadata(member)
@@ -200,7 +204,7 @@ class DIDRemote(Register):
         outputs = OrderedDict()
         decoder = BinaryDecoder(self.data)
         data = deepcopy(decoder.data)
-        if self.reply:
+        if self.reply or self.report:
             metas = self.get_members("reply")
         else:
             metas = self.get_members(CMD.WRITE)

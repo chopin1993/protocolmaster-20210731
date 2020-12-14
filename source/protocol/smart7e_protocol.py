@@ -93,6 +93,9 @@ class RemoteFBD(DataFragment):
                 return False
         return True
 
+    def is_report(self):
+        return self.cmd in [CMD.NOTIFY, CMD.REPORT]
+
     def encode(self, encoder):
         encoder.encode_u8(self.cmd.value)
         for did in self.didunits:
@@ -101,6 +104,7 @@ class RemoteFBD(DataFragment):
     def decode(self, decoder, **kwargs):
         self.data = bytes(self.cmd.value) + decoder.data
         frame = kwargs['ctx']
+        kwargs['fbd'] = self
         while decoder.left_bytes() >= 3:
             if frame.is_boardcast():
                 gid = decoder.decoder_for_object(GID, **kwargs)
@@ -135,6 +139,9 @@ class Smart7EData(DataFragment):
 
     def is_reply(self):
         return self.seq&0x80==0x80
+
+    def is_report(self):
+        return self.fbd.cmd in [CMD.NOTIFY, CMD.REPORT]
 
     def is_update(self):
         return self.fbd.cmd in [CMD.UPDATE,CMD.UPDATE_PLC]
