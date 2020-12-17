@@ -1,0 +1,23 @@
+{
+    "测试配置信息": {
+        "enable": false,
+        "paras": {},
+        "subcase": {}
+    },
+    "01_频繁通断电测试": {
+        "enable": true,
+        "paras": {},
+        "subcase": {
+            "00_搭建测试环境": {
+                "enable": false,
+                "paras": {},
+                "subcase": {}
+            },
+            "01_频繁通断电测试": {
+                "enable": true,
+                "paras": {},
+                "subcase": {}
+            }
+        }
+    }
+}
