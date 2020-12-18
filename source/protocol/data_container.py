@@ -1,8 +1,8 @@
 # encoding:utf-8
-from .DataMetaType import *
+from .data_meta_type import *
 
 
-class DataFragment(DataMetaType):
+class DataStruct(DataMetaType):
     def __init__(self):
         self.units = []
 
@@ -23,7 +23,7 @@ class DataFragment(DataMetaType):
 
     def decode(self, decoder):
         for unit in self.units:
-            if decoder.left_bytes() >0:
+            if decoder.left_bytes() > unit.min_bytes():
                 unit.decode(decoder)
 
     def __str__(self):
@@ -35,4 +35,18 @@ class DataFragment(DataMetaType):
 
     def to_readable_str(self):
         return str(self)
+
+    def min_bytes(self):
+        cnt = 0
+        for unit in self.units:
+            cnt += unit.min_bytes()
+        return cnt
+
+
+class DataArray(DataMetaType):
+    def __init__(self,name, meta_type, attr="", cnt=0, decoder=None):
+        super(DataArray, self).__init__(name, attr=attr, decoder=decoder)
+        self.meta_type = meta_type
+        self.cnt = cnt
+
 

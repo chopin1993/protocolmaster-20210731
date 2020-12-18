@@ -1,5 +1,5 @@
 from tools.esenum import EsEnum
-from .data_fragment import DataFragment
+from .data_container import DataStruct
 from .codec import BinaryEncoder,BinaryDecoder
 from tools.converter import str2hexstr
 class CMD(EsEnum):
@@ -27,7 +27,7 @@ class GIDTYPE(EsEnum):
     U8 = 1
     U16 = 2
 
-class GID(DataFragment):
+class GID(DataStruct):
     def __init__(self, type=None, gids=None, decoder=None, **kwargs):
         self.gids = []
         if decoder is None:

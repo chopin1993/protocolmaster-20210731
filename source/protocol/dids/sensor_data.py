@@ -1,6 +1,6 @@
 #encoding:utf-8
 from protocol.smart7e_DID import DIDRemote, to_xls_enum_name
-from protocol.DataMetaType import *
+from protocol.data_meta_type import *
 
 # 声明自定义单元
 SUPPORT_NAMES = ["传感器数据", "步长"]

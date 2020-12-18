@@ -3,7 +3,7 @@ from .protocol import Protocol, protocol_register
 from .protocol import find_head
 from .codec import BinaryEncoder
 from tools.converter import hexstr2bytes, str2hexstr
-from .data_fragment import *
+from .data_container import *
 
 CJT188_HEAD = bytes(0x68)
 CJT188_TAIL = bytes(0x16)

@@ -54,6 +54,10 @@ def parse_func_testcase():
     public_dir = os.path.join(TestEngine.instance().output_dir, "测试用例")
     files = get_file_list(public_dir, key)
     files = [name for name in files if name.startswith("test") or name.startswith("init")]
+    if len(files) <= 0:
+        raise ValueError("没有测试文件")
+    if not files[0].startswith("init"):
+        raise ValueError("需要定义测试初始化文件，文件名必须以init为开头，推荐导入public00init配置初始化.py内容")
     for name in files:
         name = os.path.splitext(name)[0]
         if name.startswith("__"):

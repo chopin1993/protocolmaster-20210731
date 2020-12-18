@@ -1,5 +1,5 @@
 #encoding:utf-8
-from protocol.DataMetaType import *
+from protocol.data_meta_type import *
 from copy import deepcopy
 import logging
 import re
@@ -26,7 +26,7 @@ class DIDRemote(Register):
     REPLY_MEMBERS = []
     READ_MEMBERS = []
     WRITE_MEMBERS = []
-    TYPE_NAME=""
+    TYPE_NAME = ""
     INIT = False
     _all_did = None
 
@@ -123,6 +123,7 @@ class DIDRemote(Register):
 
     @classmethod
     def is_value_string(cls, str1):
+        # 验证回复报文使用
         metas = cls.get_members("reply")
         if len(metas) == 1 and isinstance(metas[0], DataCString):
             return True
@@ -131,6 +132,7 @@ class DIDRemote(Register):
 
     @classmethod
     def encode_reply(cls, *args, **kwargs):
+        # 验证回复报文使用
         encoder = BinaryEncoder()
         idx = 0
         for member in cls.get_members("reply"):
@@ -346,7 +348,7 @@ class DIDLocal(object):
         self.name = name
 
 
-class LocalFBD(DataFragment):
+class LocalFBD(DataStruct):
     CMDS = []
 
     @staticmethod

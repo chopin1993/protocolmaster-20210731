@@ -10,7 +10,7 @@ config["波特率"] = "9600"
 config["校验位"] = 'None'
 config["抄控器默认源地址"] = 70
 config["测试设备地址"] = 1011104
-config["设备密码"] = 19689
+config["设备PWD000A"] = 19689
 config["panid"] = 30
 engine.config(config)
 

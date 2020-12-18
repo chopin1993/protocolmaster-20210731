@@ -9,7 +9,7 @@ from protocol import Protocol
 import datetime
 import logging
 from copy import deepcopy
-from protocol.data_fragment import DataMetaType,DataByteArray
+from protocol.data_container import DataMetaType,DataByteArray
 
 class SessionSuit(QObject):
     data_ready = pyqtSignal(DataMetaType)

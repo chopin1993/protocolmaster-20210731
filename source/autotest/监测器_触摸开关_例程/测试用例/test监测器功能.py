@@ -76,8 +76,10 @@ def start_report():
     config = engine.get_config()
     engine.send_did("WRITE", "退网通知060B", 退网设备=config["测试设备地址"])
     engine.wait(1)
+
     engine.send_local_msg("设置PANID", 0)
     engine.expect_local_msg("确认")
+
     engine.send_did("WRITE", "载波芯片注册信息0603",
                     aid=config["测试设备地址"],
                     panid=0,

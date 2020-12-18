@@ -1,5 +1,5 @@
 from register import Register
-from protocol.DataMetaType import DataMetaType
+from protocol.data_meta_type import DataMetaType
 
 class PublicCase(Register):
 

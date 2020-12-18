@@ -84,7 +84,7 @@ class BytesChannelEnum(EsEnum):
     PRINT = 0x40
 
 
-class MonitorUnit(DataFragment):
+class MonitorUnit(DataStruct):
     SUPPORT_CMDS = []
 
 class MonitorByteArray(MonitorUnit):
@@ -214,13 +214,13 @@ class SPIData(MonitorUnit):
                     str2hexstr(self.data))
         return txt
 
-class Monitor7EData(DataFragment):
+class Monitor7EData(DataStruct):
     """
     0X9E INTERFACE(u8) CMD(u8) LEN(u8) DATA 0X9E
     """
     @staticmethod
     def create_uart_message(data, cmd=UARTCmd.DATA, group=0):
-        if isinstance(data, DataFragment):
+        if isinstance(data, DataStruct):
             data = BinaryEncoder.object2data(data)
         return Monitor7EData(hardware=HardwareEnum.UART, group=group, cmd=cmd, data=data)
 

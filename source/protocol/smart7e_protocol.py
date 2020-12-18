@@ -6,15 +6,15 @@ import time
 from .codec import BinaryEncoder, BinaryDecoder
 from tools.converter import *
 from tools.esenum import EsEnum
-from .data_fragment import DataFragment
-from .DataMetaType import *
+from .data_container import DataStruct
+from .data_meta_type import *
 from .smart_utils import *
 from .smart7e_DID import *
 import logging
 SMART_7e_HEAD = bytes([0x7e])
 
 
-class UpdateStartInfo(DataFragment):
+class UpdateStartInfo(DataStruct):
     def __init__(self, decoder=None, **kwargs):
         """
         filesize filecrc blocksize 设备类型 软件版本
@@ -28,7 +28,7 @@ class UpdateStartInfo(DataFragment):
         self.load_args(decoder=decoder, **kwargs)
 
 
-class UpdateFBD(DataFragment):
+class UpdateFBD(DataStruct):
     def __init__(self, decoder=None, cmd=None, seq=None, ack=None, data=bytes(),crc=None, **kwargs):
         self.cmd = CMD.to_enum(cmd)
         self.seq = seq
@@ -69,7 +69,7 @@ class UpdateFBD(DataFragment):
         return txt
 
 
-class RemoteFBD(DataFragment):
+class RemoteFBD(DataStruct):
 
     @staticmethod
     def create(cmd, did_name, data, gids=None, gid_type=None,**kwargs):
@@ -121,7 +121,7 @@ class RemoteFBD(DataFragment):
        return text
 
 
-class Smart7EData(DataFragment):
+class Smart7EData(DataStruct):
     SEQ = 0
     def __init__(self, said=None, taid=None, fbd=None, decoder=None):
         self.data = None

@@ -85,6 +85,9 @@ class DataMetaType(Register):
     def decode(self, decoder, **kwargs):
         self._value = decoder.decode_left_bytes()
 
+    def min_bytes(self):
+        return 0
+
     def str2value(self, str_value):
         return hexstr2bytes(str_value)
 
@@ -215,6 +218,9 @@ class DataU8(DataMetaType):
     def str2value(self, str_value):
         return to_number(str_value)
 
+    def min_bytes(self):
+        return 1
+
 
 
 class DataU16(DataMetaType):
@@ -230,6 +236,9 @@ class DataU16(DataMetaType):
     def str2value(self, str_value):
         return to_number(str_value)
 
+    def min_bytes(self):
+        return 2
+
 
 class DataU32(DataMetaType):
     def __init__(self,name=None, value=0, decoder=None):
@@ -243,6 +252,9 @@ class DataU32(DataMetaType):
 
     def str2value(self, str_value):
         return to_number(str_value)
+
+    def min_bytes(self):
+        return 4
 
 
 class DataU8Enum(DataMetaType):
@@ -303,3 +315,6 @@ class DataU8Enum(DataMetaType):
 
     def __str__(self):
         return self.value_str()
+
+    def min_bytes(self):
+        return 1
