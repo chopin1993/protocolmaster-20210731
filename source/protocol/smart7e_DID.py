@@ -401,11 +401,16 @@ class LocalFBD(DataStruct):
         self.data = decoder.decode_left_bytes()
 
     def __str__(self):
-        cmd_info = self.find_cmd(self.cmd)
-        if len(cmd_info.units) == 0  or self.data is None :
-            return cmd_info.name
+        try:
+            cmd_info = self.find_cmd(self.cmd)
+            name = cmd_info.name
+        except Exception as e:
+            logging.error(e)
+            name = "未知"
+        if len(cmd_info.units) == 0 or self.data is None :
+            return name
         else:
-            return cmd_info.name + " " + str(self.data)
+            return name + " " + str(self.data)
 
 
 def _parse_local_cmd(sheet):

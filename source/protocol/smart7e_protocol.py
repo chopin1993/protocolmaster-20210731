@@ -122,7 +122,7 @@ class RemoteFBD(DataStruct):
 
 
 class Smart7EData(DataStruct):
-    SEQ = 0
+    SEQ = 1
     def __init__(self, said=None, taid=None, fbd=None, decoder=None):
         self.data = None
         if decoder is not None:
@@ -134,7 +134,7 @@ class Smart7EData(DataStruct):
             self.seq = Smart7EData.SEQ
             Smart7EData.SEQ +=1
             if Smart7EData.SEQ > 127:
-                Smart7EData.SEQ = 0
+                Smart7EData.SEQ = 1
             self.len = self.get_fbd_len()
 
     def is_reply(self):
