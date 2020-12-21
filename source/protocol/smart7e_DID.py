@@ -1,5 +1,6 @@
 #encoding:utf-8
 from protocol.data_meta_type import *
+from protocol.data_container import *
 from copy import deepcopy
 import logging
 import re
@@ -225,9 +226,8 @@ class DIDRemote(Register):
         txt = ""
         if self.gid is not None:
             txt = " " + str(self.gid)
-        txt += "did[{}]:{} data[{}]:".format(u16tohexstr(self.DID),
-                                             self.__class__.__name__,
-                                             str2hexstr(self.data))
+        txt += "did:{}[{}] data:".format(self.__class__.__name__,
+                                             u16tohexstr(self.DID))
         if not self.is_error:
             units = self.decode_units()
             if len(units) == 1:
@@ -242,6 +242,7 @@ class DIDRemote(Register):
         else:
             name = ErrorCode.value_to_name(self.error_code)
             txt += "error:{}".format(name)
+        txt += "[{}]".format(str2hexstr(self.data))
         return txt
 
 
@@ -278,6 +279,18 @@ def get_user_fun(name):
     return user_func_dict[name]
 
 
+def _create_array_type(member_list, content, cnt_name, array_name):
+    member_configs = re.findall(r"[(（]([\w.]*)[,，]([\w]*)[,，]([_\w]*)[)）]", content)
+    members = []
+    for meta_type, attr, name in member_configs:
+        for unit in member_list:
+            if name == unit.name:
+                members.append(unit)
+    for member in  members:
+        member_list.remove(member)
+    array_member = DataArray(array_name, members,cnt_name)
+    return array_member
+
 def _create_did_class(did_type, did, member_patterns, did_name):
     member_configs = re.findall(r"[(（]([\w.]*)[,，]([\w]*)[,，]([_\w]*)[)）]", member_patterns)
     members = []
@@ -296,6 +309,10 @@ def _create_did_class(did_type, did, member_patterns, did_name):
             data_meta.to_value_func = to_value_func
             data_meta.value_str_func = value_str_func
         members.append(data_meta)
+    group_configs = re.findall(r"\[([\w, ()]*)[,，]([\w)]*)[,，]([_\w]*)\]", member_patterns)
+    for content, cnt_name, array_name in group_configs:
+        array_member = _create_array_type(members, content, cnt_name, array_name)
+        members.append(array_member)
     create_remote_class(did_name, int(did, base=16), members, did_type)
 
 def _parse_dids(sheet):

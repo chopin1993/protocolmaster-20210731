@@ -1,8 +1,16 @@
 # encoding:utf-8
 from .data_meta_type import *
-
+from copy import deepcopy
 
 class DataStruct(DataMetaType):
+
+    @staticmethod
+    def create_data_struct(metas):
+        data = DataStruct()
+        for meta in metas:
+            data.declare_unit(meta)
+        return data
+
     def __init__(self):
         self.units = []
 
@@ -33,9 +41,6 @@ class DataStruct(DataMetaType):
             txt += str(unit)
         return txt
 
-    def to_readable_str(self):
-        return str(self)
-
     def min_bytes(self):
         cnt = 0
         for unit in self.units:
@@ -44,9 +49,44 @@ class DataStruct(DataMetaType):
 
 
 class DataArray(DataMetaType):
-    def __init__(self,name, meta_type, attr="", cnt=0, decoder=None):
-        super(DataArray, self).__init__(name, attr=attr, decoder=decoder)
-        self.meta_type = meta_type
+    def __init__(self, name, metas,cnt_name="",values=[], cnt=-1, decoder=None):
+        assert len(metas)>=0
+        self.metas = metas
+        self.cnt_name = cnt_name
+        self.data_struct = DataStruct.create_data_struct(metas)
+        super(DataArray, self).__init__(name, attr=metas[0].attr, decoder=decoder)
+        self.meta_values = []
         self.cnt = cnt
+        self.value = values
+
+    @property
+    def value(self):
+        return self.meta_values
+
+    @value.setter
+    def value(self, value):
+        assert isinstance(value, list),"必须使用list给数组赋值"
+        self.meta_values = []
+        for unit in value:
+            self.data_struct.load_args(unit)
+            unit = deepcopy(self.data_struct)
+            self.meta_values.append(unit)
 
 
+    def decode(self, decoder, **kwargs):
+        self.meta_values = []
+        while decoder.left_bytes() >= self.data_struct.min_bytes():
+            self.data_struct.decode(decoder)
+            unit = deepcopy(self.data_struct)
+            self.meta_values.append(unit)
+
+    def encode(self, encoder, **kwargs):
+        for unit in self.meta_values:
+            encoder.encode_object(unit)
+
+    def __str__(self):
+        txt = "["
+        for idx,unit in enumerate(self.meta_values):
+            txt +="\n        {},".format(str(unit))
+        txt += "]"
+        return txt

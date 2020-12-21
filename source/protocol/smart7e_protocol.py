@@ -212,11 +212,11 @@ class Smart7EData(DataStruct):
         hex_taid = u32tohexstr(self.taid)
         hex_seq = u8tohexstr(self.seq)
         hex_len = u8tohexstr(self.len)
-        text = "said[{}]:{} taid[{}]:{} seq[{}]:{} len[{}]:{} fbd:{}".format(\
-            hex_said,self.said,\
-            hex_taid,self.taid,\
-            hex_seq,self.seq,\
-            hex_len,self.len,\
+        text = "said:{}[{}] taid：{}[{}] seq:{}[{}] len:{}[{}] fbd:{}".format(\
+            self.said,hex_said,\
+            self.taid,hex_taid,\
+            self.seq, hex_seq,\
+            self.len, hex_len,\
             str(self.fbd))
         return text
 

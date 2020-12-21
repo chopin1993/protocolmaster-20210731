@@ -51,3 +51,8 @@ def test_r_string():
     engine.send_did("READ", "0004")
     engine.expect_did("READ", "0004", "SSC1663-ADPT-V30A012")
 
+
+def test_did_array():
+
+    engine.send_did("READ", "读取从机信息E041", 从机信息命令="增加",)
+

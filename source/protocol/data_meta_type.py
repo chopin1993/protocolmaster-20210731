@@ -141,6 +141,9 @@ class DataMetaType(Register):
         self.decode(decoder, **kwargs)
         widget.value_widget.setText(self.value_str())
 
+    def to_readable_str(self):
+        return str(self)
+
 
 class DataContextBaseValue(DataMetaType):
     def __init__(self,  name=None, value="", decoder=None,
