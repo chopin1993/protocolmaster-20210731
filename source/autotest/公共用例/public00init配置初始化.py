@@ -23,3 +23,5 @@ def init_触发设备检测监测器():
     SpyDevice.instance().clear_status()
     engine.send_did("WRITE", "自动测试FC00", 密码=config["设备PWD000A"], 自动测试命令="触发SWB总线探测")
     engine.expect_did("WRITE", "自动测试FC00", validate_func)
+
+    engine.reset_swb_bus(0)

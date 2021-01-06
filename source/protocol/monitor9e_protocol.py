@@ -23,7 +23,7 @@ class SPICmd(EsEnum):
     MOINTOR_DETECT_NOTIFY = 0x01
     DEVICE_ID = 0x02
     RESTART = 0x11
-    W_RESTART = 0x83
+    W_RESTART = 0x91
     DATA = 0x03
     W_DATA = 0x83
 

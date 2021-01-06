@@ -293,6 +293,16 @@ def setting_uart(channel, baudrate, parity):
     equiment.config_com(port=config["串口"], baudrate=config["波特率"], parity=config["校验位"])
     equiment.setting_uart(channel, baudrate, parity)
 
+
+def reset_swb_bus(channel=0):
+    """
+    复位监测口
+    :param channel:监测口通道号
+    """
+    equiment = TestEngine.instance().get_default_equiment()
+    equiment.reset_swb_bus(channel)
+
+
 def expect_cross_zero_status(channel, value):
     """
     过零检测电路状态

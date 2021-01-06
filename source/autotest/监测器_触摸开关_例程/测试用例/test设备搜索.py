@@ -8,7 +8,7 @@ def clear_gw_info():
     engine.send_did("WRITE", "载波芯片注册信息0603",
                     aid=config["测试设备地址"],
                     panid=0,
-                    pw=config["设备密码"],
+                    pw=config["设备PWD000A"],
                     device_gid=config["抄控器默认源地址"],
                     sid=1)
     engine.expect_did("WRITE", "载波芯片注册信息0603", "** ** ** ** ** **",check_seq=False)

@@ -485,6 +485,9 @@ class TestEquiment(object):
         self.write(data)
         self.wait_event(1)
 
+    def reset_swb_bus(self, channel):
+        data = Monitor7EData.create_spi_message(bytes(), channel, SPICmd.W_RESTART)
+        self.write(data)
 
     def handle_plc_msg(self, data):
         if data.is_local():
