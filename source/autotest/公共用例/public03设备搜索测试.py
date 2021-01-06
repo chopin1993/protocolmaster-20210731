@@ -89,7 +89,7 @@ def test_APP设备搜索对设备重发搜索的测试():
     1、首先发送搜索时间为3000s的设备搜索
     2、等待30s，如果此时没有报文上报，则再次下发搜索时间为10s的设备搜索，被测试设备回复正常
     """
-    engine.add_doc_info("重发搜索测试，先将设备搜索时间为300s，等待30s后，再将设备搜索时间为10s，测试10s內可以正常回复：")
+    engine.add_doc_info("重发搜索测试，先将设备搜索时间为3000s，等待30s后，再将设备搜索时间为10s，测试10s內可以正常回复：")
     engine.send_did("SEARCH", "APP设备搜索0008", 搜索类型="未注册节点", 搜索时间=3000,
                     设备类型=config["设备搜索类型"], taid=0xFFFFFFFF, gids=[0], gid_type="U8")
     engine.wait(30, allowed_message=False)
