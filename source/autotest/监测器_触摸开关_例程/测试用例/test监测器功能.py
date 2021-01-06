@@ -1,5 +1,5 @@
 import engine
-
+from protocol.data_meta_type import *
 
 def test_input():
     """
@@ -58,11 +58,33 @@ def test_reset_mode():
     engine.wait(15)
     engine.expect_device_output_status("继电器输出", 0)
 
+def test_cross_zero_0():
+    "测试过零检测0"
+    engine.expect_cross_zero_status(0,1)
 
-def test_cross_zero():
-    "测试过零检测"
-    engine.expect_cross_zero_status(0,0)
+def test_cross_zero_1():
+    "测试过零检测1"
+    engine.expect_cross_zero_status(1,1)
 
+def test_cross_zero_2():
+    "测试过零检测2"
+    engine.expect_cross_zero_status(2,1)
+
+def test_cross_zero_3():
+    "测试过零检测3"
+    engine.expect_cross_zero_status(3,1)
+
+def test_cross_zero_4():
+    "测试过零检测4"
+    engine.expect_cross_zero_status(4,1)
+
+def test_cross_zero_5():
+    "测试过零检测5"
+    engine.expect_cross_zero_status(5,1)
+
+def test_cross_zero_5_0():
+    "测试过零检测5_0"
+    engine.expect_cross_zero_status(5,0)
 
 def test_resend():
     "重发测试"
@@ -102,3 +124,19 @@ def test_spi_input():
     engine.wait(20, allowed_message=False)
     engine.report_check_enable_all(False)
 
+
+def test_relay_output():
+    "继电器输出测试"
+    for i in range(0,7):
+        engine.control_relay(i, 1)
+        engine.wait(5)
+        engine.control_relay(i, 0)
+
+
+def test_single_relay_output():
+    "单个继电器输出测试"
+    for i in range(10):
+        engine.control_relay(4, 0)
+        engine.wait(4)
+        engine.control_relay(4, 1)
+        engine.wait(4)

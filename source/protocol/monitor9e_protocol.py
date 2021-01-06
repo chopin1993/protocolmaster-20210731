@@ -321,7 +321,8 @@ class Monitor7EData(DataStruct):
             HardwareEnum.UART:UARTCmd,
             HardwareEnum.SPI:SPICmd,
             HardwareEnum.GPIO:GPIOCmd,
-            HardwareEnum.RELAY:RELAYCmd
+            HardwareEnum.RELAY:RELAYCmd,
+            HardwareEnum.CROSS_ZERO:CrossZeroCmd
         }
         assert self.hardware in enum_dict
         return enum_dict[hardware]

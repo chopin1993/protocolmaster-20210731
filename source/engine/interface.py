@@ -276,6 +276,7 @@ def control_relay(channel, value):
     :param channel:继电器通道
     :param status:继电器通道
     """
+    add_doc_info("msg channel {} value {}".format(channel, value))
     equiment = TestEngine.instance().get_default_equiment()
     equiment.control_relay(channel, value)
 

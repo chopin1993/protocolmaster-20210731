@@ -177,6 +177,7 @@ class TestEngine(object):
             self.current_group = group
             self.current_test = group
             if self.current_group.func is None:
+                group.clear()
                 for case in group.get_valid_sub_cases():
                     self.current_test = case
                     run_test(case)
@@ -352,9 +353,9 @@ class TestEquiment(object):
     def wait_event(self, timeout, func=None):
         if self.connect_func is not None:
             self.timer.disconnect()
-            self.connect_func = func
         if func is not None:
             self.timer.timeout.connect(func)
+        self.connect_func = func
         self.timer.start(int(timeout*1000))
         total = self.get_remaining_time()
         while True:
@@ -463,7 +464,7 @@ class TestEquiment(object):
             TestEngine.instance().add_fail_test("equiment", "fail", msg)
 
     def expect_cross_zero_status(self, channel, value):
-        mointor_data = Monitor7EData.create_relay_message(channel, value)
+        mointor_data = Monitor7EData.create_cross_zero_message(channel, value)
         self.write(mointor_data)
         self.cross_zero_validater = MonitorCrossZeroValidator(channel, value)
         self.wait_event(2, self.cross_zero_timeout)
@@ -487,7 +488,8 @@ class TestEquiment(object):
 
     def handle_plc_msg(self, data):
         if data.is_local():
-            self.local_routine.handle_rcv_msg(data)
+            if self.local_routine is not None:
+                self.local_routine.handle_rcv_msg(data)
             return
 
         if data.said not in self.legal_devices:

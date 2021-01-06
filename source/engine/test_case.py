@@ -19,6 +19,7 @@ class TestCaseInfo(object):
         self.errors = []
         self.passed =True
         self.infos = []
+        self.errors=[]
 
     def is_enable(self):
         return self.enable

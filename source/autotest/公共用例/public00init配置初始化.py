@@ -1,5 +1,5 @@
 import engine
-
+from engine.spy_device import SpyDevice
 config = engine.get_config()
 
 def init_配置初始化():
@@ -20,5 +20,6 @@ def init_触发设备检测监测器():
                                 "程中将忽略和监测器相关的判断!!!!!!!!!!!!!!!!!!!!!!!!!***\n\n")
         return True
 
+    SpyDevice.instance().clear_status()
     engine.send_did("WRITE", "自动测试FC00", 密码=config["设备PWD000A"], 自动测试命令="触发SWB总线探测")
     engine.expect_did("WRITE", "自动测试FC00", validate_func)
