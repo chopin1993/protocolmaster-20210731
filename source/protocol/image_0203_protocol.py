@@ -3,15 +3,15 @@ from .protocol import Protocol
 from .protocol import find_head
 from .codec import BinaryEncoder
 from tools.converter import hexstr2bytes, str2hexstr
-from .data_fragment import *
+from .data_container import *
 import time
 import struct
-from protocol.data_fragment import DataFragment
+from protocol.data_container import DataStruct
 IMG0203_HEAD = bytes([0x54,0x17,0xfe,0x02])
 IMG0203_TAIL = 0x03
 
 
-class ThremalImageData(DataFragment):
+class ThremalImageData(DataStruct):
     def __init__(self, width, height, data):
         self.width = width
         self.height = height

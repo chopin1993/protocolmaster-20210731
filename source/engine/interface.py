@@ -1,12 +1,11 @@
 #encoding:utf-8
-import os
-import logging
-logging.basicConfig(format='%(asctime)s - %(levelname)s: %(message)s', level=logging.DEBUG)
+from tools.esloging import *
 from PyQt5.QtCore import QCoreApplication
 from PyQt5.QtWidgets import QApplication
 import sys
 from engine.case_editor import CaseEditor
 from .interface_helper import *
+from user_exceptions import MeidaException
 
 
 def config(infos):
@@ -16,12 +15,7 @@ def config(infos):
     """
     TestEngine.instance().config = infos
     TestEngine.instance().config_test_program_name(infos["测试程序名称"])
-    com = TestEngine.instance().create_com_device(infos["串口"])
-    def init_func():
-        nonlocal com
-        com.config_com(port=infos["串口"], baudrate=infos["波特率"], parity=infos["校验位"])
-        com.create_role("monitor", infos["抄控器默认源地址"])
-    TestEngine.instance().group_begin("测试配置信息", init_func,None)
+    TestEngine.instance().create_com_device(infos["串口"])
 
 
 def get_config():
@@ -235,7 +229,7 @@ def create_role(name, address):
     :param name:陪测设备名称
     :param address: 陪测设备地址
     """
-    return TestEngine.instance().get_default_device().create_role(name,address)
+    return TestEngine.instance().get_default_equiment().create_role(name, address)
 
 
 def add_fail_test(msg):
@@ -252,7 +246,6 @@ def add_doc_info(msg):
     :param msg: 测试辅助信息
     """
     TestEngine.instance().add_normal_operation("", "doc", msg)
-    logging.info(msg)
 
 
 def wait(seconds, allowed_message=True, said=None,tips=""):
@@ -275,3 +268,123 @@ def report_check_enable_all(enable):
     :param enable: True: 检测上报报文 False:忽略上报报文。默认设备忽略上报报文
     """
     TestEngine.instance().report_enable = enable
+
+
+def control_relay(channel, value):
+    """
+    控制工装继电器的开关
+    :param channel:继电器通道
+    :param status:继电器通道
+    """
+    add_doc_info("msg channel {} value {}".format(channel, value))
+    equiment = TestEngine.instance().get_default_equiment()
+    equiment.control_relay(channel, value)
+
+
+def setting_uart(channel, baudrate, parity):
+    """
+    配置监控器的串口
+    :param channel:通道
+    :param baudrate:波特率
+    :param parity:校验位 奇校验、偶校验、无校验
+    """
+    equiment = TestEngine.instance().get_default_equiment()
+    config = get_config()
+    equiment.config_com(port=config["串口"], baudrate=config["波特率"], parity=config["校验位"])
+    equiment.setting_uart(channel, baudrate, parity)
+
+
+def reset_swb_bus(channel=0):
+    """
+    复位监测口
+    :param channel:监测口通道号
+    """
+    equiment = TestEngine.instance().get_default_equiment()
+    equiment.reset_swb_bus(channel)
+
+
+def expect_cross_zero_status(channel, value):
+    """
+    过零检测电路状态
+    :param channel:过零通道
+    :param value:期望过零电路状态
+    """
+    equiment = TestEngine.instance().get_default_equiment()
+    equiment.expect_cross_zero_status(channel, value)
+
+
+def set_device_sensor_status(sensor, value=bytes(), channel=0):
+    """
+    设置设备的传感器输入值
+    :param senor:       以下类型是U32类型
+                        温度 = 1
+                        湿度 = 2
+                        电压 = 3
+                        电流 = 4
+                        电阻 = 5
+                        大量程照度 = 31
+                        自然光照度 = 32
+                        照度 = 33
+
+                        以下传感器是U8类型
+                        雷达人体存在 = 11
+                        光学人体存在 = 12
+                        红外传感器 = 13
+                        插卡取电 = 21
+                        继电器输出 = 41
+                        光耦输出 = 42
+                        可控硅输出 = 43
+                        干节点输入 = 52
+                        干簧管输入 = 53
+                        二进制输入 = 61
+                        二进制输出 = 62
+
+                        枚举类型：
+                        按键输入 = 51 1:短按 2:长按
+
+                        字节类型 = 80
+    :param value:  根据传感器类型赋值,使用默认值表示传感器状态
+    :param channel: 传感器通道
+    """
+    equiment = TestEngine.instance().get_default_equiment()
+    equiment.set_device_sensor_status(sensor, value, channel)
+
+def expect_device_output_status(sensor, value, channel=0, wait_time=0):
+    """
+    通过监测器检查设备的状态
+    :param sensor:
+    :param senor:      以下类型是U32类型
+                        温度 = 1
+                        湿度 = 2
+                        电压 = 3
+                        电流 = 4
+                        电阻 = 5
+                        大量程照度 = 31
+                        自然光照度 = 32
+                        照度 = 33
+
+                        以下传感器是U8类型
+                        雷达人体存在 = 11
+                        光学人体存在 = 12
+                        红外传感器 = 13
+                        插卡取电 = 21
+                        继电器输出 = 41
+                        光耦输出 = 42
+                        可控硅输出 = 43
+                        干节点输入 = 52
+                        干簧管输入 = 53
+                        二进制输入 = 61
+                        二进制输出 = 62
+
+                        枚举类型：
+                        按键输入 = 51 1:短按 2:长按
+
+                        字节类型 = 80
+    :param value: 根据传感器类型赋值
+    :param channel: 传感器通道
+    :param wait_time:检测状态之前等待的时间
+    """
+    if wait_time > 0:
+        wait(wait_time)
+    equiment = TestEngine.instance().get_default_equiment()
+    equiment.expect_device_output_status(sensor, value, channel)

@@ -1,17 +1,16 @@
 #encoding:utf-8
-from enum import Enum
-import json
-from json import JSONDecodeError
-from protocol.DataMetaType import *
+from protocol.data_meta_type import *
+from protocol.data_container import *
 from copy import deepcopy
-from tools.converter import *
 import logging
-import os
 import re
 from collections import OrderedDict
 from .smart_utils import *
 from tools.filetool import get_config_file
 from tools.converter import *
+import importlib
+from tools.filetool import get_file_list
+import os
 
 def cmd_filter(suffixs, cmd):
     ids = cmd
@@ -21,13 +20,14 @@ def cmd_filter(suffixs, cmd):
         ids = "w"
     return ids in suffixs
 
+
 class DIDRemote(Register):
     DID=0xff00
     MEMBERS = []
     REPLY_MEMBERS = []
     READ_MEMBERS = []
     WRITE_MEMBERS = []
-    TYPE_NAME=""
+    TYPE_NAME = ""
     INIT = False
     _all_did = None
 
@@ -124,6 +124,7 @@ class DIDRemote(Register):
 
     @classmethod
     def is_value_string(cls, str1):
+        # 验证回复报文使用
         metas = cls.get_members("reply")
         if len(metas) == 1 and isinstance(metas[0], DataCString):
             return True
@@ -132,6 +133,7 @@ class DIDRemote(Register):
 
     @classmethod
     def encode_reply(cls, *args, **kwargs):
+        # 验证回复报文使用
         encoder = BinaryEncoder()
         idx = 0
         for member in cls.get_members("reply"):
@@ -150,12 +152,16 @@ class DIDRemote(Register):
         self.data = data
         self.reply = False
         self.gid = gid
+        self.report = False
         if 'ctx' in kwargs:
             self.ctx = kwargs["ctx"]
             self.reply = self.ctx.is_reply()
         else:
             self.ctx = None
             self.reply = False
+        if 'fbd' in kwargs:
+            self.report = kwargs["fbd"].is_report()
+
         for member in self.MEMBERS:
             if isinstance(member, DataMetaType):
                 self.declare_metadata(member)
@@ -201,7 +207,7 @@ class DIDRemote(Register):
         outputs = OrderedDict()
         decoder = BinaryDecoder(self.data)
         data = deepcopy(decoder.data)
-        if self.reply:
+        if self.reply or self.report:
             metas = self.get_members("reply")
         else:
             metas = self.get_members(CMD.WRITE)
@@ -220,9 +226,8 @@ class DIDRemote(Register):
         txt = ""
         if self.gid is not None:
             txt = " " + str(self.gid)
-        txt += "did[{}]:{} data[{}]:".format(u16tohexstr(self.DID),
-                                             self.__class__.__name__,
-                                             str2hexstr(self.data))
+        txt += "did:{}[{}] data:".format(self.__class__.__name__,
+                                             u16tohexstr(self.DID))
         if not self.is_error:
             units = self.decode_units()
             if len(units) == 1:
@@ -237,6 +242,7 @@ class DIDRemote(Register):
         else:
             name = ErrorCode.value_to_name(self.error_code)
             txt += "error:{}".format(name)
+        txt += "[{}]".format(str2hexstr(self.data))
         return txt
 
 
@@ -248,8 +254,44 @@ def create_remote_class(name, did, member,type_name=""):
     cls.TYPE_NAME = type_name
     return cls
 
+
+user_func_dict = None
+
+
+def get_user_fun(name):
+    global user_func_dict
+    if user_func_dict is None:
+        user_func_dict = {}
+        files = get_file_list(os.path.join(os.path.dirname(__file__), "dids"))
+        for mod_name in files:
+            if mod_name.startswith("__"):
+                continue
+            mod = importlib.import_module("protocol.dids." + os.path.splitext(mod_name)[0])
+            names = getattr(mod,"SUPPORT_NAMES")
+            encode_func = getattr(mod, "encode_value")
+            decode_func = getattr(mod, "decode_value")
+            to_value_func = getattr(mod, "to_value", None)
+            value_str_func = getattr(mod, "value_str", None)
+            for key in names:
+                assert key not in user_func_dict,"{} have exist in vs config".format(key)
+                user_func_dict[key] = (encode_func, decode_func, to_value_func, value_str_func)
+    assert name in user_func_dict
+    return user_func_dict[name]
+
+
+def _create_array_type(member_list, content, cnt_name, array_name):
+    member_configs = re.findall(r"[(（]([\w.]*)[,，]([\w]*)[,，]([_\w]*)[)）]", content)
+    members = []
+    for meta_type, attr, name in member_configs:
+        for unit in member_list:
+            if name == unit.name:
+                members.append(unit)
+    for member in  members:
+        member_list.remove(member)
+    array_member = DataArray(array_name, members,cnt_name)
+    return array_member
+
 def _create_did_class(did_type, did, member_patterns, did_name):
-    from .smart7e_DID_user import get_user_fun
     member_configs = re.findall(r"[(（]([\w.]*)[,，]([\w]*)[,，]([_\w]*)[)）]", member_patterns)
     members = []
     for meta_type, attr, name in member_configs:
@@ -267,6 +309,10 @@ def _create_did_class(did_type, did, member_patterns, did_name):
             data_meta.to_value_func = to_value_func
             data_meta.value_str_func = value_str_func
         members.append(data_meta)
+    group_configs = re.findall(r"\[([\w, ()]*)[,，]([\w)]*)[,，]([_\w]*)\]", member_patterns)
+    for content, cnt_name, array_name in group_configs:
+        array_member = _create_array_type(members, content, cnt_name, array_name)
+        members.append(array_member)
     create_remote_class(did_name, int(did, base=16), members, did_type)
 
 def _parse_dids(sheet):
@@ -319,7 +365,7 @@ class DIDLocal(object):
         self.name = name
 
 
-class LocalFBD(DataFragment):
+class LocalFBD(DataStruct):
     CMDS = []
 
     @staticmethod
@@ -409,7 +455,7 @@ def sync_xls_dids():
     _parse_local_cmd(workbook.sheet_by_name("localcmd"))
     logging.info("load  %d dids ok!!!!!",len(DIDRemote.get_did_dict()))
 
-def get_value_txt(enum_key, value):
+def to_xls_enum_name(enum_key, value):
     value_dict = enum_dict[enum_key]
     for key,value1 in value_dict.items():
         if value1 == value:

@@ -82,6 +82,7 @@ class BinaryDecoder(Decoder):
             return bytes()
         elif length < 0:
             return self.decode_left_bytes()
+        length = min(length,self.left_bytes())
         data = self.data[0:length]
         self.data = self.data[length:]
         return data

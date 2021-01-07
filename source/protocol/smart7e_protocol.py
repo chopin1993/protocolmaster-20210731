@@ -6,15 +6,15 @@ import time
 from .codec import BinaryEncoder, BinaryDecoder
 from tools.converter import *
 from tools.esenum import EsEnum
-from .data_fragment import DataFragment
-from .DataMetaType import *
+from .data_container import DataStruct
+from .data_meta_type import *
 from .smart_utils import *
 from .smart7e_DID import *
-
+import logging
 SMART_7e_HEAD = bytes([0x7e])
 
 
-class UpdateStartInfo(DataFragment):
+class UpdateStartInfo(DataStruct):
     def __init__(self, decoder=None, **kwargs):
         """
         filesize filecrc blocksize 设备类型 软件版本
@@ -28,7 +28,7 @@ class UpdateStartInfo(DataFragment):
         self.load_args(decoder=decoder, **kwargs)
 
 
-class UpdateFBD(DataFragment):
+class UpdateFBD(DataStruct):
     def __init__(self, decoder=None, cmd=None, seq=None, ack=None, data=bytes(),crc=None, **kwargs):
         self.cmd = CMD.to_enum(cmd)
         self.seq = seq
@@ -48,6 +48,8 @@ class UpdateFBD(DataFragment):
         encoder.encode_bytes(self.data)
 
     def decode(self, decoder):
+        if decoder.left_bytes() <6:
+            return
         self.seq = decoder.decode_u16()
         self.ack = decoder.decode_u8()
         self.crc = decoder.decode_bytes(2)
@@ -67,7 +69,7 @@ class UpdateFBD(DataFragment):
         return txt
 
 
-class RemoteFBD(DataFragment):
+class RemoteFBD(DataStruct):
 
     @staticmethod
     def create(cmd, did_name, data, gids=None, gid_type=None,**kwargs):
@@ -85,6 +87,15 @@ class RemoteFBD(DataFragment):
         else:
             self.decode(decoder, **kwargs)
 
+    def is_applylication_layer(self):
+        for did in self.didunits:
+            if did.DID in [0x060b,0x0603]:
+                return False
+        return True
+
+    def is_report(self):
+        return self.cmd in [CMD.NOTIFY, CMD.REPORT]
+
     def encode(self, encoder):
         encoder.encode_u8(self.cmd.value)
         for did in self.didunits:
@@ -93,6 +104,7 @@ class RemoteFBD(DataFragment):
     def decode(self, decoder, **kwargs):
         self.data = bytes(self.cmd.value) + decoder.data
         frame = kwargs['ctx']
+        kwargs['fbd'] = self
         while decoder.left_bytes() >= 3:
             if frame.is_boardcast():
                 gid = decoder.decoder_for_object(GID, **kwargs)
@@ -109,7 +121,7 @@ class RemoteFBD(DataFragment):
        return text
 
 
-class Smart7EData(DataFragment):
+class Smart7EData(DataStruct):
     SEQ = 1
     def __init__(self, said=None, taid=None, fbd=None, decoder=None):
         self.data = None
@@ -128,6 +140,9 @@ class Smart7EData(DataFragment):
     def is_reply(self):
         return self.seq&0x80==0x80
 
+    def is_report(self):
+        return self.fbd.cmd in [CMD.NOTIFY, CMD.REPORT]
+
     def is_update(self):
         return self.fbd.cmd in [CMD.UPDATE,CMD.UPDATE_PLC]
 
@@ -136,6 +151,15 @@ class Smart7EData(DataFragment):
 
     def is_boardcast(self):
         return  self.taid == 0xffffffff
+
+    def is_applylication_layer(self):
+        if self.is_local():
+            return False
+        if  self.is_update() or self.is_boardcast():
+            return True
+        if  isinstance(self.fbd, RemoteFBD):
+            return self.fbd.is_applylication_layer()
+        return True
 
     def decode(self, decoder):
         self.data = decoder.data
@@ -164,7 +188,6 @@ class Smart7EData(DataFragment):
             fbd_data = self.fbd
         else:
             fbd_data = encoder.object2data(self.fbd)
-
         encoder.encode_u8(len(fbd_data))
         encoder.encode_str(fbd_data)
         encoder.encode_u8(checksum(encoder.get_data()))
@@ -189,11 +212,11 @@ class Smart7EData(DataFragment):
         hex_taid = u32tohexstr(self.taid)
         hex_seq = u8tohexstr(self.seq)
         hex_len = u8tohexstr(self.len)
-        text = "said[{}]:{} taid[{}]:{} seq[{}]:{} len[{}]:{} fbd:{}".format(\
-            hex_said,self.said,\
-            hex_taid,self.taid,\
-            hex_seq,self.seq,\
-            hex_len,self.len,\
+        text = "said:{}[{}] taid：{}[{}] seq:{}[{}] len:{}[{}] fbd:{}".format(\
+            self.said,hex_said,\
+            self.taid,hex_taid,\
+            self.seq, hex_seq,\
+            self.len, hex_len,\
             str(self.fbd))
         return text
 
@@ -206,25 +229,8 @@ class Smart7EData(DataFragment):
 class Smart7eProtocol(Protocol):
 
     def __init__(self):
-        super(Smart7eProtocol, self).__init__()
-        self.image_data = None
-        self.did_unit = None
+        super(Smart7eProtocol, self).__init__(Smart7EData)
 
-    def __str__(self):
-        return self.name
-
-    def decode(self, decoder):
-        return decoder.decoder_for_object(Smart7EData)
-
-    def to_readable_str(self, text):
-        data = hexstr2bytes(text)
-        found, start, datalen = self.find_frame_in_buff(data)
-        if found:
-            data = data[start:start+datalen]
-            data = BinaryDecoder.data2object(Smart7EData, data)
-            return data.to_readable_str()
-        else:
-            return "no valid frame"
 
     @staticmethod
     def find_frame_in_buff(data):
@@ -246,7 +252,8 @@ class Smart7eProtocol(Protocol):
                 start_pos += 1
                 continue
             if frame_data[11 + data_len] != checksum(frame_data[0:data_len + 11]):
-                print("check error")
+                logging.warning("smart7e check error")
+                start_pos += 1
                 show_time = True
             else:
                 return True,start_pos,data_len+12

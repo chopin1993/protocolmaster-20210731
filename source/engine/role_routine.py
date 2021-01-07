@@ -2,18 +2,20 @@ from tools.converter import *
 import types
 import weakref
 from engine.validator import *
-from .test_engine import TestEngine,Device,log_snd_frame,log_rcv_frame,Routine
+from .test_engine import TestEngine,log_snd_frame,log_rcv_frame,Routine,TestEquiment
 import logging
-
+from .spy_device import SpyDevice
+import engine
 
 class RoleRoutine(Routine):
     """
     主要用来处理单个did，上报和联动测试
     """
-    def __init__(self, name, said, device:Device):
+    def __init__(self, name, said, device:TestEquiment):
         super(RoleRoutine, self).__init__(name, device)
         self.said = said
         self.current_seq = None
+        self.waiting_send_frames = []
 
     def send_did(self, cmd, did, value=None, taid=None, gids=None, gid_type="U16", **kwargs):
         gid, taid = self.get_gid(taid, gids, gid_type)
@@ -37,6 +39,18 @@ class RoleRoutine(Routine):
         taid = self.device.get_taid(taid)
         data = Smart7EData(self.said, taid, fbd)
         self.write(data)
+
+    def timeout_handle(self):
+        if isinstance(self.validate, SmartDataValidator):
+            frames = SpyDevice.instance().get_snd_frames()[::-1]
+            for frame in frames:
+                if frame.taid == self.validate.taid:
+                    engine.add_doc_info("****warnging***抄控器没有收到数据，使用监控器数据代替进行测试")
+                    msg = "使用spy监控器数据代替进行抄控器数据"
+                    TestEngine.instance().add_fix_rcv_operation(self.name,"doc", msg)
+                    self.handle_rcv_msg(frame)
+                    return
+        self.handle_rcv_msg(None)
 
     def _create_did_validtor(self, did, value, gids=None, gid_type=None, **kwargs):
         did_cls = DIDRemote.find_class_by_name(did)
@@ -90,6 +104,13 @@ class RoleRoutine(Routine):
                                            seq=seq,
                                            ack=ack)
         self.wait_event(timeout)
+
+    def wait_event(self, timeout):
+        SpyDevice.instance().clear_send_frames()
+        super(RoleRoutine, self).wait_event(timeout)
+        for frame in self.waiting_send_frames:
+            self.write(frame)
+        self.waiting_send_frames = []
 
     def wait(self, seconds, allowed_message, said=None):
         if allowed_message:
@@ -146,7 +167,7 @@ class RoleRoutine(Routine):
         if data is not None and \
                 data.fbd.cmd in [CMD.REPORT, CMD.NOTIFY] and \
                 not TestEngine.instance().report_enable:
-            log_rcv_frame(self.name+" report ignone", data)
+            log_rcv_frame(self.name+" report ignone" +"如果你想要检测上报，需要调用 engine.report_check_enable_all(True)", data)
             return
 
         if self.validate is not None:
@@ -178,7 +199,7 @@ class RoleRoutine(Routine):
         if data is None:
             return
         data = data.ack_message()
-        self.write(data)
+        self.waiting_send_frames.append(data)
 
     def write(self,data):
         log_snd_frame(self.name, data)

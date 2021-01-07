@@ -40,9 +40,10 @@ class SerialMedia(Media):
             self.serial = serial.Serial(**selected_options)
         except serial.SerialException as e:
             import logging
+            from user_exceptions import MeidaException
             logging.exception(e)
             self.refresh_media_options()
-            return False
+            raise MeidaException(str(e))
         return self.serial.is_open
 
     def _get_all_options(self):

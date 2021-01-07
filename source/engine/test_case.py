@@ -13,11 +13,13 @@ class TestCaseInfo(object):
             brief = brief.strip()
         self.brief = brief
         self.enable = True
+        self.resend = False
 
     def clear(self):
         self.errors = []
         self.passed =True
         self.infos = []
+        self.errors=[]
 
     def is_enable(self):
         return self.enable
@@ -32,6 +34,10 @@ class TestCaseInfo(object):
 
     def add_normal_operation(self, *args):
         self.infos.append(args)
+
+    def add_resend_operation(self, *args):
+        self.infos.append(args)
+        self.resend = True
 
     def add_sub_case(self, name, func, brief):
         case = TestCaseInfo(name, func, brief)
@@ -98,7 +104,10 @@ class TestCaseInfo(object):
         row_cells[0].text = self.name
         row_cells[1].text = ""
         if self.is_passed():
-            row_cells[2].text = "通过"
+            if self.resend:
+                row_cells[2].text = "通过，重发"
+            else:
+                row_cells[2].text = "通过"
         else:
             row_cells[2].text = "失败"
         for case in self.get_valid_sub_cases():
@@ -149,5 +158,7 @@ class TestCaseInfo(object):
             return self.func.get_para_widgets()
         else:
             return []
+
+
 
 

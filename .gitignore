@@ -41,7 +41,10 @@
 *.render.md
 /test/test.db
 /test/.*xlsx
+/test/*.txt
 /doc/python入门教程/render/*
 /source/autotest/**/*.docx
-/source/requirements.txt
-/source/autotest/日常用测试用例/
+/source/autotest/**/*.txt
+
+/test/test_file.bin
+/doc/todo

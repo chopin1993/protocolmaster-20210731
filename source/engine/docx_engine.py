@@ -30,11 +30,16 @@ class DocxEngine(object):
         self.document.add_paragraph(" " * 35 + engine_version)
         self.document.add_page_break()
 
-    def write_summary(self, total, passed, fails, all_infos):
+    def write_summary(self, total, passed, fails, all_infos, resend_cnt, fixsnd_cnt):
         fails_cnt = len(fails)
         self.document.add_heading("概要", 1)
-        txt = "总测试用例:{0} 通过:{1} 失败:{2}".format(total, passed, fails_cnt)
+        txt = "总测试用例:{0} 通过:{1} 失败:{2}  接收失败次数:{3} 发送失败次数{4}\n".format(total,
+                                                                      passed,
+                                                                      fails_cnt,
+                                                                      resend_cnt,
+                                                                      fixsnd_cnt)
         self.document.add_paragraph(txt, style="important")
+        self.document.add_paragraph("接收失败：抄控器发送报文，但是设备没有收到报文\n发送失败：设备发送报文，但是抄控器没有收到报文",style="doc")
         self.document.add_heading("失败用例汇总", 2)
         table = self.document.add_table(rows=1, cols=3,style="Table Grid")
         hdr_cells = table.rows[0].cells
@@ -115,11 +120,7 @@ class DocxEngine(object):
         self.document.add_paragraph(body, style='fail')
 
     def save_doc(self,output_dir):
-       output_dir = os.path.join(output_dir, "测试报告")
-       if not os.path.exists(output_dir):
-           os.mkdir(output_dir)
-       time_str = time.strftime('%Y-%m-%d-%H-%M-%S', time.localtime(time.time()))
-       name = self.name+"_"+time_str+".docx"
+       name = self.name+".docx"
        name = os.path.join(output_dir,name)
        logging.info("generate doc %s",name)
        self.document.save(name)

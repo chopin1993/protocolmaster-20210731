@@ -7,6 +7,7 @@ from PyQt5.QtCore import *
 from PyQt5.QtGui import *
 from PyQt5.QtWidgets import *
 import types
+from enum import Enum
 
 def to_number(txt):
     if txt is "":
@@ -57,7 +58,7 @@ class DataMetaType(Register):
         3. 接收时，将数据放到widget进行显示
         4. 接收时，将数据解析为对人类友好的txt
         '''
-        self.name = name
+        self.name = name if name else ""
         self._value = value
         self.attr = attr
         self.extra = []
@@ -83,6 +84,9 @@ class DataMetaType(Register):
 
     def decode(self, decoder, **kwargs):
         self._value = decoder.decode_left_bytes()
+
+    def min_bytes(self):
+        return 0
 
     def str2value(self, str_value):
         return hexstr2bytes(str_value)
@@ -136,6 +140,9 @@ class DataMetaType(Register):
     def set_widget_value(self, widget, decoder, **kwargs):
         self.decode(decoder, **kwargs)
         widget.value_widget.setText(self.value_str())
+
+    def to_readable_str(self):
+        return str(self)
 
 
 class DataContextBaseValue(DataMetaType):
@@ -214,6 +221,9 @@ class DataU8(DataMetaType):
     def str2value(self, str_value):
         return to_number(str_value)
 
+    def min_bytes(self):
+        return 1
+
 
 
 class DataU16(DataMetaType):
@@ -229,6 +239,9 @@ class DataU16(DataMetaType):
     def str2value(self, str_value):
         return to_number(str_value)
 
+    def min_bytes(self):
+        return 2
+
 
 class DataU32(DataMetaType):
     def __init__(self,name=None, value=0, decoder=None):
@@ -243,9 +256,14 @@ class DataU32(DataMetaType):
     def str2value(self, str_value):
         return to_number(str_value)
 
+    def min_bytes(self):
+        return 4
+
 
 class DataU8Enum(DataMetaType):
     def __init__(self, name=None, value=None, decoder=None, name_dict=None):
+        if isinstance(value, Enum):
+            value = str(value)
         super(DataU8Enum, self).__init__(name, value, decoder)
         self.name_dict = name_dict
 
@@ -274,6 +292,21 @@ class DataU8Enum(DataMetaType):
     def decode(self, decoder, **kwargs):
         self._value = decoder.decode_u8()
 
+    @property
+    def value(self):
+        return self._value
+
+    @value.setter
+    def value(self, value):
+        if isinstance(value, Enum):
+            value = value.name
+        if isinstance(value, str):
+            self._value = self.str2value(value)
+        else:
+            self._value = value
+        if self.widget is not None:
+            self.widget.value_widget.setText(self.value_str())
+
     def value_str(self):
         for key, value in self.name_dict.items():
             if value == self._value:
@@ -285,3 +318,6 @@ class DataU8Enum(DataMetaType):
 
     def __str__(self):
         return self.value_str()
+
+    def min_bytes(self):
+        return 1
