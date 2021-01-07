@@ -372,6 +372,7 @@ class TestEquiment(object):
         return ret
 
     def create_role(self, name, said):
+        config =  TestEngine.instance().config
         self.legal_devices.add(said)
         from .role_routine import RoleRoutine
         from .local_routine import LocalRoutine
@@ -379,6 +380,13 @@ class TestEquiment(object):
             if isinstance(role, RoleRoutine):
                 if role.said == said:
                     role.name = name
+                    if config["波特率"] == "115200":
+                        config["波特率"] = "9600"
+                        self.setting_uart(0, config["波特率"], config['校验位'])
+                        self.local_routine.send_local_msg("设置串口波特率", '04 00')  # 115200bps
+                        self.wait_event(1)
+                        config["波特率"] = "115200"
+                        TestEngine.instance().setting_uart(0, config["波特率"], config['校验位'])
                     self.local_routine.send_local_msg("设置应用层地址", said)
                     self.local_routine.expect_local_msg(["确认", "否认"], timeout=2)
                     return role
@@ -391,6 +399,15 @@ class TestEquiment(object):
             self.local_routine = LocalRoutine("local", self)
             self.roles.append(self.local_routine)
             self.roles.append(self.updater)
+
+        if config["波特率"] == "115200":
+            config["波特率"] = "9600"
+            self.setting_uart(0, config["波特率"], config['校验位'])
+            self.local_routine.send_local_msg("设置串口波特率", '04 00')  # 115200bps
+            self.wait_event(1)
+            config["波特率"] = "115200"
+            self.setting_uart(0, config["波特率"], config['校验位'])
+
         self.local_routine.send_local_msg("设置应用层地址", said)
         self.local_routine.expect_local_msg(["确认", "否认"], timeout=2)
         return role

@@ -43,8 +43,8 @@ def test_debug_mode():
     # 系统复位
     # 清除系统所有信息
     config = engine.get_config()
-    engine.send_did("WRITE", "自动测试FC00", 密码=config["设备密码"], 自动测试命令="触发SWB总线探测")
-    engine.expect_did("WRITE", "自动测试FC00", 密码=config["设备密码"], 自动测试命令="触发SWB总线探测")
+    engine.send_did("WRITE", "自动测试FC00", 密码=config["设备PWD000A"], 自动测试命令="触发SWB总线探测")
+    engine.expect_did("WRITE", "自动测试FC00", 密码=config["设备PWD000A"], 自动测试命令="触发SWB总线探测")
 
 def test_reset_mode():
     """
@@ -53,8 +53,8 @@ def test_reset_mode():
     config = engine.get_config()
     engine.send_did("WRITE", "通断操作C012", "81")
     engine.expect_did("WRITE", "通断操作C012", "01")
-    engine.send_did("WRITE", "自动测试FC00", 密码=config["设备密码"], 自动测试命令="清除系统所有信息")
-    engine.expect_did("WRITE", "自动测试FC00", 密码=config["设备密码"], 自动测试命令="清除系统所有信息")
+    engine.send_did("WRITE", "自动测试FC00", 密码=config["设备PWD000A"], 自动测试命令="清除系统所有信息")
+    engine.expect_did("WRITE", "自动测试FC00", 密码=config["设备PWD000A"], 自动测试命令="清除系统所有信息")
     engine.wait(15)
     engine.expect_device_output_status("继电器输出", 0)
 
@@ -105,7 +105,7 @@ def start_report():
     engine.send_did("WRITE", "载波芯片注册信息0603",
                     aid=config["测试设备地址"],
                     panid=0,
-                    pw=config["设备密码"],
+                    pw=config["设备PWD000A"],
                     device_gid=config["抄控器默认源地址"],
                     sid=1)
     engine.expect_did("WRITE", "载波芯片注册信息0603", "** ** ** ** ** **",check_seq=False)

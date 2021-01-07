@@ -1,14 +1,14 @@
 {
-    "测试配置信息": {
-        "enable": true,
-        "paras": {},
-        "subcase": {}
-    },
-    "设置设备地址": {
+    "配置初始化": {
         "enable": true,
         "paras": {},
         "subcase": {
-            "打开通用配置": {
+            "配置初始化": {
+                "enable": true,
+                "paras": {},
+                "subcase": {}
+            },
+            "触发设备检测监测器": {
                 "enable": true,
                 "paras": {},
                 "subcase": {}
@@ -27,100 +27,116 @@
         }
     },
     "上断电辅助测试": {
-        "enable": true,
+        "enable": false,
         "paras": {},
         "subcase": {
             "said taid": {
-                "enable": true,
+                "enable": false,
                 "paras": {},
                 "subcase": {}
             },
             "multi said taid": {
-                "enable": true,
+                "enable": false,
                 "paras": {},
                 "subcase": {}
             }
         }
     },
     "单个did": {
-        "enable": true,
+        "enable": false,
         "paras": {},
         "subcase": {
             "did测试": {
-                "enable": true,
+                "enable": false,
                 "paras": {},
                 "subcase": {}
             },
             "设备类型测试": {
-                "enable": true,
+                "enable": false,
                 "paras": {},
                 "subcase": {}
             },
             "参数测试": {
-                "enable": true,
+                "enable": false,
                 "paras": {},
                 "subcase": {}
             },
             "字符串反转": {
-                "enable": true,
+                "enable": false,
+                "paras": {},
+                "subcase": {}
+            },
+            "默认": {
+                "enable": false,
                 "paras": {},
                 "subcase": {}
             }
         }
     },
     "原始raw报文测试": {
-        "enable": true,
+        "enable": false,
         "paras": {},
         "subcase": {
             "原始报文读取sn": {
-                "enable": true,
+                "enable": false,
                 "paras": {},
                 "subcase": {}
             },
             "错误报文测试": {
-                "enable": true,
+                "enable": false,
                 "paras": {},
                 "subcase": {}
             },
             "原始报文读取sn2**": {
-                "enable": true,
+                "enable": false,
                 "paras": {},
                 "subcase": {}
             }
         }
     },
     "多did": {
-        "enable": true,
+        "enable": false,
         "paras": {},
         "subcase": {
             "多DID测试": {
-                "enable": true,
+                "enable": false,
+                "paras": {},
+                "subcase": {}
+            }
+        }
+    },
+    "失败测试": {
+        "enable": false,
+        "paras": {},
+        "subcase": {
+            "失败测试-不存在的did": {
+                "enable": false,
                 "paras": {},
                 "subcase": {}
             }
         }
     },
     "广播测试": {
-        "enable": true,
+        "enable": false,
         "paras": {},
         "subcase": {
             "单个广播测试": {
-                "enable": true,
+                "enable": false,
                 "paras": {},
                 "subcase": {}
             },
             "多个广播测试": {
-                "enable": true,
+                "enable": false,
                 "paras": {},
                 "subcase": {}
             },
             "崩溃测试1": {
-                "enable": true,
+                "enable": false,
                 "paras": {},
                 "subcase": {}
             },
             "崩溃测试-single": {
-                "enable": true,
+                "enable": false,
                 "paras": {},
                 "subcase": {}
             }
@@ -130,8 +146,8 @@
         "enable": false,
         "paras": {},
         "subcase": {
-            "升级ESACT-1S1A(v1.5)-20200805": {
-                "enable": false,
+            "升级ESTK-B-5A(v1.11)-20201210.bin": {
+                "enable": true,
                 "paras": {},
                 "subcase": {}
             },
@@ -158,124 +174,164 @@
         }
     },
     "状态同步": {
-        "enable": true,
+        "enable": false,
         "paras": {},
         "subcase": {
             "组网上报": {
-                "enable": true,
+                "enable": false,
                 "paras": {},
                 "subcase": {}
             },
             "只上报订阅者": {
-                "enable": true,
+                "enable": false,
+                "paras": {},
+                "subcase": {}
+            }
+        }
+    },
+    "监测器功能": {
+        "enable": false,
+        "paras": {},
+        "subcase": {
+            "输入测试-int": {
+                "enable": false,
+                "paras": {},
+                "subcase": {}
+            },
+            "输入测试-hexstr": {
+                "enable": false,
+                "paras": {},
+                "subcase": {}
+            },
+            "失败测试-传感器失败": {
+                "enable": false,
+                "paras": {},
+                "subcase": {}
+            },
+            "调试模式": {
+                "enable": false,
+                "paras": {},
+                "subcase": {}
+            },
+            "调试模式恢复出厂": {
+                "enable": false,
+                "paras": {},
+                "subcase": {}
+            },
+            "测试过零检测0": {
+                "enable": false,
+                "paras": {},
+                "subcase": {}
+            },
+            "测试过零检测1": {
+                "enable": false,
+                "paras": {},
+                "subcase": {}
+            },
+            "测试过零检测2": {
+                "enable": false,
+                "paras": {},
+                "subcase": {}
+            },
+            "测试过零检测3": {
+                "enable": false,
+                "paras": {},
+                "subcase": {}
+            },
+            "测试过零检测4": {
+                "enable": false,
+                "paras": {},
+                "subcase": {}
+            },
+            "测试过零检测5": {
+                "enable": false,
+                "paras": {},
+                "subcase": {}
+            },
+            "测试过零检测5_0": {
+                "enable": false,
+                "paras": {},
+                "subcase": {}
+            },
+            "重发测试": {
+                "enable": false,
+                "paras": {},
+                "subcase": {}
+            },
+            "自动捕捉spi的报文输出": {
+                "enable": false,
+                "paras": {},
+                "subcase": {}
+            },
+            "继电器输出测试": {
+                "enable": false,
+                "paras": {},
+                "subcase": {}
+            },
+            "单个继电器输出测试": {
+                "enable": false,
                 "paras": {},
                 "subcase": {}
             }
         }
     },
     "设备功能": {
-        "enable": true,
+        "enable": false,
         "paras": {},
         "subcase": {
             "设备开关测试": {
-                "enable": true,
+                "enable": false,
                 "paras": {},
                 "subcase": {}
             }
         }
     },
     "设备搜索": {
-        "enable": true,
+        "enable": false,
         "paras": {},
         "subcase": {
             "设备搜索测试": {
-                "enable": true,
+                "enable": false,
                 "paras": {},
                 "subcase": {}
             },
             "设备指示": {
-                "enable": true,
+                "enable": false,
                 "paras": {},
                 "subcase": {}
             },
             "清理抄控器和设备网关信息": {
-                "enable": true,
+                "enable": false,
                 "paras": {},
                 "subcase": {}
             }
         }
     },
     "辅助api测试": {
-        "enable": true,
+        "enable": false,
         "paras": {},
         "subcase": {
             "失败测试-等待时间测试": {
-                "enable": true,
+                "enable": false,
                 "paras": {},
                 "subcase": {}
             },
             "等待时间测试": {
-                "enable": true,
+                "enable": false,
                 "paras": {},
                 "subcase": {}
             },
             "第三者回复": {
-                "enable": true,
+                "enable": false,
                 "paras": {},
                 "subcase": {}
             },
             "失败测试_第三者回复": {
-                "enable": true,
+                "enable": false,
                 "paras": {},
                 "subcase": {}
             },
             "失败测试-手动期望失败": {
-                "enable": true,
-                "paras": {},
-                "subcase": {}
-            }
-        }
-    },
-    "公共用例_基本报文": {
-        "enable": false,
-        "paras": {},
-        "subcase": {
-            "软件版本测试": {
-                "enable": false,
-                "paras": {
-                    "软件版本": ""
-                },
-                "subcase": {}
-            },
-            "PLC版本信息": {
-                "enable": false,
-                "paras": {
-                    "应用层通讯协议及版本": ""
-                },
-                "subcase": {}
-            },
-            "设备类型测试": {
-                "enable": false,
-                "paras": {
-                    "设备类型": ""
-                },
-                "subcase": {}
-            },
-            "SN查询": {
-                "enable": false,
-                "paras": {
-                    "sn通配符": ""
-                },
-                "subcase": {}
-            },
-            "Dkey查询": {
-                "enable": false,
-                "paras": {
-                    "dkey通配符": ""
-                },
-                "subcase": {}
-            },
-            "多DID测试": {
                 "enable": false,
                 "paras": {},
                 "subcase": {}
