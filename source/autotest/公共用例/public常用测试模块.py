@@ -47,10 +47,10 @@ def set_gw_info(aid=config["测试设备地址"],
     engine.expect_did("WRITE", "载波芯片注册信息0603", "** ** ** ** ** **", check_seq=False, said=aid)
 
 
-def power_control(time=15):
+def power_control(time=25):
     """
     前置工装通断电
-    抄控器通过报文控制大功率计量遥控开关通断，实现给测试设备的通断电
+    抄控器通过报文控制工装通断，实现给测试设备的通断电
     """
     engine.add_doc_info("前置工装通断电")
     config = engine.get_config()

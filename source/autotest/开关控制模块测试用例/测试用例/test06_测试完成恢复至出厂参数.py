@@ -20,6 +20,7 @@ def test_测试完成恢复出厂参数():
     clear_gw_info(aid=config["前置通断电工装AID"], pw=config["前置通断电工装PWD"])
     # 清除测试设备的PANID
     clear_gw_info()
+    engine.wait(20)
     engine.report_check_enable_all(False)
 
     # 所有的状态和配置参数恢复至出厂参数

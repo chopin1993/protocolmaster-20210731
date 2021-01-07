@@ -1,0 +1,34 @@
+{
+    "测试配置信息": {
+        "enable": false,
+        "paras": {},
+        "subcase": {}
+    },
+    "01_频繁通断电测试": {
+        "enable": false,
+        "paras": {},
+        "subcase": {
+            "00_搭建测试环境": {
+                "enable": false,
+                "paras": {},
+                "subcase": {}
+            },
+            "01_频繁通断电测试": {
+                "enable": false,
+                "paras": {},
+                "subcase": {}
+            }
+        }
+    },
+    "02_远程升级测试": {
+        "enable": true,
+        "paras": {},
+        "subcase": {
+            "09_兼容性升级测试（已发布版本升级至提测版本）": {
+                "enable": true,
+                "paras": {},
+                "subcase": {}
+            }
+        }
+    }
+}
