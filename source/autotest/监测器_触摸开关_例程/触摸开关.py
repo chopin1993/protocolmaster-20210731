@@ -12,6 +12,7 @@ config["抄控器默认源地址"] = 20
 config["测试设备地址"] = 1011104
 config["设备PWD000A"] = 19689
 config["panid"] = 30
+config["被测设备上电后初始化时间"] = 10
 engine.config(config)
 
 if __name__ == "__main__":
