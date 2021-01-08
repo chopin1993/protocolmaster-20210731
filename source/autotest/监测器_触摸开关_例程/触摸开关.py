@@ -5,7 +5,7 @@ import engine
 #配置测试串口
 config = dict()
 config["测试程序名称"] = "ESACT-1A(v1.5)-20200808"
-config["串口"] = "COM24"
+config["串口"] = "COM14"
 config["波特率"] = "9600"
 config["校验位"] = 'None'
 config["抄控器默认源地址"] = 20
