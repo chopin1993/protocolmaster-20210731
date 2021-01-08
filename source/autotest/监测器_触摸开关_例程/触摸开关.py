@@ -6,11 +6,11 @@ import engine
 config = dict()
 config["测试程序名称"] = "ESACT-1A(v1.5)-20200808"
 config["串口"] = "COM14"
-config["波特率"] = "9600"
+config["波特率"] = "115200"
 config["校验位"] = 'None'
 config["抄控器默认源地址"] = 20
-config["测试设备地址"] = 413246
-config["设备PWD000A"] = 11948
+config["测试设备地址"] = 1011104
+config["设备PWD000A"] = 19689
 config["panid"] = 30
 engine.config(config)
 

@@ -289,8 +289,6 @@ def setting_uart(channel, baudrate, parity):
     :param parity:校验位 奇校验、偶校验、无校验
     """
     equiment = TestEngine.instance().get_default_equiment()
-    config = get_config()
-    equiment.config_com(port=config["串口"], baudrate=config["波特率"], parity=config["校验位"])
     equiment.setting_uart(channel, baudrate, parity)
 
 
@@ -388,3 +386,8 @@ def expect_device_output_status(sensor, value, channel=0, wait_time=0):
         wait(wait_time)
     equiment = TestEngine.instance().get_default_equiment()
     equiment.expect_device_output_status(sensor, value, channel)
+
+# def swb_plc_resend_enable():
+#     from engine.spy_device import SpyDevice
+#     SpyDevice.instance().
+
