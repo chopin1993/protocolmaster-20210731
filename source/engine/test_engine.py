@@ -371,8 +371,30 @@ class TestEquiment(object):
         ret = self.media.config(**kwargs)
         return ret
 
+    def sync_plc_baud(self):
+        from engine.interface import add_doc_info
+        config = TestEngine.instance().config
+
+        self.config_com(port=config["串口"], baudrate=config["波特率"], parity=config["校验位"])
+
+        assert config["波特率"] in ["115200","9600"]
+        if config["波特率"] == "115200":
+            add_doc_info("将通信波特率同步为115200")
+            self.setting_uart(0, "9600", config['校验位'])
+            self.local_routine.send_local_msg("设置串口波特率", '04 00')  # 115200bps
+            self.wait_event(1)
+            self.setting_uart(0, config["波特率"], config['校验位'])
+        elif config["波特率"] == "9600":
+            add_doc_info("将通信波特率同步为9600")
+            self.setting_uart(0, "115200", config['校验位'])
+            self.local_routine.send_local_msg("设置串口波特率", '02 00')  # 9600bps
+            self.wait_event(1)
+            self.setting_uart(0, config["波特率"], config['校验位'])
+        else:
+            assert False
+
     def create_role(self, name, said):
-        config =  TestEngine.instance().config
+
         self.legal_devices.add(said)
         from .role_routine import RoleRoutine
         from .local_routine import LocalRoutine
@@ -380,13 +402,7 @@ class TestEquiment(object):
             if isinstance(role, RoleRoutine):
                 if role.said == said:
                     role.name = name
-                    if config["波特率"] == "115200":
-                        config["波特率"] = "9600"
-                        self.setting_uart(0, config["波特率"], config['校验位'])
-                        self.local_routine.send_local_msg("设置串口波特率", '04 00')  # 115200bps
-                        self.wait_event(1)
-                        config["波特率"] = "115200"
-                        TestEngine.instance().setting_uart(0, config["波特率"], config['校验位'])
+                    self.sync_plc_baud()
                     self.local_routine.send_local_msg("设置应用层地址", said)
                     self.local_routine.expect_local_msg(["确认", "否认"], timeout=2)
                     return role
@@ -399,15 +415,7 @@ class TestEquiment(object):
             self.local_routine = LocalRoutine("local", self)
             self.roles.append(self.local_routine)
             self.roles.append(self.updater)
-
-        if config["波特率"] == "115200":
-            config["波特率"] = "9600"
-            self.setting_uart(0, config["波特率"], config['校验位'])
-            self.local_routine.send_local_msg("设置串口波特率", '04 00')  # 115200bps
-            self.wait_event(1)
-            config["波特率"] = "115200"
-            self.setting_uart(0, config["波特率"], config['校验位'])
-
+        self.sync_plc_baud()
         self.local_routine.send_local_msg("设置应用层地址", said)
         self.local_routine.expect_local_msg(["确认", "否认"], timeout=2)
         return role
@@ -481,7 +489,7 @@ class TestEquiment(object):
             TestEngine.instance().add_fail_test("equiment", "fail", msg)
 
     def expect_cross_zero_status(self, channel, value):
-        mointor_data = Monitor7EData.create_cross_zero_message(channel, value)
+        mointor_data = Monitor7EData.create_cross_zero_message(channel)
         self.write(mointor_data)
         self.cross_zero_validater = MonitorCrossZeroValidator(channel, value)
         self.wait_event(2, self.cross_zero_timeout)

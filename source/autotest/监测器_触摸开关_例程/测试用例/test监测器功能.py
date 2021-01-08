@@ -60,7 +60,7 @@ def test_reset_mode():
 
 def test_cross_zero_0():
     "测试过零检测0"
-    engine.expect_cross_zero_status(0,1)
+    engine.expect_cross_zero_status(0,0)
 
 def test_cross_zero_1():
     "测试过零检测1"

@@ -51,28 +51,7 @@
                 "paras": {},
                 "subcase": {}
             },
-            "设备指示": {
-                "enable": false,
-                "paras": {},
-                "subcase": {}
-            },
-            "清理抄控器和设备网关信息": {
-                "enable": false,
-                "paras": {},
-                "subcase": {}
-            }
-        }
-    },
-    "辅助api测试": {
-        "enable": false,
-        "paras": {},
-        "subcase": {
-            "失败测试-等待时间测试": {
-                "enable": false,
-                "paras": {},
-                "subcase": {}
-            },
-            "等待时间测试": {
+            "设备类型测试": {
                 "enable": false,
                 "paras": {},
                 "subcase": {}
@@ -285,11 +264,6 @@
                 "subcase": {}
             },
             "继电器输出测试": {
-                "enable": false,
-                "paras": {},
-                "subcase": {}
-            },
-            "单个继电器输出测试": {
                 "enable": false,
                 "paras": {},
                 "subcase": {}

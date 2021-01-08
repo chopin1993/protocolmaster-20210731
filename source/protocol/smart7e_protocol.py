@@ -161,6 +161,7 @@ class Smart7EData(DataStruct):
             return self.fbd.is_applylication_layer()
         return True
 
+
     def decode(self, decoder):
         self.data = decoder.data
         decoder.decode_byte()

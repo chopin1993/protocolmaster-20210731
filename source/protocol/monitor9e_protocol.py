@@ -245,7 +245,7 @@ class Monitor7EData(DataStruct):
         self.raw_data = None
         self.hardware = hardware
         self.group = group
-        self.cmd = self.to_enum_cmd(cmd) if cmd else None
+        self.cmd = self.to_enum_cmd(cmd) if cmd is not None else None
         if not isinstance(data, bytes):
             data = BinaryEncoder.object2data(data)
         self.data = data
