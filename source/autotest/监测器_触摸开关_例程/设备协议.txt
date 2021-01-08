@@ -1,0 +1,9 @@
+1. 设备输出基本信息：上电初始化后、探测监测器后；chn = 0xff, type = SWB_DEVID = 2; msg = {ver(1Byte)+sn,dkey,aid,pwd,gid,panid,sid}；
+2. 监测器在设备探测后自动发出 type = SWB_MOINTOR_DETECT = 1；设备探测监测器存在的本质就是发送SWB_MOINTOR_DETECT 类型的的数据读取，若回复0x56  0x78数据则监测器存在，否则不存在；
+3. 设备输入信息：
+   1. 按键输入：chn = 0x00, type = TP_AJSR = 51;获取msg设定为1Byte内容，非0为按键触发；
+4. 设备输出信息-（应用层日志打印）：
+   1. 按键信号输出：chn = 0x00, type = TP_AJSR = 51，数据内容为1Byte，0x01短按， 0x02长按；
+   2. 继电器状态输出；chn = 0x00, type = TP_JDQSC = 41，数据内容为1Byte，0x01继电器闭合， 0x00继电器断开；
+   3. 串口接收输出；chn = 0x00, type = BYTES_STREAM = 80，输出接收长度的数据；
+   4. 串口发送输出；chn = 0x01, type = BYTES_STREAM= 80，输出发送长度的数据；
