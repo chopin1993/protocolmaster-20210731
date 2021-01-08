@@ -17,11 +17,11 @@ class RoleRoutine(Routine):
         self.current_seq = None
         self.waiting_send_frames = []
 
-    def send_did(self, cmd, did, value=None, taid=None, gids=None, gid_type="U16", **kwargs):
+    def send_did(self, cmd, did, value=None, taid=None, gids=None, gid_type="U16", reply=False, **kwargs):
         gid, taid = self.get_gid(taid, gids, gid_type)
         fbd = RemoteFBD.create(cmd, did, value,gids=gids, gid_type=gid_type, **kwargs)
         taid = self.device.get_taid(taid)
-        data = Smart7EData(self.said, taid, fbd)
+        data = Smart7EData(self.said, taid, fbd, reply=reply)
         self.write(data)
 
     def get_gid(self, taid, gids, gid_type):
@@ -33,11 +33,11 @@ class RoleRoutine(Routine):
             taid = 0xffffffff
         return gid,taid
 
-    def send_multi_dids(self, cmd, *args, taid=None):
+    def send_multi_dids(self, cmd, *args, taid=None, reply=False):
         dids = [DIDRemote.create_did(name=args[i+2], value=args[i+3], gids=args[i],gid_type=args[i+1]) for i in range(0, len(args), 4)]
         fbd = RemoteFBD(cmd, dids)
         taid = self.device.get_taid(taid)
-        data = Smart7EData(self.said, taid, fbd)
+        data = Smart7EData(self.said, taid, fbd, reply=reply)
         self.write(data)
 
     def timeout_handle(self):
@@ -169,6 +169,9 @@ class RoleRoutine(Routine):
                 not TestEngine.instance().report_enable:
             log_rcv_frame(self.name+" report ignone" +"如果你想要检测上报，需要调用 engine.report_check_enable_all(True)", data)
             return
+
+        if isinstance(data, Smart7EData):
+            Smart7EData.LAST_FRAME_SEQ = data.seq
 
         if self.validate is not None:
             if data is not None:

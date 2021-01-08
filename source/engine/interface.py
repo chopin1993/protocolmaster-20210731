@@ -26,7 +26,7 @@ def get_config():
     return TestEngine.instance().config
 
 
-def send_did(cmd, did, value=None, taid=None, gids=None, gid_type="U16", **kwargs):
+def send_did(cmd, did, value=None, taid=None, gids=None, gid_type="U16", reply=False, **kwargs):
     """
     发送7e报文
     :param cmd:支持“READ”,"WRITE","REPORT","NOTIFY"(不可靠上报)
@@ -35,10 +35,11 @@ def send_did(cmd, did, value=None, taid=None, gids=None, gid_type="U16", **kwarg
     :param taid:目标地址
     :param gids:组地址列表，可以是组地址列表。
     :param gid_type: 组地址编码类型，支持"BIT1","U8","U16"
+    :param reply:序号自动取自上一帧，并将其最高位置1
     :param kwargs:如果数据标识中有多个数据单元，可以使用key,value的方式赋值
     """
     role = TestEngine.instance().get_default_role()
-    role.send_did(cmd, did, value=value, taid=taid, gids=gids, gid_type=gid_type, **kwargs)
+    role.send_did(cmd, did, value=value, taid=taid, gids=gids, gid_type=gid_type, reply=reply, **kwargs)
 
 
 def expect_did(cmd, did, value=None,
@@ -70,11 +71,12 @@ def expect_did(cmd, did, value=None,
                     **kwargs)
 
 
-def send_multi_dids(cmd, *args, taid=None):
+def send_multi_dids(cmd, *args, taid=None, reply=False):
     """
     :param cmd:支持“READ”,"WRITE","REPORT","NOTIFY"
     :param args:did1,value1,did2,value2...did和value交替排列
     :param taid:目的地址，默认是被测设备
+    :param reply:序号自动取自上一帧，并将其最高位置1
     """
     role = TestEngine.instance().get_default_role()
     assert len(args)%2 == 0
@@ -84,7 +86,7 @@ def send_multi_dids(cmd, *args, taid=None):
         padding_args.append(None)
         padding_args.append(args[i])
         padding_args.append(args[i+1])
-    role.send_multi_dids(cmd, *padding_args, taid=taid)
+    role.send_multi_dids(cmd, *padding_args, taid=taid,reply=reply)
 
 
 def expect_multi_dids(cmd, *args,
