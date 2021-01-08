@@ -53,14 +53,12 @@ def power_control(time=config["被测设备上电后初始化时间"]):
     通过控制工装通断，实现给测试设备的通断电，实现断电测试场景
     """
     engine.add_doc_info("测试工装控制通断电")
-    engine.wait(seconds=2,tips='保证和之前的测试存在2s间隔')
-    engine.control_relay(channel=0,value=0)
-    engine.wait(seconds=10,tips='保证被测设备充分断电')
-    # config = engine.get_config()
-    # engine.send_did("WRITE", "通断操作C012", "01", taid=config["前置通断电工装AID"])
-    # engine.expect_did("WRITE", "通断操作C012", "00", said=config["前置通断电工装AID"])
-    # engine.wait(seconds=5)  # 充分断电
-    # engine.send_did("WRITE", "通断操作C012", "81", taid=config["前置通断电工装AID"])
-    # engine.expect_did("WRITE", "通断操作C012", "01", said=config["前置通断电工装AID"])
+    engine.wait(seconds=1, tips='保证和之前的测试存在1s间隔')
+    engine.control_relay(0, 0)
+    engine.wait(seconds=10, tips='保证被测设备充分断电')
+    engine.control_relay(0, 1)
+    # engine.wait(seconds=1, tips='存在1s间隔，重启SWB总线')
+    # engine.reset_swb_bus(0)
+
     if time != 0:
         engine.wait(seconds=time)  # 普通载波设备上电初始化时间约10s，预留足够时间供载波初始化

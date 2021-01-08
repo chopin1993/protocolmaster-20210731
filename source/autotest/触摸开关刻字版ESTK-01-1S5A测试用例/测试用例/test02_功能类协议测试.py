@@ -104,62 +104,75 @@ def test_继电器上电状态C060():
     engine.send_did("READ", "继电器上电状态C060", "")
     engine.expect_did("READ", "继电器上电状态C060", "02")
 
-    engine.add_doc_info("测试开关控制模块为开的时候断电，根据配置，断电重启后为开")
+    engine.add_doc_info("测试被测设备为开的时候断电，根据配置，断电重启后为开")
     engine.send_did("WRITE", "通断操作C012", "81")
     engine.expect_did("WRITE", "通断操作C012", "01")
     power_control()
     engine.send_did("READ", "通断操作C012", "")
     engine.expect_did("READ", "通断操作C012", "01")
+    engine.add_doc_info('监测器检测被测设备的输出端')
+    engine.expect_cross_zero_status(0, 1)
 
-    engine.add_doc_info("测试开关控制模块为关的时候断电，根据配置，断电重启后为关")
+    engine.add_doc_info("测试被测设备为关的时候断电，根据配置，断电重启后为关")
     engine.send_did("WRITE", "通断操作C012", "01")
     engine.expect_did("WRITE", "通断操作C012", "00")
     power_control()
     engine.send_did("READ", "通断操作C012", "")
     engine.expect_did("READ", "通断操作C012", "00")
+    engine.add_doc_info('监测器检测被测设备的输出端')
+    engine.expect_cross_zero_status(0, 0)
 
     # 00上电状态为上电断开
-    engine.add_doc_info("测试上电状态为上电断开，通过前置的工装通断电，给开关控制模块通断电")
+    engine.add_doc_info("测试上电状态为上电断开，通过前置的工装通断电，给被测设备通断电")
     engine.send_did("WRITE", "继电器上电状态C060", "00")
     engine.expect_did("WRITE", "继电器上电状态C060", "00")
     engine.send_did("READ", "继电器上电状态C060", "")
     engine.expect_did("READ", "继电器上电状态C060", "00")
 
-    engine.add_doc_info("测试开关控制模块为开的时候断电，根据配置，断电重启后为关")
+    engine.add_doc_info("测试被测设备为开的时候断电，根据配置，断电重启后为关")
     engine.send_did("WRITE", "通断操作C012", "81")
     engine.expect_did("WRITE", "通断操作C012", "01")
     power_control()
     engine.send_did("READ", "通断操作C012", "")
     engine.expect_did("READ", "通断操作C012", "00")
+    engine.add_doc_info('监测器检测被测设备的输出端')
+    engine.expect_cross_zero_status(0, 0)
 
-    engine.add_doc_info("测试开关控制模块为关的时候断电，根据配置，断电重启后为关")
+    engine.add_doc_info("测试被测设备为关的时候断电，根据配置，断电重启后为关")
     engine.send_did("WRITE", "通断操作C012", "01")
     engine.expect_did("WRITE", "通断操作C012", "00")
     power_control()
     engine.send_did("READ", "通断操作C012", "")
     engine.expect_did("READ", "通断操作C012", "00")
+    engine.add_doc_info('监测器检测被测设备的输出端')
+    engine.expect_cross_zero_status(0, 0)
 
     # 01上电状态为上电闭合
-    engine.add_doc_info("测试上电状态为上电闭合，通过前置的工装通断电，给开关控制模块通断电")
+    engine.add_doc_info("测试上电状态为上电闭合，通过前置的工装通断电，给被测设备通断电")
     engine.send_did("WRITE", "继电器上电状态C060", "01")
     engine.expect_did("WRITE", "继电器上电状态C060", "01")
     engine.send_did("READ", "继电器上电状态C060")
     engine.expect_did("READ", "继电器上电状态C060", "01")
 
-    engine.add_doc_info("测试开关控制模块为开的时候断电，根据配置，断电重启后为开")
+    engine.add_doc_info("测试被测设备为开的时候断电，根据配置，断电重启后为开")
     engine.send_did("WRITE", "通断操作C012", "81")
     engine.expect_did("WRITE", "通断操作C012", "01")
     power_control()
     engine.send_did("READ", "通断操作C012", "")
     engine.expect_did("READ", "通断操作C012", "01")
+    engine.add_doc_info('监测器检测被测设备的输出端')
+    engine.expect_cross_zero_status(0, 1)
 
-    engine.add_doc_info("测试开关控制模块为关的时候断电，根据配置，断电重启后为开")
+    engine.add_doc_info("测试被测设备为关的时候断电，根据配置，断电重启后为开")
     engine.send_did("WRITE", "通断操作C012", "01")
     engine.expect_did("WRITE", "通断操作C012", "00")
     power_control()
     engine.send_did("READ", "通断操作C012", "")
     engine.expect_did("READ", "通断操作C012", "01")
-    # 设置回默认参数，02上电状态为上次断电状态
+    engine.add_doc_info('监测器检测被测设备的输出端')
+    engine.expect_cross_zero_status(0, 1)
+
+    engine.add_doc_info('设置回默认参数，02上电状态为上次断电状态')
     engine.send_did("WRITE", "继电器上电状态C060", "02")
     engine.expect_did("WRITE", "继电器上电状态C060", "02")
     engine.send_did("READ", "继电器上电状态C060")
@@ -170,7 +183,7 @@ def test_继电器过零点动作延迟时间C020():
     """
     05_继电器过零点动作延迟时间C020
     xx(通道)xx（继电器断开延迟时间ms）xx（继电器闭合延迟时间）
-    1、查询开关控制模块的默认参数
+    1、查询被测设备的默认参数
     2、设置过零点动作时间为01 00 00，并进行查询验证
     3、设置过零点动作时间为01 20 20，并进行查询验证
     4、设置回零点动作时间为01 33 39，并进行查询验证
@@ -202,31 +215,35 @@ def test_主动上报使能标志D005():
     """
     06_主动上报使能标志D005
     TT为传感器类型，XX 为0x00:无上报；0x01：上报网关；0x02：上报设备；0x03同时上报设备和网关（状态同步的普遍使用方案）；
-    1、查询开关控制模块的默认状态同步使能参数为03
+    1、查询被测设备的默认状态同步使能参数为03
     2、设置主动上报使能标志D005为00：无上报，并进行查询验证
     3、设置主动上报使能标志D005为01：上报网关，并进行查询验证
     4、设置主动上报使能标志D005为02：上报设备，并进行查询验证
     5、设置主动上报使能标志D005为03：同时上报设备和网关，并进行查询验证
     """
-    engine.add_doc_info("查询开关控制模块的默认状态同步使能参数为03")
+    engine.add_doc_info("查询被测设备的默认状态同步使能参数为03")
     engine.send_did("READ", "主动上报使能标志D005","")
     engine.expect_did("READ", "主动上报使能标志D005", 传感器类型="未知", 上报命令="同时上报设备和网关")
 
+    engine.add_doc_info('设置为无上报模式并进行查询验证')
     engine.send_did("WRITE", "主动上报使能标志D005", 传感器类型="未知", 上报命令="无上报")
     engine.expect_did("WRITE", "主动上报使能标志D005", 传感器类型="未知", 上报命令="无上报")
     engine.send_did("READ", "主动上报使能标志D005")
     engine.expect_did("READ", "主动上报使能标志D005", 传感器类型="未知", 上报命令="无上报")
 
+    engine.add_doc_info('设置为上报网关模式并进行查询验证')
     engine.send_did("WRITE", "主动上报使能标志D005", 传感器类型="未知", 上报命令="上报网关")
     engine.expect_did("WRITE", "主动上报使能标志D005", 传感器类型="未知", 上报命令="上报网关")
     engine.send_did("READ", "主动上报使能标志D005")
     engine.expect_did("READ", "主动上报使能标志D005", 传感器类型="未知", 上报命令="上报网关")
 
+    engine.add_doc_info('设置为上报设备模式并进行查询验证')
     engine.send_did("WRITE", "主动上报使能标志D005", 传感器类型="未知", 上报命令="上报设备")
     engine.expect_did("WRITE", "主动上报使能标志D005", 传感器类型="未知", 上报命令="上报设备")
     engine.send_did("READ", "主动上报使能标志D005")
     engine.expect_did("READ", "主动上报使能标志D005", 传感器类型="未知", 上报命令="上报设备")
 
+    engine.add_doc_info('设置为同时上报设备和网关模式并进行查询验证')
     engine.send_did("WRITE", "主动上报使能标志D005", 传感器类型="未知", 上报命令="同时上报设备和网关")
     engine.expect_did("WRITE", "主动上报使能标志D005", 传感器类型="未知", 上报命令="同时上报设备和网关")
     engine.send_did("READ", "主动上报使能标志D005")
@@ -235,8 +252,8 @@ def test_主动上报使能标志D005():
 
 def test_设备运行状态信息统计E019():
     """
-    07_设备运行状态信息统计E019
-    0x08-（开关控制模块）延时关闭时间（毫秒）TT+XXXXXXXX
+    07_读取或设置被控设备端的控制地址FB20
+    0x08-（被测设备）延时关闭时间（毫秒）TT+XXXXXXXX
     写操作为清除某个信息项的统计信息，XX必须为00；
     1、查询延时闭合时间E019默认为关闭
     2、设置延时闭合时间为10s，并进行验证
@@ -287,7 +304,7 @@ def test_错误类报文测试():
 def test_参数修改后断电验证():
     """
     09_参数修改后断电验证
-    1、将开关控制模块的参数配置成与默认参数不一致；
+    1、将被测设备的参数配置成与默认参数不一致；
     2、断电重启，测试参数是否丢失；
     3、将参数设置回默认参数，便于后续的测试项目运行
     """

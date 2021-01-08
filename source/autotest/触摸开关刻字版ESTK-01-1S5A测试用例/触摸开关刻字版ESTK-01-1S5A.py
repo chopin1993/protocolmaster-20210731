@@ -7,7 +7,7 @@ config = dict()
 config["测试程序名称"] = r"触摸开关刻字版ESTK-01-1S5A测试"
 # 定义抄控器的基本信息
 config["串口"] = "COM24"
-config["波特率"] = "9600"
+config["波特率"] = "115200"
 config["校验位"] = 'None'
 config["抄控器默认源地址"] = 20
 config["panid"] = 1000  # 平板网关展架：14168；平板网关MAX：11176；三相智能网关展架：9113

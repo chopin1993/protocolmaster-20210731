@@ -1,42 +1,36 @@
 import engine
 from engine.spy_device import SpyDevice
+
 config = engine.get_config()
+
 
 def init_配置初始化():
     "01_设置aid、波特率和透传"
-    engine.reset_swb_bus(0)
     engine.create_role("monitor", config["抄控器默认源地址"])
     engine.send_local_msg("设置透传模式", 1)
     engine.expect_local_msg("确认")
 
 
-def init_clear_gw():
-    "清除设备网关信息"
-    r"4aid+2panid+2pw+4gid+2sid"
-    config = engine.get_config()
-    engine.send_local_msg("设置PANID", 0)
-    engine.expect_local_msg("确认")
-    engine.send_did("WRITE", "载波芯片注册信息0603",
-                    aid=config["测试设备地址"],
-                    panid=0,
-                    pw=config["设备PWD000A"],
-                    device_gid=config["抄控器默认源地址"],
-                    sid=1)
-    engine.expect_did("WRITE", "载波芯片注册信息0603", "** ** ** ** ** **",check_seq=False)
-    engine.wait(1)
-
-def init_触发设备检测监测器():
+def init_配置设备初始供电():
     """
-    02_触发设备检测监测器
+    02_配置设备初始供电
+    默认打开通道0，给被测设备供电
     """
-    # 默认打开通道0，给被测设备供电，待机
     engine.control_relay(0, 0)
-    engine.wait(5,tips='给被测设备断电，断电5s')
+    engine.wait(5, tips='给被测设备断电，断电5s')
     engine.control_relay(0, 1)
     engine.wait(config["被测设备上电后初始化时间"],
                 tips='给被测设备供电，等待被测设备上电后初始化时间{}s'.format(config["被测设备上电后初始化时间"]))
 
+
+def init_触发设备检测监测器():
+    """
+    03_触发设备检测监测器
+    """
+
     # 检测swb_bus接口
+    engine.reset_swb_bus(0)
+
     def validate_func(data):
         if len(data) == 2:
             engine.add_doc_info("\n\n***************监测器探测失败,测试过"
@@ -46,4 +40,3 @@ def init_触发设备检测监测器():
     SpyDevice.instance().clear_status()
     engine.send_did("WRITE", "自动测试FC00", 密码=config["设备PWD000A"], 自动测试命令="触发SWB总线探测")
     engine.expect_did("WRITE", "自动测试FC00", validate_func)
-
