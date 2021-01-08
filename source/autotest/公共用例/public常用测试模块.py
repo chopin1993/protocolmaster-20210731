@@ -47,18 +47,20 @@ def set_gw_info(aid=config["测试设备地址"],
     engine.expect_did("WRITE", "载波芯片注册信息0603", "** ** ** ** ** **", check_seq=False, said=aid)
 
 
-def power_control(time=25):
+def power_control(time=config["被测设备上电后初始化时间"]):
     """
-    前置工装通断电
-    抄控器通过报文控制工装通断，实现给测试设备的通断电
+    测试工装控制通断电
+    通过控制工装通断，实现给测试设备的通断电，实现断电测试场景
     """
-    engine.add_doc_info("前置工装通断电")
-    config = engine.get_config()
-    engine.wait(seconds=1)  # 保证和之前的测试存在1s间隔
-    engine.send_did("WRITE", "通断操作C012", "01", taid=config["前置通断电工装AID"])
-    engine.expect_did("WRITE", "通断操作C012", "00", said=config["前置通断电工装AID"])
-    engine.wait(seconds=5)  # 充分断电
-    engine.send_did("WRITE", "通断操作C012", "81", taid=config["前置通断电工装AID"])
-    engine.expect_did("WRITE", "通断操作C012", "01", said=config["前置通断电工装AID"])
+    engine.add_doc_info("测试工装控制通断电")
+    engine.wait(seconds=2,tips='保证和之前的测试存在2s间隔')
+    engine.control_relay(channel=0,value=0)
+    engine.wait(seconds=10,tips='保证被测设备充分断电')
+    # config = engine.get_config()
+    # engine.send_did("WRITE", "通断操作C012", "01", taid=config["前置通断电工装AID"])
+    # engine.expect_did("WRITE", "通断操作C012", "00", said=config["前置通断电工装AID"])
+    # engine.wait(seconds=5)  # 充分断电
+    # engine.send_did("WRITE", "通断操作C012", "81", taid=config["前置通断电工装AID"])
+    # engine.expect_did("WRITE", "通断操作C012", "01", said=config["前置通断电工装AID"])
     if time != 0:
         engine.wait(seconds=time)  # 普通载波设备上电初始化时间约10s，预留足够时间供载波初始化

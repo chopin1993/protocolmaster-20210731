@@ -3,7 +3,7 @@ from engine.spy_device import SpyDevice
 config = engine.get_config()
 
 def init_配置初始化():
-    "配置初始化"
+    "01_配置初始化"
     engine.setting_uart(0, config["波特率"], config['校验位'])
     engine.create_role("monitor", config["抄控器默认源地址"])
     engine.send_local_msg("设置透传模式", 1)
@@ -12,8 +12,16 @@ def init_配置初始化():
 
 def init_触发设备检测监测器():
     """
-    触发设备检测监测器
+    02_触发设备检测监测器
     """
+    # 默认打开通道0，给被测设备供电，待机
+    engine.control_relay(0, 0)
+    engine.wait(5,tips='给被测设备断电，断电5s')
+    engine.control_relay(0, 1)
+    engine.wait(config["被测设备上电后初始化时间"],
+                tips='给被测设备供电，等待被测设备上电后初始化时间{}s'.format(config["被测设备上电后初始化时间"]))
+
+    # 检测swb_bus接口
     def validate_func(data):
         if len(data) == 2:
             engine.add_doc_info("\n\n***************监测器探测失败,测试过"

@@ -317,7 +317,7 @@ def test_chuankou():
         else:
             return False
     engine.send_local_msg("查询透传模式", '')
-    # result = engine.expect_local_msg("回复透传模式",test_chuankou)
+    result = engine.expect_local_msg("回复透传模式",test_chuankou)
     engine.add_doc_info(result)
     # if test_chuankou:
     #     engine.add_doc_info('将当前的串口波特率为9600，将其设置为115200')
