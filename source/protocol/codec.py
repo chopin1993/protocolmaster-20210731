@@ -12,6 +12,9 @@ class Decoder(object):
 
 
 class BinaryEncoder(Encoder):
+    """
+    二进制编编码
+    """
     def __init__(self):
         self.data = bytes([])
 
@@ -66,7 +69,9 @@ class BinaryEncoder(Encoder):
 
 
 class BinaryDecoder(Decoder):
-
+    """
+    二进制编解码
+    """
     def __init__(self, data=None):
         self.data = data
 

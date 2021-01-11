@@ -122,6 +122,9 @@ class RemoteFBD(DataStruct):
 
 
 class Smart7EData(DataStruct):
+    """
+    7e完整帧
+    """
     SEQ = 1
     LAST_FRAME_SEQ = 1
     def __init__(self, said=None, taid=None, fbd=None, reply=False, decoder=None):

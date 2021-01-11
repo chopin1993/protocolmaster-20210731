@@ -2,7 +2,9 @@ from register import Register
 from protocol.data_meta_type import DataMetaType
 
 class PublicCase(Register):
-
+    """
+    用来表示测试用例
+    """
     @classmethod
     def get_valid_cases(cls):
         all_medias = cls.get_sub_class_dict()

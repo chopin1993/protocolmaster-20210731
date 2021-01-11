@@ -22,6 +22,9 @@ def cmd_filter(suffixs, cmd):
 
 
 class DIDRemote(Register):
+    """
+    7e DID 父类
+    """
     DID=0xff00
     MEMBERS = []
     REPLY_MEMBERS = []

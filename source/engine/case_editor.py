@@ -21,6 +21,9 @@ class UIHandler(logging.Handler):
             self.handleError(record)
 
 class CaseEditor(QMainWindow, Ui_MainWindow):
+    """
+    图形化的运行测试界面
+    """
     def __init__(self, engine):
         super(CaseEditor, self).__init__()
         self.all_tree_widgets = []

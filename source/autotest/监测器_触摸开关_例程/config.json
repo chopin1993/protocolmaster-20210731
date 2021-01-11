@@ -3,187 +3,23 @@
         "enable": true,
         "paras": {},
         "subcase": {
-            "配置初始化": {
+            "01_设置aid、波特率和透传": {
                 "enable": true,
                 "paras": {},
                 "subcase": {}
             },
-            "触发设备检测监测器": {
-                "enable": true,
-                "paras": {},
-                "subcase": {}
-            }
-        }
-    },
-    "_适配层和网络层升级": {
-        "enable": false,
-        "paras": {},
-        "subcase": {
-            "升级适配层": {
-                "enable": false,
-                "paras": {},
-                "subcase": {}
-            }
-        }
-    },
-    "上断电辅助测试": {
-        "enable": false,
-        "paras": {},
-        "subcase": {
-            "said taid": {
+            "02_配置设备初始供电": {
                 "enable": false,
                 "paras": {},
                 "subcase": {}
             },
-            "multi said taid": {
-                "enable": false,
-                "paras": {},
-                "subcase": {}
-            }
-        }
-    },
-    "单个did": {
-        "enable": false,
-        "paras": {},
-        "subcase": {
-            "did测试": {
-                "enable": false,
-                "paras": {},
-                "subcase": {}
-            },
-            "设备类型测试": {
-                "enable": false,
-                "paras": {},
-                "subcase": {}
-            },
-            "参数测试": {
-                "enable": false,
-                "paras": {},
-                "subcase": {}
-            },
-            "字符串反转": {
-                "enable": false,
-                "paras": {},
-                "subcase": {}
-            },
-            "默认": {
-                "enable": false,
-                "paras": {},
-                "subcase": {}
-            }
-        }
-    },
-    "原始raw报文测试": {
-        "enable": false,
-        "paras": {},
-        "subcase": {
-            "原始报文读取sn": {
-                "enable": false,
-                "paras": {},
-                "subcase": {}
-            },
-            "错误报文测试": {
-                "enable": false,
-                "paras": {},
-                "subcase": {}
-            },
-            "原始报文读取sn2**": {
-                "enable": false,
-                "paras": {},
-                "subcase": {}
-            }
-        }
-    },
-    "多did": {
-        "enable": false,
-        "paras": {},
-        "subcase": {
-            "多DID测试": {
-                "enable": false,
-                "paras": {},
-                "subcase": {}
-            }
-        }
-    },
-    "失败测试": {
-        "enable": false,
-        "paras": {},
-        "subcase": {
-            "失败测试-不存在的did": {
-                "enable": false,
-                "paras": {},
-                "subcase": {}
-            }
-        }
-    },
-    "广播测试": {
-        "enable": false,
-        "paras": {},
-        "subcase": {
-            "单个广播测试": {
-                "enable": false,
-                "paras": {},
-                "subcase": {}
-            },
-            "多个广播测试": {
-                "enable": false,
-                "paras": {},
-                "subcase": {}
-            },
-            "崩溃测试1": {
-                "enable": false,
-                "paras": {},
-                "subcase": {}
-            },
-            "崩溃测试-single": {
-                "enable": false,
-                "paras": {},
-                "subcase": {}
-            }
-        }
-    },
-    "应用层升级测试": {
-        "enable": false,
-        "paras": {},
-        "subcase": {
-            "升级ESTK-B-5A(v1.11)-20201210.bin": {
+            "03_触发设备检测监测器": {
                 "enable": true,
                 "paras": {},
                 "subcase": {}
             },
-            "升级ESACT-1S1A(v1.5)-20200808": {
-                "enable": false,
-                "paras": {},
-                "subcase": {}
-            },
-            "断点续传": {
-                "enable": false,
-                "paras": {},
-                "subcase": {}
-            },
-            "断电重传": {
-                "enable": false,
-                "paras": {},
-                "subcase": {}
-            },
-            "升级+控制": {
-                "enable": false,
-                "paras": {},
-                "subcase": {}
-            }
-        }
-    },
-    "状态同步": {
-        "enable": false,
-        "paras": {},
-        "subcase": {
-            "组网上报": {
-                "enable": false,
-                "paras": {},
-                "subcase": {}
-            },
-            "只上报订阅者": {
-                "enable": false,
+            "清除设备网关信息": {
+                "enable": true,
                 "paras": {},
                 "subcase": {}
             }

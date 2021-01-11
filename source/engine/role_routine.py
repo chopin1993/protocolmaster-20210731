@@ -9,7 +9,7 @@ import engine
 
 class RoleRoutine(Routine):
     """
-    主要用来处理单个did，上报和联动测试
+    主要远程用来处理单个did，上报和联动测试
     """
     def __init__(self, name, said, device:TestEquiment):
         super(RoleRoutine, self).__init__(name, device)

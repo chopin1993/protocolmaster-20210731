@@ -10,6 +10,9 @@ from PyQt5.QtCore import QTimer
 
 
 class UpdaterFileParser(object):
+    """
+    升级模块
+    """
     def __init__(self,cmd, file_name):
         self.device_type = None
         self.soft_version = None
