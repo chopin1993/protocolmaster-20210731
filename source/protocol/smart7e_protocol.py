@@ -89,7 +89,7 @@ class RemoteFBD(DataStruct):
 
     def is_applylication_layer(self):
         for did in self.didunits:
-            if did.DID&0xff00 == 0x0600:
+            if did.DID&0xff00 == 0x0600 or did.DID in [0x0004,]:
                 return False
         return True
 
