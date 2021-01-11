@@ -3,9 +3,7 @@ from .data_meta_type import *
 from copy import deepcopy
 
 class DataStruct(DataMetaType):
-    """
-    结构体类
-    """
+
     @staticmethod
     def create_data_struct(metas):
         data = DataStruct()
@@ -51,9 +49,6 @@ class DataStruct(DataMetaType):
 
 
 class DataArray(DataMetaType):
-    """
-    结构体数组
-    """
     def __init__(self, name, metas,cnt_name="",values=[], cnt=-1, decoder=None):
         assert len(metas)>=0
         self.metas = metas

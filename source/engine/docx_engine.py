@@ -10,9 +10,6 @@ def get_config_file(name):
     return os.path.join(os.path.dirname(__file__), "../resource", name)
 
 class DocxEngine(object):
-    """
-    生成测试文档引擎
-    """
     def __init__(self, name=None):
         self.name = None
         self.document = docx.Document(get_config_file("template_test.docx"))

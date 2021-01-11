@@ -2,9 +2,6 @@
 from engine.public_case import PublicCase
 
 class TestCaseInfo(object):
-    """
-    测试用例的运行信息
-    """
     def __init__(self, name, func, brief):
         self.name = name
         self.infos = []

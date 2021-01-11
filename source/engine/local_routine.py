@@ -9,7 +9,7 @@ from .test_engine import Routine
 
 class LocalRoutine(Routine):
     """
-    主要用本地通信
+    主要用来处理单个did，上报和联动测试
     """
     def __init__(self, name, device:TestEquiment):
         super(LocalRoutine, self).__init__(name, device)

@@ -6,9 +6,6 @@ from protocol.smart7e_protocol import  Smart7eProtocol
 import engine
 
 class SpyDevice(object):
-    """
-    监测器的设备检测信息
-    """
     _instance = None
 
     @staticmethod

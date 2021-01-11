@@ -21,9 +21,7 @@ def find_head(buff, start, head):
     return pos + start
 
 class Protocol(Register):
-    """
-    协议类
-    """
+
     def __init__(self, data_cls, max_length=300):
         super().__init__()
         self.data_cls = data_cls
