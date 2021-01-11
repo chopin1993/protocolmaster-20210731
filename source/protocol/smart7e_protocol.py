@@ -145,10 +145,10 @@ class Smart7EData(DataStruct):
         return self.seq&0x80==0x80
 
     def is_report(self):
-        return self.fbd.cmd in [CMD.NOTIFY, CMD.REPORT]
+        return isinstance(self.fbd, RemoteFBD) and self.fbd.cmd in [CMD.NOTIFY, CMD.REPORT]
 
     def is_update(self):
-        return self.fbd.cmd in [CMD.UPDATE,CMD.UPDATE_PLC]
+        return  isinstance(self.fbd, UpdateFBD) and self.fbd.cmd in [CMD.UPDATE,CMD.UPDATE_PLC]
 
     def is_local(self):
         return self.said ==0 and self.taid == 0
