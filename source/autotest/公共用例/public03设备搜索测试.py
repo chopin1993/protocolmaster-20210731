@@ -19,6 +19,8 @@ def device_search0008(search_time, search_type, search_reply=True):
         """被测设备回复设备搜索用时统计函数"""
         nonlocal passed, start_time
         passed = time.time() - start_time
+        # 计算的时间保留3位小数
+        passed = int(passed*1000)/1000
         if data == hexstr2bytes(config["SN0007"]):
             return True
         else:
@@ -34,10 +36,11 @@ def device_search0008(search_time, search_type, search_reply=True):
                                  "设备描述信息设备制造商0003", config["设备描述信息设备制造商0003"],
                                  timeout=(search_time + 1))
 
-        engine.add_doc_info("被测设备回复设备搜索用时： {0:.3f} s".format(passed))
+        engine.add_doc_info("被测设备回复设备搜索用时： {0} s".format(passed))
         engine.wait(10, allowed_message=False)
     else:
         engine.wait((search_time + 1), allowed_message=False)
+    return passed
 
 
 def test_APP设备搜索对设备类型的测试():
@@ -73,14 +76,18 @@ def test_APP设备搜索对设备搜索时间的测试():
     """
 
     engine.add_doc_info("测试被测试设备针对设备搜索时间的响应情况： 要求结果是随机上报")
-    for i in range(3):
-        device_search0008(search_time=10, search_type=config["设备搜索类型"])
-
-    for i in range(3):
-        device_search0008(search_time=60, search_type=config["设备搜索类型"])
-
-    for i in range(3):
-        device_search0008(search_time=300, search_type=config["设备搜索类型"])
+    search_time = [10, 60, 300]
+    for time in search_time:
+        engine.add_doc_info('当前设备搜索时间为: {}s'.format(time))
+        timeList = []
+        for i in range(3):
+            passed = device_search0008(search_time=time, search_type=config["设备搜索类型"])
+            timeList.append(passed)
+        engine.add_doc_info('本轮设备搜索测试，分别测试3次，时间分别为{}s'.format(timeList))
+        if len(set(timeList)) == len(timeList):
+            engine.add_doc_info('设备搜索响应时间，随机上报，验证成功')
+        else:
+            engine.add_fail_test('设备搜索响应时间，随机上报，验证失败')
 
 
 def test_APP设备搜索对设备重发搜索的测试():
@@ -134,7 +141,7 @@ def test_APP设备搜索最大最小时间的测试():
                              "DKEY0005", config["DKEY0005"],
                              "设备PWD000A", config["设备PWD000A"],
                              "设备描述信息设备制造商0003", config["设备描述信息设备制造商0003"],
-                             timeout=(10+1))
+                             timeout=(10 + 1))
     engine.wait(10, allowed_message=False)
 
     engine.add_doc_info("针对设备搜索最大时间的测试")
@@ -144,6 +151,7 @@ def test_APP设备搜索最大最小时间的测试():
 
     engine.add_doc_info("连续300s无上报信息，再次触发10s的设备搜索报文，设备回复正常")
     device_search0008(search_time=10, search_type=config["设备搜索类型"])
+
 
 def test_设备入网后不再支持设备搜索():
     """
@@ -226,5 +234,3 @@ def test_静默时间最大值最小值测试():
     engine.wait(60, allowed_message=False)
 
     device_search0008(search_time=10, search_type=config["设备搜索类型"])
-
-
