@@ -116,14 +116,14 @@ class DIDValidtor(Validator):
         return  compare_data(self.value, did.data)
 
     def __str__(self):
-        return "did[{did}] value:{value}".format(did=u16tohexstr(self.did) , value=self.value)
+        return "gid:{gid} did[{did}] value:{value}".format(gid=self.gid, did=u16tohexstr(self.did) , value=self.value)
 
 def error_msg(filed, expected, rcv):
     return f"{filed} mismatch, expect:{expected} rcv:{rcv}".format(filed=filed, expected=expected, rcv=rcv)
 
 
 class SmartDataValidator(Validator):
-    def __init__(self, said, taid, cmd=None, gid=None, dids=None, fbd=None, seq=None, ack=False):
+    def __init__(self, said, taid, cmd=None, dids=None, fbd=None, seq=None, ack=False):
         super(SmartDataValidator, self).__init__()
         self.cmd = cmd
         self.dids = dids
@@ -132,7 +132,6 @@ class SmartDataValidator(Validator):
         self.ack = ack
         self.fbd = fbd
         self.seq = seq
-        self.gid = gid
 
     def __call__(self, smartData):
         if smartData is None:
@@ -148,8 +147,6 @@ class SmartDataValidator(Validator):
             if self.cmd != smartData.fbd.cmd:
                 return False, error_msg("cmd",self.cmd, smartData.fbd.cmd)
 
-            if self.gid is not None and self.gid != smartData.fbd.gid:
-                return False, error_msg("gid",self.gid, smartData.fbd.gid)
             for validator, did in zip(self.dids, smartData.fbd.didunits):
                 if not validator(did):
                     return False, error_msg("did", str(validator), str(did))
