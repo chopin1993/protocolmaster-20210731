@@ -71,7 +71,7 @@ class GID(DataStruct):
         else:
             self.gids = []
             for i,data in enumerate(decoder.decode_bytes(len_)):
-                base = (len_-1-i)*8+1
+                base = i*8+1
                 for bits in range(0,8):
                     if data & (1<<bits):
                         self.gids.append(bits+base)
@@ -83,6 +83,6 @@ class GID(DataStruct):
             return False
 
     def __str__(self):
-        data =  BinaryEncoder.object2data(self)
-        txt = "gid[{}]:{} {} ".format(str2hexstr(data), str(self.type), str(self.gids))
+        data = BinaryEncoder.object2data(self)
+        txt = "gid:{} {}[{}] ".format(str(self.type), str(self.gids), str2hexstr(data))
         return txt

@@ -534,6 +534,8 @@ class TestEquiment(object):
                 if data.taid == 0xffffffff:
                     if role.is_expect_boradcast:
                         role.handle_rcv_msg(data)
+                    else:
+                        log_rcv_frame("ignore", data, only_log=True)
                 else:
                     if data.taid == role.said:
                         role.handle_rcv_msg(data)

@@ -90,18 +90,22 @@ class RoleRoutine(Routine):
                    check_seq=True,
                    **kwargs):
         cmd = CMD.to_enum(cmd)
-        did = [self._create_did_validtor(did, value, **kwargs)]
+
         seq = self.get_expect_seq(cmd, check_seq)
-        gid = None
+        taid = self.said
         if gids is not None:
             self.is_expect_boradcast = True
-            gid = GID(gid_type, gids)
+            did = [self._create_did_validtor(did, value,gids=gids, gid_type=gid_type, **kwargs)]
             seq = None
+            taid = 0xffffffff
+        else:
+            did = [self._create_did_validtor(did, value, **kwargs)]
+            self.is_expect_boradcast = False
+
         self.validate = SmartDataValidator(said=self.device.get_taid(said),
-                                           taid=self.said,
+                                           taid=taid,
                                            cmd=cmd,
                                            dids=did,
-                                           gid=gid,
                                            seq=seq,
                                            ack=ack)
         self.wait_event(timeout)
@@ -122,28 +126,28 @@ class RoleRoutine(Routine):
 
     def expect_multi_dids(self, cmd, *args,
                           said=None, timeout=2, ack=False,
-                          gids=None, gid_type="U16",
                           check_seq=True
                           ):
         assert len(args)%4 == 0
         cmd = CMD.to_enum(cmd)
         seq = self.get_expect_seq(cmd, check_seq)
-        gid = None
-        if gids is not None:
-            self.is_expect_boradcast = True
-            gid = GID(gid_type, gids)
         dids = []
+        self.is_expect_boradcast = False
+        taid = self.said
         for i in range(0, len(args), 4):
+            if args[i] is not None:
+                self.is_expect_boradcast = True
+                seq = None
+                taid = 0xffffffff
             did = self._create_did_validtor(did=args[i+2],
                                             value=args[i+3],
                                             gids=args[i],
                                             gid_type=args[i+1])
             dids.append(did)
-        taid = self.device.get_taid(said)
-        self.validate = SmartDataValidator(said=taid,
-                                           taid=self.said,
+        said = self.device.get_taid(said)
+        self.validate = SmartDataValidator(said=said,
+                                           taid=taid,
                                            cmd=cmd,
-                                           gid=gid,
                                            dids=dids,
                                            seq=seq,
                                            ack=ack)
