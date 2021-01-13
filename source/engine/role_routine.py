@@ -49,6 +49,7 @@ class RoleRoutine(Routine):
                     msg = "使用spy监控器数据代替进行抄控器数据"
                     TestEngine.instance().add_fix_rcv_operation(self.name,"doc", msg)
                     self.handle_rcv_msg(frame)
+                    SpyDevice.instance().clear_send_frames()
                     return
         self.handle_rcv_msg(None)
 

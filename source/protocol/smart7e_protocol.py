@@ -87,7 +87,7 @@ class RemoteFBD(DataStruct):
         else:
             self.decode(decoder, **kwargs)
 
-    def is_applylication_layer(self):
+    def is_applylication_did(self):
         for did in self.didunits:
             if did.DID&0xff00 == 0x0600 or did.DID in [0x0004,]:
                 return False
@@ -156,13 +156,15 @@ class Smart7EData(DataStruct):
     def is_boardcast(self):
         return  self.taid == 0xffffffff
 
-    def is_applylication_layer(self):
+    def is_need_spy(self):
         if self.is_local():
             return False
-        if  self.is_update() or self.is_boardcast():
-            return True
+        if self.is_update():
+            return False
         if  isinstance(self.fbd, RemoteFBD):
-            return self.fbd.is_applylication_layer()
+            return self.fbd.is_applylication_did()
+        if self.is_boardcast():
+            return True
         return True
 
 

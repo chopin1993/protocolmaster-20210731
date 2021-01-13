@@ -434,7 +434,7 @@ class TestEquiment(object):
             log_snd_frame("测试工装", monitor_data, only_log=True)
             if SpyDevice.instance().probe_connected and \
                     data.taid == self.get_taid() and \
-                    data.is_applylication_layer():
+                    data.is_need_spy():
                 rcv_ok = False
                 def receive_frame(frame):
                     nonlocal rcv_ok
