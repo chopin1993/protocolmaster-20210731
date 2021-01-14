@@ -79,7 +79,7 @@ def report_power_on_expect(panid=config["panid"], sid=8, expect_value="00", wait
                              "导致状态改变的控制设备AIDC01A", config["测试设备地址"], ack=True)
     set_gw_info(panid=panid, sid=1, aid=config["前置通断电工装AID"], pw=config["前置通断电工装PWD"])
 
-    power_control(time=0)
+    power_control(init_time=0)
 
     for i, data in enumerate(wait_time):
         if i != (len(wait_time) - 1):
