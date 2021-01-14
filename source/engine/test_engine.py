@@ -340,6 +340,18 @@ class TestEquiment(object):
         self.connect_func = None
         self.timer.setSingleShot(True)
         self.cross_zero_validater = None
+        self.make_sure_sending = False
+        self.plc_frames = []
+        self.send_timer = QTimer()
+        self.send_timer.timeout.connect(self.send_buffered_frame)
+
+
+    def send_buffered_frame(self):
+        if len(self.plc_frames) > 0:
+           data = self.plc_frames.pop(0)
+           self.handle_plc_msg(data)
+        else:
+           self.send_timer.stop()
 
     def cross_zero_timeout(self):
         self.cross_zero_validater = None
@@ -435,6 +447,7 @@ class TestEquiment(object):
             if SpyDevice.instance().probe_connected and \
                     data.taid == self.get_taid() and \
                     data.is_need_spy():
+                self.make_sure_sending = True
                 rcv_ok = False
                 def receive_frame(frame):
                     nonlocal rcv_ok
@@ -453,6 +466,8 @@ class TestEquiment(object):
                         self.session.write(monitor_data)
                         snd_cnt += 1
                 SpyDevice.instance().install_rcv_hook(None)
+                self.make_sure_sending = False
+                self.send_timer.start(50)
             else:
                 self.session.write(monitor_data)
         else:
@@ -515,6 +530,10 @@ class TestEquiment(object):
         self.write(data)
 
     def handle_plc_msg(self, data):
+
+        if self.make_sure_sending:
+            self.plc_frames.append(data)
+
         if data.is_local():
             if self.local_routine is not None:
                 self.local_routine.handle_rcv_msg(data)
