@@ -257,9 +257,11 @@ def wait(seconds, allowed_message=True, said=None,tips=""):
     :param tips:等待显示的提示信息
     :return:
     """
-    assert seconds > 0, "等待时间必须大于0"
     msg ="we will wait {0}s {1}".format(seconds, tips)
     logging.info(msg)
+    if seconds <=0:
+        logging.warning("等待时间小于0 {}".format(seconds))
+        return
     role = TestEngine.instance().get_default_role()
     role.wait(seconds, allowed_message, said=said)
 

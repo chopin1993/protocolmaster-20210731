@@ -141,6 +141,11 @@ class Smart7EData(DataStruct):
                     Smart7EData.SEQ = 1
             self.len = self.get_fbd_len()
 
+    def increase_seq(self):
+        self.seq += 1
+        if self.seq > 127:
+            self.seq =1
+
     def is_reply(self):
         return self.seq&0x80==0x80
 

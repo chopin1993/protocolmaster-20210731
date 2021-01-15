@@ -349,6 +349,7 @@ class TestEquiment(object):
     def send_buffered_frame(self):
         if len(self.plc_frames) > 0:
            data = self.plc_frames.pop(0)
+           logging.warning("处理发送过程中收到的信息")
            self.handle_plc_msg(data)
         else:
            self.send_timer.stop()
@@ -462,6 +463,8 @@ class TestEquiment(object):
                     if rcv_ok:
                         break
                     else:
+                        data.increase_seq()
+                        monitor_data = Monitor7EData.create_uart_message(data, cmd=UARTCmd.W_DATA)
                         TestEngine.instance().add_resend_operation("", "doc", "probe not rcv messgae, resend {}".format(snd_cnt))
                         self.session.write(monitor_data)
                         snd_cnt += 1
@@ -532,6 +535,7 @@ class TestEquiment(object):
     def handle_plc_msg(self, data):
 
         if self.make_sure_sending:
+            logging.warning("发送过程中收到消息，暂存，延时处理")
             self.plc_frames.append(data)
 
         if data.is_local():
