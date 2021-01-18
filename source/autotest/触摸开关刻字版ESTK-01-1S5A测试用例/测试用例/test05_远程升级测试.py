@@ -2,6 +2,7 @@
 # 导入测试引擎
 from autotest.公共用例.public05远程升级测试 import *
 from .常用测试模块 import *
+
 测试组说明 = "远程升级测试"
 
 config = engine.get_config()
@@ -64,7 +65,7 @@ def init_升级测试环境搭建():
     """
     engine.report_check_enable_all(True)
     # 设置被测设备密钥
-    report_gateway_expect(wait_times=[15], ack=True)
+    report_gateway_expect(wait_times=[15], ack=True, wait_enable=False)
 
     engine.add_doc_info('通过抄控器设置被测设备的参数，使之与默认参数不一致，验证升级前后参数是否会发生变化')
     engine.send_did("WRITE", "继电器上电状态C060", "00")
@@ -81,6 +82,7 @@ def init_升级测试环境搭建():
     engine.expect_did("WRITE", "读写面板默认背光亮度百分比C135", 设备通道="01", 背光亮度=50)
 
     engine.report_check_enable_all(False)
+
 
 def test_升级过程中被控制():
     """
@@ -100,13 +102,14 @@ def test_升级过程中被控制():
                     engine.send_did("WRITE", "通断操作C012", "01")
                     engine.expect_did("WRITE", "通断操作C012", "00")
                     engine.wait(1)
+
     engine.add_doc_info("升级前，查询版本及SN、DK、配置参数")
     check_update_configure(version=config["设备描述信息设备制造商0003"])
 
     engine.update(config["应用程序同版本号测试版本"], None, device_ctrl)
     engine.wait(config["升级后等待重启时间"], tips="设备升级完成，校验版本")
     engine.add_doc_info("升级后，查询版本及SN、DK、配置参数，要求版本号变更，其余参数不变")
-    check_update_configure(version=config["应用程序同版本号测试版本"] )
+    check_update_configure(version=config["应用程序同版本号测试版本"])
 
     # 再升级回测试版本
     engine.update(config["设备描述信息设备制造商0003"], None, device_ctrl)
@@ -136,7 +139,6 @@ def test_兼容性升级测试():
     engine.add_doc_info("升级后，查询版本及SN、DK、配置参数")
     check_update_configure(version=config["应用程序上一版发布版本"])
 
-
     engine.update(config["设备描述信息设备制造商0003"])
     engine.wait(config["升级后等待重启时间"], tips="设备升级完成，校验版本")
     # 升级后再次查看版本和配置信息
@@ -144,3 +146,19 @@ def test_兼容性升级测试():
     # 断电重启后，再次查看版本和配置信息
     power_control()
     check_update_configure(version=config["设备描述信息设备制造商0003"])
+
+
+def test_升级结束后恢复默认参数():
+    """
+    10_升级结束后恢复默认参数
+    """
+    engine.send_did("WRITE", "复位等待时间CD00", "00")
+    engine.expect_did("WRITE", "复位等待时间CD00", "00")
+
+    engine.add_doc_info('4、将CD00不能恢复的参数，设置回默认参数，便于后续的测试项目运行')
+    engine.send_did("WRITE", "继电器上电状态C060", "02")
+    engine.expect_did("WRITE", "继电器上电状态C060", "02")
+    engine.send_did("WRITE", "继电器过零点动作延迟时间C020", "01 33 39")
+    engine.expect_did("WRITE", "继电器过零点动作延迟时间C020", "01 33 39")
+    engine.send_did("WRITE", "读写面板默认背光亮度百分比C135", 设备通道="01", 背光亮度=1)
+    engine.expect_did("WRITE", "读写面板默认背光亮度百分比C135", 设备通道="01", 背光亮度=1)

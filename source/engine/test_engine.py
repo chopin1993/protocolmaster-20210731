@@ -340,19 +340,6 @@ class TestEquiment(object):
         self.connect_func = None
         self.timer.setSingleShot(True)
         self.cross_zero_validater = None
-        self.make_sure_sending = False
-        self.plc_frames = []
-        self.send_timer = QTimer()
-        self.send_timer.timeout.connect(self.send_buffered_frame)
-
-
-    def send_buffered_frame(self):
-        if len(self.plc_frames) > 0:
-           data = self.plc_frames.pop(0)
-           logging.warning("处理发送过程中收到的信息")
-           self.handle_plc_msg(data)
-        else:
-           self.send_timer.stop()
 
     def cross_zero_timeout(self):
         self.cross_zero_validater = None
@@ -440,39 +427,11 @@ class TestEquiment(object):
             return taid
 
     def write(self, data):
-        from .spy_device import SpyDevice
         if isinstance(data, Smart7EData):
             self.legal_devices.add(data.taid)
             monitor_data = Monitor7EData.create_uart_message(data, cmd=UARTCmd.W_DATA)
             log_snd_frame("测试工装", monitor_data, only_log=True)
-            if SpyDevice.instance().probe_connected and \
-                    data.taid == self.get_taid() and \
-                    data.is_need_spy():
-                self.make_sure_sending = True
-                rcv_ok = False
-                def receive_frame(frame):
-                    nonlocal rcv_ok
-                    if frame.said == frame.said and frame.seq == data.seq:
-                        self.timer.stop()
-                        rcv_ok = True
-                SpyDevice.instance().install_rcv_hook(receive_frame)
-                self.session.write(monitor_data)
-                snd_cnt = 0
-                while snd_cnt <= 4:
-                    self.wait_event(2)
-                    if rcv_ok:
-                        break
-                    else:
-                        data.increase_seq()
-                        monitor_data = Monitor7EData.create_uart_message(data, cmd=UARTCmd.W_DATA)
-                        TestEngine.instance().add_resend_operation("", "doc", "probe not rcv messgae, resend {}".format(snd_cnt))
-                        self.session.write(monitor_data)
-                        snd_cnt += 1
-                SpyDevice.instance().install_rcv_hook(None)
-                self.make_sure_sending = False
-                self.send_timer.start(50)
-            else:
-                self.session.write(monitor_data)
+            self.session.write(monitor_data)
         else:
             log_snd_frame("测试工装", data, only_log=True)
             self.session.write(data)
@@ -533,10 +492,6 @@ class TestEquiment(object):
         self.write(data)
 
     def handle_plc_msg(self, data):
-
-        if self.make_sure_sending:
-            logging.warning("发送过程中收到消息，暂存，延时处理")
-            self.plc_frames.append(data)
 
         if data.is_local():
             if self.local_routine is not None:

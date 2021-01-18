@@ -13,7 +13,7 @@ def read_write_test():
 
     """
     start_time = time.time()
-    engine.wait(1,tips='抄读版本及控制通断测试')
+    engine.wait(1, tips='抄读版本及控制通断测试')
     engine.send_did("READ", "设备描述信息设备制造商0003")
     engine.expect_did("READ", "设备描述信息设备制造商0003", config["设备描述信息设备制造商0003"])
     engine.send_did("WRITE", "通断操作C012", "81")
@@ -24,8 +24,8 @@ def read_write_test():
     engine.wait(0.5)
     engine.send_did("READ", "通断操作C012")
     engine.expect_did("READ", "通断操作C012", "00")
-    passed_time = time.time()-start_time
-    passed_time = int(passed_time*1000)/1000
+    passed_time = time.time() - start_time
+    engine.add_doc_info('抄读版本及控制通断测试，用时为{:.3f}秒'.format(passed_time))
     return passed_time
 
 
@@ -45,7 +45,7 @@ def set_subscriber(name, aid):
     return panel
 
 
-def report_gateway_expect(expect_value="00", wait_times=[15], ack=True, quit_net=False):
+def report_gateway_expect(expect_value="00", wait_times=[15], ack=True, quit_net=False, wait_enable=True):
     """
     添加上报测试
     :param wait_times:等待时间列表,自定义
@@ -62,30 +62,33 @@ def report_gateway_expect(expect_value="00", wait_times=[15], ack=True, quit_net
             ack_action = ack
         engine.wait((wait_time - 1), allowed_message=False)
         engine.expect_multi_dids("REPORT",
-                                     "通断操作C012", expect_value,
-                                     "导致状态改变的控制设备AIDC01A", config["测试设备地址"], ack=ack_action)
-
-    engine.wait(125, allowed_message=False)
+                                 "通断操作C012", expect_value,
+                                 "导致状态改变的控制设备AIDC01A", config["测试设备地址"], ack=ack_action)
+    if wait_enable:
+        engine.wait(125, allowed_message=False)
     if quit_net:
         engine.send_did("WRITE", "退网通知060B", 退网设备=config["测试设备地址"])
 
 
-def report_power_on_expect(expect_value="00", wait_times=[15], ack=True,wait_enable = True):
+def report_power_on_expect(expect_value="00", wait_times=[60], ack=True, wait_enable=True):
     """
     上电上报测试
     :param expect_value: 期望上报的参数
     :param wait_times: 等待时间列表
     :param ack: 默认为True,应答上报信息；为False时不应答上报信息
-    :return:
     """
-    # 断电重启，并且立即计时
-    power_control(init_time=0)
+    passed_time = power_control()
+    if passed_time < wait_times[0]:
+        wait_times[0] = wait_times[0] - passed_time
+    else:
+        engine.add_fail_test('等待时间参数设置错误')
 
     for i, data in enumerate(wait_times):
         if i != (len(wait_times) - 1):
             ack_action = False
         else:
             ack_action = ack
+
         engine.wait((wait_times[i] - 1), allowed_message=False)
         engine.expect_multi_dids("REPORT",
                                  "通断操作C012", expect_value,
@@ -109,9 +112,9 @@ def report_subscribe_expect(devices, write_value="01", expect_value="00", report
     if scene_type == "网关单点控制":
         engine.add_doc_info("网关单点控制")
         engine.send_did("WRITE", "通断操作C012", write_value)
-        send_time = time.strftime("%Y-%m-%d %H:%M:%S", time.localtime())
-        engine.add_doc_info('发送成功时间为{}'.format(send_time))
-        engine.expect_did("WRITE", "通断操作C012", expect_value,timeout=1)
+        # send_time = time.strftime("%Y-%m-%d %H:%M:%S", time.localtime())
+        # engine.add_doc_info('发送成功时间为{}'.format(send_time))
+        engine.expect_did("WRITE", "通断操作C012", expect_value, timeout=1)
     elif scene_type == "网关情景模式控制":
         engine.add_doc_info("网关情景模式控制")
         # gids=[7, 8, 9, 10, 11]情景模式控制后，第一次上报时间为1.3+0.5*2=2.3s，允许1s误差存在,超时为3.3s
@@ -127,7 +130,7 @@ def report_subscribe_expect(devices, write_value="01", expect_value="00", report
         panel01 = devices[0]
         # gids=[7, 8, 9, 10, 11]情景模式控制后，第一次上报时间为1.3+0.5*2=2.3s，允许1s误差存在,超时为3.3s
         panel01.send_did("WRITE", "通断操作C012", write_value, gids=[7, 8, 9, 10, 11], gid_type="BIT1")
-    elif scene_type =='本地控制':
+    elif scene_type == '本地控制':
         engine.add_doc_info("本地控制")
         engine.set_device_sensor_status("按键输入", "短按")
     else:
@@ -225,6 +228,7 @@ def report_boardcast_expect(devices, write_value="81", expect_value="01", first_
 
     engine.wait(10, allowed_message=False, tips="本次广播报文测试结束")
 
+
 def return_to_factory():
     """
     恢复出厂设置
@@ -242,4 +246,4 @@ def return_to_factory():
     engine.report_check_enable_all(False)
     engine.send_did("WRITE", "自动测试FC00", 密码=config["设备PWD000A"], 自动测试命令="清除系统所有信息")
     engine.expect_did("WRITE", "自动测试FC00", 密码=config["设备PWD000A"], 自动测试命令="清除系统所有信息")
-    engine.wait(10,tips='预留10s时间供设备清除系统所有信息')
+    engine.wait(10, tips='预留10s时间供设备清除系统所有信息')

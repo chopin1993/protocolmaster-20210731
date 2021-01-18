@@ -45,14 +45,10 @@ def test_添加上报():
 
     engine.add_doc_info("5、测试添加上报重试的过程中，是否可以正常被控制通断"
                         "控制正常，被控制通断后，本产品为微电子方案，添加上报仍继续")
-    set_gw_info()  # 模拟设备入网
-    engine.wait(14, allowed_message=False)
-    engine.expect_multi_dids("REPORT",
-                             "通断操作C012", "00",
-                             "导致状态改变的控制设备AIDC01A", config["测试设备地址"])
-    engine.wait(5, allowed_message=False)
+    report_gateway_expect(wait_times=[15], ack=False, wait_enable=False)
+    engine.wait(3, allowed_message=False)
     passed_time = read_write_test()
-    engine.wait((15 - passed_time - 1), allowed_message=False)
+    engine.wait((10 - passed_time - 3 - 1), allowed_message=False)
     engine.expect_multi_dids("REPORT",
                              "通断操作C012", "00",
                              "导致状态改变的控制设备AIDC01A", config["测试设备地址"], ack=True)
@@ -120,12 +116,8 @@ def test_上电上报():
     engine.add_doc_info("6、测试上电上报重试的过程中，是否可以正常被控制通断"
                         "（控制正常，被控制通断后，本产品为微电子方案，添加上报仍继续）")
     # 前端工装断电重启，模拟上电上报,并且重新上电后后续报文立即计时
-    power_control(init_time=0)
     # sid = 8时，上电上报时间 = 60+sid% 100 =68s
-    engine.wait(67, allowed_message=False)
-    engine.expect_multi_dids("REPORT",
-                             "通断操作C012", "00",
-                             "导致状态改变的控制设备AIDC01A", config["测试设备地址"])  # 预留1s的误差
+    report_power_on_expect(wait_times=[68], ack=False, wait_enable=False)
     # 上电上报10s重试前可以被正常控制通断
     passed_time = read_write_test()
     engine.wait(10 - passed_time - 1, allowed_message=False)

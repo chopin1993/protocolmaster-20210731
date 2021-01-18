@@ -8,10 +8,10 @@ from autotest.公共用例.public01基本协议测试 import *
 2、针对各产品自身的基础协议，根据需要自定义补充；
 """
 
+
 def test_应用层通讯协议及版本0002():
     """
     10_应用层通讯协议及版本0002
     """
     engine.send_did("READ", "应用层通讯协议及版本0002")
     engine.expect_did("READ", "应用层通讯协议及版本0002", config["应用层通讯协议及版本0002"])
-

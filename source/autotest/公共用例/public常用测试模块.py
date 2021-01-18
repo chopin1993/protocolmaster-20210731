@@ -14,7 +14,7 @@ def clear_gw_info(aid=config["测试设备地址"], pw=config["设备PWD000A"]):
     """
     engine.send_local_msg("设置PANID", 0)
     engine.expect_local_msg("确认")
-    engine.wait(1)
+    engine.wait(5)
     engine.send_did("WRITE", "载波芯片注册信息0603",
                     aid=aid,
                     panid=0,
@@ -36,7 +36,7 @@ def set_gw_info(aid=config["测试设备地址"],
     """
     engine.send_local_msg("设置PANID", panid)
     engine.expect_local_msg("确认")
-    engine.wait(1)
+    engine.wait(5)
     engine.send_did("WRITE", "载波芯片注册信息0603",
                     aid=aid,
                     panid=panid,
@@ -60,15 +60,11 @@ def power_control(init_time=config["被测设备上电后初始化时间"]):
     engine.control_relay(0, 0)
     engine.wait(seconds=10, tips='保证被测设备充分断电')
     engine.control_relay(0, 1)
+
     start_time = time.time()
-
-    if init_time != 0:
-        engine.wait(seconds=init_time)  # 普通载波设备上电初始化时间约10s，预留足够时间供载波初始化
-        init_触发设备检测监测器()
-    else:
-        engine.add_doc_info('请在测试用例中增加重新触发设备检测监测器的用例，否则监测器可能因为断电断开链接！！！')
-
+    engine.wait(seconds=init_time)  # 普通载波设备上电初始化，预留足够时间供载波初始化
+    init_触发设备检测监测器()
     passed_time = time.time() - start_time
-    passed_time = int(passed_time*1000)/1000
+    engine.add_doc_info('载波设备上电初始化+触发设备检测监测器共计用时{:.3f}秒'.format(passed_time))
 
     return passed_time

@@ -123,7 +123,7 @@ class RemoteFBD(DataStruct):
 
 class Smart7EData(DataStruct):
     SEQ = 1
-    LAST_FRAME_SEQ = 1
+    LAST_FRAME_SEQ = 1   #用于手动组织回复报文使用
     def __init__(self, said=None, taid=None, fbd=None, reply=False, decoder=None):
         self.data = None
         if decoder is not None:

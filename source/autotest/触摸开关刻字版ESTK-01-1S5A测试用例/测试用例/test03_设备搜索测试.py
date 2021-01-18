@@ -49,7 +49,7 @@ def test_APP设备指示0009():
     """
     engine.send_did("WRITE", "APP设备指示0009", "")
     engine.expect_did("WRITE", "APP设备指示0009", "")
-    engine.wait((6+1), allowed_message=False)
+    engine.wait((6 + 1), allowed_message=False)
     #  设备指示过程中进行抄读测试,设备指示过程中不允许载波通信验证
     engine.add_doc_info("设备指示过程中进行抄读测试,设备指示过程中不允许载波通信验证")
     engine.send_did("WRITE", "APP设备指示0009", "")

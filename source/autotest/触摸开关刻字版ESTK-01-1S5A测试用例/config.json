@@ -9,7 +9,7 @@
                 "subcase": {}
             },
             "02_配置设备初始供电": {
-                "enable": false,
+                "enable": true,
                 "paras": {},
                 "subcase": {}
             },
@@ -255,105 +255,110 @@
         }
     },
     "05_远程升级测试": {
-        "enable": false,
+        "enable": true,
         "paras": {},
         "subcase": {
             "00_测试环境搭建": {
-                "enable": false,
+                "enable": true,
                 "paras": {},
                 "subcase": {}
             },
             "01_应用层远程升级（测试版本升级至其他版本）": {
-                "enable": false,
+                "enable": true,
                 "paras": {},
                 "subcase": {}
             },
             "02_断点续传": {
-                "enable": false,
+                "enable": true,
                 "paras": {},
                 "subcase": {}
             },
             "03_断电重传": {
-                "enable": false,
+                "enable": true,
                 "paras": {},
                 "subcase": {}
             },
             "04_升级成功瞬间断电": {
-                "enable": false,
+                "enable": true,
                 "paras": {},
                 "subcase": {}
             },
             "05_相同版本重复升级测试": {
-                "enable": false,
+                "enable": true,
                 "paras": {},
                 "subcase": {}
             },
             "06_载波适配层升级测试": {
-                "enable": false,
+                "enable": true,
                 "paras": {},
                 "subcase": {}
             },
             "07_载波网络层升级测试": {
-                "enable": false,
+                "enable": true,
                 "paras": {},
                 "subcase": {}
             },
             "08_升级过程中被控制": {
-                "enable": false,
+                "enable": true,
                 "paras": {},
                 "subcase": {}
             },
             "09_兼容性升级测试（已发布版本升级至提测版本）": {
-                "enable": false,
+                "enable": true,
+                "paras": {},
+                "subcase": {}
+            },
+            "10_升级结束后恢复默认参数": {
+                "enable": true,
                 "paras": {},
                 "subcase": {}
             }
         }
     },
     "06_触摸开关兼容面板配置功能": {
-        "enable": false,
+        "enable": true,
         "paras": {},
         "subcase": {
-            "1_查询按键默认配置": {
-                "enable": false,
+            "01_查询按键默认配置": {
+                "enable": true,
                 "paras": {},
                 "subcase": {}
             },
             "02_配置单灯模式": {
-                "enable": false,
+                "enable": true,
                 "paras": {},
                 "subcase": {}
             },
             "03_配置情景模式": {
-                "enable": false,
+                "enable": true,
                 "paras": {},
                 "subcase": {}
             },
             "04_配置信号上报模式": {
-                "enable": false,
+                "enable": true,
                 "paras": {},
                 "subcase": {}
             },
             "05_按键恢复默认参数": {
-                "enable": false,
+                "enable": true,
                 "paras": {},
                 "subcase": {}
             }
         }
     },
     "07_测试完成恢复至出厂参数": {
-        "enable": false,
+        "enable": true,
         "paras": {},
         "subcase": {
             "测试完成恢复出厂状态": {
-                "enable": false,
+                "enable": true,
                 "paras": {},
                 "subcase": {}
             }
         }
     },
     "_单独用例验证测试": {
-        "enable": true,
+        "enable": false,
         "paras": {},
         "subcase": {
             "test_单独测试验证": {
@@ -367,7 +372,12 @@
                 "subcase": {}
             },
             "断电重启测试": {
-                "enable": true,
+                "enable": false,
+                "paras": {},
+                "subcase": {}
+            },
+            "测试通断后的状态同步测试": {
+                "enable": false,
                 "paras": {},
                 "subcase": {}
             }

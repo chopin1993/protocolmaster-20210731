@@ -16,6 +16,19 @@ class RoleRoutine(Routine):
         self.said = said
         self.current_seq = None
         self.waiting_send_frames = []
+        self.re_sending_status = False
+        self.waiting_received_frames = []
+        self.send_OK = False
+        self.rcv_timer = QTimer()
+        self.rcv_timer.timeout.connect(self.rcv_frame_in_buff)
+
+    def rcv_frame_in_buff(self):
+        if len(self.waiting_received_frames) > 0:
+            data = self.waiting_received_frames.pop(0)
+            logging.warning("处理发送过程中收到的信息")
+            self.handle_rcv_msg(data)
+        else:
+            self.rcv_timer.stop()
 
     def send_did(self, cmd, did, value=None, taid=None, gids=None, gid_type="U16", reply=False, **kwargs):
         gid, taid = self.get_gid(taid, gids, gid_type)
@@ -41,6 +54,9 @@ class RoleRoutine(Routine):
         self.write(data)
 
     def timeout_handle(self):
+        if self.re_sending_status:
+            self.timer.stop()
+            return
         if isinstance(self.validate, SmartDataValidator):
             frames = SpyDevice.instance().get_snd_frames()[::-1]
             for frame in frames:
@@ -113,9 +129,11 @@ class RoleRoutine(Routine):
     def wait_event(self, timeout):
         SpyDevice.instance().clear_send_frames()
         super(RoleRoutine, self).wait_event(timeout)
-        for frame in self.waiting_send_frames:
-            self.write(frame)
-        self.waiting_send_frames = []
+        # 发送过程不能重入
+        if not self.re_sending_status:
+            for frame in self.waiting_send_frames:
+                self.write(frame)
+            self.waiting_send_frames = []
 
     def wait(self, seconds, allowed_message, said=None):
         if allowed_message:
@@ -153,12 +171,12 @@ class RoleRoutine(Routine):
                                            ack=ack)
         self.wait_event(timeout)
 
-    def send_raw(self, fbd, taid=None):
+    def send_raw(self, fbd, taid=None, swb_spy=True):
         if isinstance(fbd, str):
             fbd = hexstr2bytes(fbd)
         taid = self.device.get_taid(taid)
         data = Smart7EData(self.said, taid, fbd)
-        self.write(data)
+        self.write(data, swb_spy=swb_spy)
 
     def expect_raw(self, fbd, said=None, timeout=2):
         fbd = BytesCompare(fbd)
@@ -169,12 +187,28 @@ class RoleRoutine(Routine):
 
     def handle_rcv_msg(self, data):
         #检查是否可以忽略上报报文
+        if self.re_sending_status:
+            if (data.seq&0x7f) == (self.current_seq&0x7f):
+                logging.warning("监测器检测失败，载波接收成功，不再重试发送")
+                self.send_OK = True
+                self.timer.stop()
+            else:
+                logging.warning("监测器重发过程中收到plc消息，暂存，延时处理")
+            self.waiting_received_frames.append(data)
+            return
+
+        #保证报文的收发顺序
+        if len(self.waiting_received_frames) > 0:
+            self.waiting_received_frames.append(data)
+            data = self.waiting_received_frames.pop(0)
+
         if data is not None and \
                 data.fbd.cmd in [CMD.REPORT, CMD.NOTIFY] and \
                 not TestEngine.instance().report_enable:
             log_rcv_frame(self.name+" report ignone" +"如果你想要检测上报，需要调用 engine.report_check_enable_all(True)", data)
             return
 
+        # 手动组织回复报文
         if isinstance(data, Smart7EData):
             Smart7EData.LAST_FRAME_SEQ = data.seq
 
@@ -209,7 +243,37 @@ class RoleRoutine(Routine):
         data = data.ack_message()
         self.waiting_send_frames.append(data)
 
-    def write(self,data):
+    def write(self,data, swb_spy=True):
+        from .spy_device import SpyDevice
         log_snd_frame(self.name, data)
         self.current_seq = data.seq
-        self.device.write(data)
+        if SpyDevice.instance().probe_connected and \
+                data.taid == self.device.get_taid() and \
+                data.is_need_spy() and \
+                swb_spy:
+            self.re_sending_status = True
+            self.send_OK  = False
+            def receive_frame(frame):
+                if frame.said == data.said and frame.seq == data.seq:
+                    self.timer.stop()
+                    self.send_OK = True
+            SpyDevice.instance().install_rcv_hook(receive_frame)
+            self.device.write(data)
+            snd_cnt = 0
+            while snd_cnt <= 4:
+                self.wait_event(2)
+                if self.send_OK:
+                    break
+                else:
+                    data.increase_seq()
+                    self.current_seq = data.seq
+                    TestEngine.instance().add_resend_operation("", "doc",
+                                                               "probe not rcv messgae, resend {}".format(snd_cnt))
+                    log_snd_frame(self.name, data)
+                    self.device.write(data)
+                    snd_cnt += 1
+            SpyDevice.instance().install_rcv_hook(None)
+            self.re_sending_status = False
+            self.rcv_timer.start(50)
+        else:
+            self.device.write(data)

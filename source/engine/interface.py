@@ -139,14 +139,15 @@ def broadcast_expect_multi_dids(cmd, *args,
                            said=said,
                            check_seq=check_seq)
 
-def send_raw(fbd, taid=None):
+def send_raw(fbd, taid=None, swb_spy=True):
     """
     发送组织帧
     :param fbd:自组fbd帧
     :taid:目标地址
+    :swb_spy: 开始之后，使用swb总线监测发送是否成功，如果发送失败，会自动重发
     """
     role = TestEngine.instance().get_default_role()
-    role.send_raw(fbd, taid=taid)
+    role.send_raw(fbd, taid=taid, swb_spy=swb_spy)
 
 
 def expect_raw(fbd, said=None, timeout=2):

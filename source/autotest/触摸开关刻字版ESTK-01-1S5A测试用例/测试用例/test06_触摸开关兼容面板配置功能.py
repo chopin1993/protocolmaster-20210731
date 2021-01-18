@@ -10,7 +10,7 @@ config = engine.get_config()
 
 def test_查询按键默认配置():
     """
-    1_查询按键默认配置
+    01_查询按键默认配置
     触摸开关默认配置自身继电器，支持读取。按键触发后控制本地继电器动作，背光灯显示本地继电器状态。
     """
     engine.report_check_enable_all(True)

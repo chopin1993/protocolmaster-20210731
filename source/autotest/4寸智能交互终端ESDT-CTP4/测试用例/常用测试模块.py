@@ -108,7 +108,7 @@ def report_power_on_expect(panid=config["panid"], sid=8, expect_value="00", wait
                              ack=True)
     set_gw_info(panid=panid, sid=1, aid=config["前置通断电工装AID"], pw=config["前置通断电工装PWD"])
 
-    power_control(init_time=0)
+    passed_time = power_control()
 
     for i, data in enumerate(wait_time):
         if i != (len(wait_time) - 1):
