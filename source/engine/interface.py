@@ -1,4 +1,4 @@
-#encoding:utf-8
+# encoding:utf-8
 from tools.esloging import *
 from PyQt5.QtCore import QCoreApplication
 from PyQt5.QtWidgets import QApplication
@@ -79,14 +79,14 @@ def send_multi_dids(cmd, *args, taid=None, reply=False):
     :param reply:序号自动取自上一帧，并将其最高位置1
     """
     role = TestEngine.instance().get_default_role()
-    assert len(args)%2 == 0
+    assert len(args) % 2 == 0
     padding_args = []
-    for i in range(0,len(args),2):
+    for i in range(0, len(args), 2):
         padding_args.append(None)
         padding_args.append(None)
         padding_args.append(args[i])
-        padding_args.append(args[i+1])
-    role.send_multi_dids(cmd, *padding_args, taid=taid,reply=reply)
+        padding_args.append(args[i + 1])
+    role.send_multi_dids(cmd, *padding_args, taid=taid, reply=reply)
 
 
 def expect_multi_dids(cmd, *args,
@@ -113,6 +113,7 @@ def expect_multi_dids(cmd, *args,
                            said=said,
                            check_seq=check_seq)
 
+
 def broadcast_send_multi_dids(cmd, *args):
     """
     :param cmd:支持“READ”,"WRITE","REPORT","NOTIFY"
@@ -138,6 +139,7 @@ def broadcast_expect_multi_dids(cmd, *args,
     role.expect_multi_dids(cmd, *args, timeout=timeout, ack=ack,
                            said=said,
                            check_seq=check_seq)
+
 
 def send_raw(fbd, taid=None, swb_spy=True):
     """
@@ -178,7 +180,7 @@ def expect_local_msg(cmd, value=None, **kwargs):
     role.expect_local_msg(cmd, value, **kwargs)
 
 
-def update(file_name,  update_func=None, control_func=None, block_size=128):
+def update(file_name, update_func=None, control_func=None, block_size=128):
     """
     升级程序
     :param file_name:程序升级名称
@@ -195,12 +197,11 @@ def update(file_name,  update_func=None, control_func=None, block_size=128):
     files.append(file_name1)
     if os.path.exists(file_name1):
         return updater.update(CMD.UPDATE, file_name1, block_size, update_func, control_func)
-    file_name2 = get_config_file(os.path.join("升级文件",file_name))
+    file_name2 = get_config_file(os.path.join("升级文件", file_name))
     files.append(file_name2)
     if os.path.exists(file_name2):
         return updater.update(CMD.UPDATE_PLC, file_name2, block_size, update_func, control_func)
     raise FileNotFoundError(str(files))
-
 
 
 def run_all_tests(gui=False):
@@ -216,10 +217,10 @@ def run_all_tests(gui=False):
         logging.exception(e)
         exit(0)
     if gui:
-       app = QApplication(sys.argv)
-       ui = CaseEditor(TestEngine.instance())
-       ui.show()
-       sys.exit(app.exec_())
+        app = QApplication(sys.argv)
+        ui = CaseEditor(TestEngine.instance())
+        ui.show()
+        sys.exit(app.exec_())
     else:
         app = QCoreApplication(sys.argv)
         TestEngine.instance().run_all_test()
@@ -240,7 +241,7 @@ def add_fail_test(msg):
     手动设置测试失败
     :param msg: 测试失败的提示信息。
     """
-    TestEngine.instance().add_fail_test("user",  "fail", msg=msg)
+    TestEngine.instance().add_fail_test("user", "fail", msg=msg)
 
 
 def add_doc_info(msg):
@@ -251,16 +252,16 @@ def add_doc_info(msg):
     TestEngine.instance().add_normal_operation("", "doc", msg)
 
 
-def wait(seconds, allowed_message=True, said=None,tips=""):
+def wait(seconds, allowed_message=True, said=None, tips=""):
     """
     :param seconds:等待时间
     :param allowed_message:True:等待时无论是否收到报文测试都会成功  False:等待时收到报文测试失败，：
     :param tips:等待显示的提示信息
     :return:
     """
-    msg ="we will wait {0}s {1}".format(seconds, tips)
+    msg = "we will wait {0}s {1}".format(seconds, tips)
     logging.info(msg)
-    if seconds <=0:
+    if seconds <= 0:
         logging.warning("等待时间小于0 {}".format(seconds))
         return
     role = TestEngine.instance().get_default_role()
@@ -284,17 +285,6 @@ def control_relay(channel, value):
     add_doc_info("msg channel {} value {}".format(channel, value))
     equiment = TestEngine.instance().get_default_equiment()
     equiment.control_relay(channel, value)
-
-
-def setting_uart(channel, baudrate, parity):
-    """
-    配置监控器的串口
-    :param channel:通道
-    :param baudrate:波特率
-    :param parity:校验位 奇校验、偶校验、无校验
-    """
-    equiment = TestEngine.instance().get_default_equiment()
-    equiment.setting_uart(channel, baudrate, parity)
 
 
 def reset_swb_bus(channel=0):
@@ -352,6 +342,7 @@ def set_device_sensor_status(sensor, value=bytes(), channel=0):
     equiment = TestEngine.instance().get_default_equiment()
     equiment.set_device_sensor_status(sensor, value, channel)
 
+
 def expect_device_output_status(sensor, value, channel=0, wait_time=0):
     """
     通过监测器检查设备的状态
@@ -391,8 +382,3 @@ def expect_device_output_status(sensor, value, channel=0, wait_time=0):
         wait(wait_time)
     equiment = TestEngine.instance().get_default_equiment()
     equiment.expect_device_output_status(sensor, value, channel)
-
-# def swb_plc_resend_enable():
-#     from engine.spy_device import SpyDevice
-#     SpyDevice.instance().
-
