@@ -566,7 +566,6 @@ def test_网关无应答时设备上报的重试机制():
 def test_广播报文控制测试():
     """
     11_广播报文控制测试
-    暂不支持
     1、组地址按位组合
     2、组地址按单字节组合
     3、组地址按双字节组合
@@ -574,6 +573,8 @@ def test_广播报文控制测试():
     5、存在多个组地址的情况，组地址在后
     6、不同组地址混合 按单字节+按双字节+按位组合
     7、模拟220字节超长情景模式报文测试
+    8、验证sid大于255的情况，sid=280情况下，按位、按双字节情景模式模式控制
+    9、设置回常用的网关和PANID
     """
     engine.report_check_enable_all(True)  # 打开上报检测
     engine.add_doc_info("测试前准备工作，配置3个订阅者")
@@ -631,6 +632,34 @@ def test_广播报文控制测试():
                             first_timeout=3.3, scene_type="模拟220字节超长情景模式报文测试")
     report_boardcast_expect([panel01, panel02, panel03], write_value="01", expect_value="00",
                             first_timeout=3.3, scene_type="模拟220字节超长情景模式报文测试")
+
+    engine.add_doc_info("8、验证sid大于255的情况，sid=280情况下，按位、按双字节情景模式模式控制")
+    engine.add_doc_info('sid大于255时，超出单字节范围，单字节无法表示，所以不需要验证按单字节情景模式控制')
+
+    set_gw_info(panid=1100, sid=280)
+    engine.wait(14, allowed_message=False)
+    engine.expect_multi_dids("REPORT",
+                             "通断操作C012", '00',
+                             "导致状态改变的控制设备AIDC01A", config["测试设备地址"], ack=True)
+    engine.add_doc_info('重新入网后，订阅者信息被清除，需要重新控制，添加3个订阅者')
+    # 配置订阅者3个
+    panel01 = set_subscriber("订阅者1", 21)
+    panel02 = set_subscriber("订阅者2", 22)
+    panel03 = set_subscriber("订阅者3", 23)
+
+    # 情景模式控制后，第一次上报时间为1.3+0.5*4=3.3s，允许1s误差存在
+    report_boardcast_expect([panel01, panel02, panel03], write_value="81", expect_value="01",
+                            first_timeout=4.3, scene_type="sid大于255，组地址按位组合")
+    report_boardcast_expect([panel01, panel02, panel03], write_value="01", expect_value="00",
+                            first_timeout=4.3, scene_type="sid大于255，组地址按位组合")
+
+    report_boardcast_expect([panel01, panel02, panel03], write_value="81", expect_value="01",
+                            first_timeout=4.3, scene_type="sid大于255，组地址按双字节组合")
+    report_boardcast_expect([panel01, panel02, panel03], write_value="01", expect_value="00",
+                            first_timeout=4.3, scene_type="sid大于255，组地址按双字节组合")
+
+    engine.add_doc_info('9、设置回常用的网关信息和PANID')
+    report_gateway_expect(wait_times=[15], ack=True)
 
     engine.report_check_enable_all(False)  # 关闭上报检测
 

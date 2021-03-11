@@ -211,6 +211,10 @@ def report_boardcast_expect(devices, write_value="81", expect_value="01", first_
                                           180, 181, 182, 183, 184, 185, 186, 187, 188], "U16", "通断操作C012", "82",
                                          [7, 8, 9, 10, 11, 161, 162, 163, 164, 165, 166, 167, 168, 169, 170, 171,
                                           180, 181, 182, 183, 184, 185, 186, 187, 188], "U16", "通断操作C012", write_value)
+    elif scene_type == "sid大于255，组地址按位组合":
+        engine.broadcast_send_multi_dids("WRITE", [220, 230, 250, 280, 289, 290, 291], "BIT1", "通断操作C012", write_value)
+    elif scene_type == "sid大于255，组地址按双字节组合":
+        engine.broadcast_send_multi_dids("WRITE", [220, 230, 250, 280, 289, 290, 291], "U16", "通断操作C012", write_value)
     else:
         engine.add_doc_info("不再既定场景测试范围内，请重试")
 
