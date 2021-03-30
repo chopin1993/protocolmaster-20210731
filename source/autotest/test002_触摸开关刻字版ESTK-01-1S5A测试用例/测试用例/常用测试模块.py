@@ -172,7 +172,7 @@ def report_subscribe_expect(devices, write_value="01", expect_value="00", report
         engine.wait(10, allowed_message=False, tips="连续10s未收到被测设备报文，测试正常")
 
 
-def report_boardcast_expect(devices, write_value="81", expect_value="01", first_timeout=2, scene_type="组地址按位组合"):
+def report_broadcast_expect(devices, write_value="81", expect_value="01", first_timeout=2, scene_type="组地址按位组合"):
     """
     :param devices:订阅者列表
     :param write_value:写入值
