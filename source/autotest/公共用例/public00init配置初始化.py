@@ -35,8 +35,9 @@ def init_触发设备检测监测器():
         if len(data) == 2:
             engine.add_doc_info("\n\n***************监测器探测失败,测试过"
                                 "程中将忽略和监测器相关的判断!!!!!!!!!!!!!!!!!!!!!!!!!***\n\n")
+            # 如果不支持SWB接口，则需要清除监测器模式
+            SpyDevice.instance().clear_status()
         return True
 
-    SpyDevice.instance().clear_status()
     engine.send_did("WRITE", "自动测试FC00", 密码=config["设备PWD000A"], 自动测试命令="触发SWB总线探测")
     engine.expect_did("WRITE", "自动测试FC00", validate_func)
