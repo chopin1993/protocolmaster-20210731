@@ -94,8 +94,9 @@ def modify_default_configuration(modify=True, verify=True):
         engine.expect_did('WRITE', '继电器过零点动作延迟时间C020', '01 20 20')
         engine.send_did('WRITE', '单轨电机窗帘上升下降行程时间0A02', '70 17 70 17')
         engine.expect_did('WRITE', '单轨电机窗帘上升下降行程时间0A02', '70 17 70 17')
-        engine.send_did('WRITE', '保险栓开关状态0A06', '01')
-        engine.expect_did('WRITE', '保险栓开关状态0A06', '01')
+        # 保险栓开关和保险栓使能均设置为01后，会导致重复测试时，再次设置行程时间被禁用，同时影响开度控制，所以将保险双开关设置为00
+        engine.send_did('WRITE', '保险栓开关状态0A06', '00')
+        engine.expect_did('WRITE', '保险栓开关状态0A06', '00')
         engine.send_did('WRITE', '保险栓功能使能标识0A30', '01')
         engine.expect_did('WRITE', '保险栓功能使能标识0A30', '01')
         engine.send_did('WRITE', '窗帘天空模型配置0A0A', '01')
@@ -112,7 +113,7 @@ def modify_default_configuration(modify=True, verify=True):
         engine.send_did('READ', '单轨电机窗帘上升下降行程时间0A02', '')
         engine.expect_did('READ', '单轨电机窗帘上升下降行程时间0A02', '70 17 70 17')
         engine.send_did('READ', '保险栓开关状态0A06', '')
-        engine.expect_did('READ', '保险栓开关状态0A06', '01')
+        engine.expect_did('READ', '保险栓开关状态0A06', '00')
         engine.send_did('READ', '保险栓功能使能标识0A30', '')
         engine.expect_did('READ', '保险栓功能使能标识0A30', '01')
         engine.send_did('READ', '窗帘天空模型配置0A0A', '')
@@ -127,14 +128,6 @@ def return_to_factory():
     暂不支持调试指令自动测试FC00，通过逐条设置实现恢复出厂设置
     """
     engine.add_doc_info("发送调试指令，所有的状态和配置参数恢复至出厂参数")
-    engine.report_check_enable_all(True)
-    clear_gw_info()
-    engine.wait(14, allowed_message=False)
-    engine.expect_multi_dids("REPORT",
-                             "单轨窗帘目标开度0A03", '00',
-                             "导致状态改变的控制设备AIDC01A", config["测试设备地址"], ack=True)
-    engine.wait(5)
-    engine.report_check_enable_all(False)
     # engine.send_did("WRITE", "自动测试FC00", 密码=config["设备PWD000A"], 自动测试命令="清除系统所有信息")
     # engine.expect_did("WRITE", "自动测试FC00", 密码=config["设备PWD000A"], 自动测试命令="清除系统所有信息")
     # engine.wait(10, tips='预留10s时间供设备清除系统所有信息')
@@ -196,7 +189,8 @@ def report_power_on_expect(expect_value="00", wait_times=[60], ack=True, wait_en
 
 
 def report_subscribe_expect(devices, write_value="32", current_value="00", wait_enable=True, first_timeout=2,
-                            report_subscribe=True, report_gateway=True, ack=True, scene_type="网关单点控制", ):
+                            report_subscribe=True, report_gateway=True, ack=True, scene_type="网关单点控制",
+                            sky_model_enable=False, expect_reset=1):
     """
     :param devices:订阅者列表
     :param write_value:写入值
@@ -244,26 +238,46 @@ def report_subscribe_expect(devices, write_value="32", current_value="00", wait_
             engine.add_doc_info('当前模式下没有订阅者')
     else:
         engine.add_doc_info("状态同步不上报订阅者")
-
     if report_gateway:
         if report_subscribe and len(devices) != 0:
             timeout = 2
         else:
             timeout = first_timeout
-        if scene_type == "网关单点控制" or scene_type == "网关情景模式控制":
-            if scene_type == "网关单点控制":
-                engine.add_doc_info("网关单点控制后，窗帘控制模块状态同步机制与其他设备不一致，仍会上报网关")
-            engine.expect_multi_dids("REPORT",
-                                     "单轨窗帘目标开度0A03", write_value,
-                                     "单轨窗帘当前开度0A05", current_value,
-                                     "导致状态改变的控制设备AIDC01A", config["抄控器默认源地址"], timeout=timeout, ack=True)
-        elif scene_type == "订阅者01单点控制" or scene_type == "订阅者01情景模式控制":
-            engine.expect_multi_dids("REPORT",
-                                     "单轨窗帘目标开度0A03", write_value,
-                                     "单轨窗帘当前开度0A05", current_value,
-                                     "导致状态改变的控制设备AIDC01A", panel01.said, timeout=timeout, ack=True)
-        else:
-            engine.add_doc_info("操作不再当前允许范围内")
+        if not sky_model_enable:
+            if scene_type == "网关单点控制" or scene_type == "网关情景模式控制":
+                if scene_type == "网关单点控制":
+                    engine.add_doc_info("网关单点控制后，窗帘控制模块状态同步机制与其他设备不一致，仍会上报网关")
+                engine.expect_multi_dids("REPORT",
+                                         "单轨窗帘目标开度0A03", write_value,
+                                         "单轨窗帘当前开度0A05", current_value,
+                                         "导致状态改变的控制设备AIDC01A", config["抄控器默认源地址"], timeout=timeout, ack=True)
+            elif scene_type == "订阅者01单点控制" or scene_type == "订阅者01情景模式控制":
+                engine.expect_multi_dids("REPORT",
+                                         "单轨窗帘目标开度0A03", write_value,
+                                         "单轨窗帘当前开度0A05", current_value,
+                                         "导致状态改变的控制设备AIDC01A", panel01.said, timeout=timeout, ack=True)
+            else:
+                engine.add_doc_info("操作不再当前允许范围内")
+        if sky_model_enable:
+            if write_value == current_value:
+                if current_value == '00' or current_value == '64':
+                    expect_reset = 1
+            if scene_type == "网关单点控制" or scene_type == "网关情景模式控制":
+                if scene_type == "网关单点控制":
+                    engine.add_doc_info("网关单点控制后，窗帘控制模块状态同步机制与其他设备不一致，仍会上报网关")
+                engine.expect_multi_dids("REPORT",
+                                         "单轨窗帘目标开度0A03", write_value,
+                                         "单轨窗帘当前开度0A05", current_value,
+                                         "导致状态改变的控制设备AIDC01A", config["抄控器默认源地址"],
+                                         '窗帘校准后动作次数0A0C', (expect_reset - 1), timeout=timeout, ack=True)
+            elif scene_type == "订阅者01单点控制" or scene_type == "订阅者01情景模式控制":
+                engine.expect_multi_dids("REPORT",
+                                         "单轨窗帘目标开度0A03", write_value,
+                                         "单轨窗帘当前开度0A05", current_value,
+                                         "导致状态改变的控制设备AIDC01A", panel01.said,
+                                         '窗帘校准后动作次数0A0C', (expect_reset - 1), timeout=timeout, ack=True)
+            else:
+                engine.add_doc_info("操作不再当前允许范围内")
     else:
         engine.add_doc_info("状态同步不上报网关")
 
@@ -292,34 +306,60 @@ def report_subscribe_expect(devices, write_value="32", current_value="00", wait_
                 timeout = 2
             else:
                 timeout = 30
-            if scene_type == "网关单点控制" or scene_type == "网关情景模式控制":
-                if scene_type == "网关单点控制":
-                    engine.add_doc_info("网关单点控制后，窗帘控制模块状态同步机制与其他设备不一致，仍会上报网关")
-                engine.expect_multi_dids("REPORT",
-                                         "单轨窗帘目标开度0A03", write_value,
-                                         "单轨窗帘当前开度0A05", write_value,
-                                         "导致状态改变的控制设备AIDC01A", config["抄控器默认源地址"], timeout=timeout, ack=ack)
-            elif scene_type == "订阅者01单点控制" or scene_type == "订阅者01情景模式控制":
-                engine.expect_multi_dids("REPORT",
-                                         "单轨窗帘目标开度0A03", write_value,
-                                         "单轨窗帘当前开度0A05", write_value,
-                                         "导致状态改变的控制设备AIDC01A", panel01.said, timeout=timeout, ack=ack)
-            else:
-                engine.add_doc_info("操作不再当前允许范围内")
+            if not sky_model_enable:
+                if scene_type == "网关单点控制" or scene_type == "网关情景模式控制":
+                    if scene_type == "网关单点控制":
+                        engine.add_doc_info("网关单点控制后，窗帘控制模块状态同步机制与其他设备不一致，仍会上报网关")
+                    engine.expect_multi_dids("REPORT",
+                                             "单轨窗帘目标开度0A03", write_value,
+                                             "单轨窗帘当前开度0A05", write_value,
+                                             "导致状态改变的控制设备AIDC01A", config["抄控器默认源地址"], timeout=timeout, ack=ack)
+                elif scene_type == "订阅者01单点控制" or scene_type == "订阅者01情景模式控制":
+                    engine.expect_multi_dids("REPORT",
+                                             "单轨窗帘目标开度0A03", write_value,
+                                             "单轨窗帘当前开度0A05", write_value,
+                                             "导致状态改变的控制设备AIDC01A", panel01.said, timeout=timeout, ack=ack)
+                else:
+                    engine.add_doc_info("操作不再当前允许范围内")
+            if sky_model_enable:
+                if write_value == '00' or write_value == '64':
+                    expect_reset = 0
+                if scene_type == "网关单点控制" or scene_type == "网关情景模式控制":
+                    if scene_type == "网关单点控制":
+                        engine.add_doc_info("网关单点控制后，窗帘控制模块状态同步机制与其他设备不一致，仍会上报网关")
+                    engine.expect_multi_dids("REPORT",
+                                             "单轨窗帘目标开度0A03", write_value,
+                                             "单轨窗帘当前开度0A05", write_value,
+                                             "导致状态改变的控制设备AIDC01A", config["抄控器默认源地址"],
+                                             '窗帘校准后动作次数0A0C', expect_reset, timeout=timeout, ack=True)
+                elif scene_type == "订阅者01单点控制" or scene_type == "订阅者01情景模式控制":
+                    engine.expect_multi_dids("REPORT",
+                                             "单轨窗帘目标开度0A03", write_value,
+                                             "单轨窗帘当前开度0A05", write_value,
+                                             "导致状态改变的控制设备AIDC01A", panel01.said,
+                                             '窗帘校准后动作次数0A0C', expect_reset, timeout=timeout, ack=True)
+                else:
+                    engine.add_doc_info("操作不再当前允许范围内")
         else:
             engine.add_doc_info("状态同步不上报网关")
+
+    if not report_subscribe and not report_gateway:
+        engine.wait(30, allowed_message=False, tips='当前为不上报模式，需要预留30s时间间隔，保证窗帘控制模块动作至预定位置')
 
     if wait_enable:
         engine.wait(10, allowed_message=False, tips="连续10s未收到被测设备报文，测试正常")
 
 
-def report_broadcast_expect(devices, write_value="81", expect_value="01", first_timeout=2, scene_type="组地址按位组合"):
+def report_broadcast_expect(devices, write_value="32", current_value="00", first_timeout=2, scene_type="组地址按位组合",
+                            interfere_enable=False):
     """
     :param devices:订阅者列表
     :param write_value:写入值
     :param expect_value:期望值
     :param first_timeout:状态同步首次上报延时参数
     :param scene_type:场景类型
+    :param interfere_enable:干扰报文使能，默认为False，标识无干扰报文；为True时表示增加广播干扰干扰报文
+
     """
     if scene_type == "组地址按位组合":
         engine.broadcast_send_multi_dids("WRITE", [7, 8, 9, 10, 11], "BIT1", "单轨窗帘目标开度0A03", write_value)
@@ -330,26 +370,26 @@ def report_broadcast_expect(devices, write_value="81", expect_value="01", first_
     elif scene_type == "存在多个组地址的情况，组地址在前":
         engine.broadcast_send_multi_dids("WRITE",
                                          [7, 8, 9, 10, 11], "U8", "单轨窗帘目标开度0A03", write_value,
-                                         [12, 13, 14, 15, 16], "U8", "单轨窗帘目标开度0A03", "82",
-                                         [12, 13, 14, 15, 16], "U8", "单轨窗帘目标开度0A03", "84")
+                                         [12, 13, 14, 15, 16], "U8", "通断操作C012", "82",
+                                         [12, 13, 14, 15, 16], "U8", "通断操作C012", "84")
     elif scene_type == "存在多个组地址的情况，组地址在后":
         engine.broadcast_send_multi_dids("WRITE",
-                                         [12, 13, 14, 15, 16], "U8", "单轨窗帘目标开度0A03", "02",
-                                         [12, 13, 14, 15, 16], "U8", "单轨窗帘目标开度0A03", "04",
+                                         [12, 13, 14, 15, 16], "U8", "通断操作C012", "02",
+                                         [12, 13, 14, 15, 16], "U8", "通断操作C012", "04",
                                          [7, 8, 9, 10, 11], "U8", "单轨窗帘目标开度0A03", write_value)
     elif scene_type == "不同组地址混合 按单字节+按双字节+按位组合":
         engine.broadcast_send_multi_dids("WRITE",
                                          [7, 8, 9, 10, 11], "BIT1", "单轨窗帘目标开度0A03", write_value,
-                                         [12, 13, 14, 15, 16], "U8", "单轨窗帘目标开度0A03", "82",
-                                         [12, 13, 14, 15, 16], "U16", "单轨窗帘目标开度0A03", "84")
+                                         [12, 13, 14, 15, 16], "U8", "通断操作C012", "82",
+                                         [12, 13, 14, 15, 16], "U16", "通断操作C012", "84")
     elif scene_type == "模拟220字节超长情景模式报文测试":
         engine.broadcast_send_multi_dids("WRITE",
                                          [6, 7, 9, 10, 11, 161, 162, 163, 164, 165, 166, 167, 168, 169, 170, 171,
-                                          180, 181, 182, 183, 184, 185, 186, 187], "U16", "单轨窗帘目标开度0A03", "88",
+                                          180, 181, 182, 183, 184, 185, 186, 187], "U16", "通断操作C012", "88",
                                          [6, 7, 9, 10, 11, 161, 162, 163, 164, 165, 166, 167, 168, 169, 170, 171,
-                                          180, 181, 182, 183, 184, 185, 186, 187, 188], "U16", "单轨窗帘目标开度0A03", "84",
+                                          180, 181, 182, 183, 184, 185, 186, 187, 188], "U16", "通断操作C012", "84",
                                          [6, 7, 9, 10, 11, 161, 162, 163, 164, 165, 166, 167, 168, 169, 170, 171,
-                                          180, 181, 182, 183, 184, 185, 186, 187, 188], "U16", "单轨窗帘目标开度0A03", "82",
+                                          180, 181, 182, 183, 184, 185, 186, 187, 188], "U16", "通断操作C012", "82",
                                          [7, 8, 9, 10, 11, 161, 162, 163, 164, 165, 166, 167, 168, 169, 170, 171,
                                           180, 181, 182, 183, 184, 185, 186, 187, 188], "U16", "单轨窗帘目标开度0A03",
                                          write_value)
@@ -364,14 +404,88 @@ def report_broadcast_expect(devices, write_value="81", expect_value="01", first_
 
     if len(devices) != 0:
         for i, panel in enumerate(devices):
+            timeout = 2
             if i == 0:
-                panel.expect_did("NOTIFY", "单轨窗帘目标开度0A03", expect_value, timeout=first_timeout)
-            else:
-                panel.expect_did("NOTIFY", "单轨窗帘目标开度0A03", expect_value)
+                timeout = first_timeout
+            panel.expect_multi_dids("NOTIFY",
+                                    None, None, "单轨窗帘目标开度0A03", write_value,
+                                    None, None, "单轨窗帘当前开度0A05", current_value,
+                                    timeout=timeout)
     else:
         engine.add_doc_info("被测设备没有配置订阅者")
 
-    engine.expect_multi_dids("REPORT", "单轨窗帘目标开度0A03", expect_value,
+    engine.expect_multi_dids("REPORT",
+                             "单轨窗帘目标开度0A03", write_value,
+                             "单轨窗帘当前开度0A05", current_value,
                              "导致状态改变的控制设备AIDC01A", config["抄控器默认源地址"], ack=True)
+    if interfere_enable:
+        engine.wait(2, tips='在被测设备状态同步上报的过程中，增加广播干扰报文，验证状态同步仍正常')
+        panel01 = devices[0]
+        engine.add_doc_info('非默认方法，暂不支持broadcast_send_multi_dids接口，所以暂时发送raw自组帧，广播报文不包括sid=8')
+        panel01.send_raw(
+            '07 02 60 07 12 C0 01 81 45 0C 0D 0E 0F 10 12 C0 01 82 8A 0C 00 0D 00 0E 00 0F 00 10 00 12 C0 01 84',
+            taid=0xFFFFFFFF)
+
+    if write_value != current_value:
+        engine.add_doc_info('窗帘控制模块的状态同步机制比较特殊，开始被控制后，会立即上报当前开度和目标开度，'
+                            '等待窗帘到达目标开度，又会再次上报当前开度和目标开度，所以状态同步测试需要特殊处理')
+        if len(devices) != 0:
+            for i, panel in enumerate(devices):
+                timeout = 2
+                if i == 0:
+                    timeout = 30
+                panel.expect_multi_dids("NOTIFY",
+                                        None, None, "单轨窗帘目标开度0A03", write_value,
+                                        None, None, "单轨窗帘当前开度0A05", write_value,
+                                        timeout=timeout)
+        else:
+            engine.add_doc_info("被测设备没有配置订阅者")
+
+        engine.expect_multi_dids("REPORT",
+                                 "单轨窗帘目标开度0A03", write_value,
+                                 "单轨窗帘当前开度0A05", write_value,
+                                 "导致状态改变的控制设备AIDC01A", config["抄控器默认源地址"], ack=True)
 
     engine.wait(10, allowed_message=False, tips="本次广播报文测试结束")
+
+
+def output_detect_220V(motor_direction=True, up_time=20, down_time=20):
+    """
+    :param motor_direction: 默认为True，表示正转，为False时表示反转；
+    :param up_time: 上升行程时间
+    :param down_time: 下降行程时间
+    """
+    if motor_direction:
+        run_time = up_time * 1.25
+        run_type = '正转'
+        value = 100
+    else:
+        run_time = down_time * 1.25
+        run_type = '反转'
+        value = 0
+
+    engine.expect_cross_zero_status(0, 0)
+    engine.expect_cross_zero_status(1, 0)
+    engine.wait(1, tips='{}开始时检测输出正常'.format(run_type))
+    if motor_direction:
+        engine.expect_cross_zero_status(0, 1)
+        engine.expect_cross_zero_status(1, 0)
+    else:
+        engine.expect_cross_zero_status(0, 0)
+        engine.expect_cross_zero_status(1, 1)
+
+    engine.wait(run_time - 1 - 1, tips='等待{}秒，预留1s误差时间，仍处于{}状态，检测输出也正常'.format(run_time, run_type))
+    if motor_direction:
+        engine.expect_cross_zero_status(0, 1)
+        engine.expect_cross_zero_status(1, 0)
+    else:
+        engine.expect_cross_zero_status(0, 0)
+        engine.expect_cross_zero_status(1, 1)
+
+    engine.wait(3, '等待3s,{}动作结束，检测输出端均为0'.format(run_type))
+    engine.expect_cross_zero_status(0, 0)
+    engine.expect_cross_zero_status(1, 0)
+    engine.send_did('READ', '单轨窗帘目标开度0A03', '')
+    engine.expect_did('READ', '单轨窗帘目标开度0A03', 开度=value)
+
+    engine.wait(10, tips='不同测试保持10s间隔')

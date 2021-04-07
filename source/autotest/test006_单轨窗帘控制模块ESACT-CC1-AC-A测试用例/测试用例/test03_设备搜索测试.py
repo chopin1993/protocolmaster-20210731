@@ -50,7 +50,7 @@ def test_APP设备指示0009():
     engine.add_doc_info('设备指示具体指示动作为: 窗帘先下拉2s，停顿2s，然后上拉5s。通过窗帘输出检测正常')
     engine.send_did("WRITE", "APP设备指示0009", "")
     engine.expect_did("WRITE", "APP设备指示0009", "")
-    engine.wait(1, tips='当前处于下拉2s状态，进行输出验证')
+    engine.wait(2, tips='当前处于下拉2s状态，进行输出验证')
     engine.expect_cross_zero_status(0, 0)
     engine.expect_cross_zero_status(1, 1)
     engine.wait(2, tips='当前处于暂停2s状态，进行输出验证')
@@ -73,7 +73,7 @@ def test_APP设备指示0009():
         engine.send_did("WRITE", "电机转动0A04", 电机状态=value)
         engine.expect_did("WRITE", "电机转动0A04", '05 00')
     engine.wait(2, tips='设备在进行指示时，此时处于暂停2s阶段')
-    engine.wait(1, tips='设备在进行指示时，当前动作正处于上拉状态，发送控制正转、反转的控制命令时，设备回复“设备忙”错误0005。查询版本正常')
+    engine.wait(2, tips='设备在进行指示时，当前动作正处于上拉状态，发送控制正转、反转的控制命令时，设备回复“设备忙”错误0005。查询版本正常')
     for value in ['正转', '反转']:
         engine.send_did("WRITE", "电机转动0A04", 电机状态=value)
         engine.expect_did("WRITE", "电机转动0A04", '05 00')
@@ -82,6 +82,7 @@ def test_APP设备指示0009():
 
     engine.add_doc_info("设备指示结束后，可以正常进行载波通信验证")
     read_write_test()
+    engine.wait(10, tips='不同测试保持10s间隔')
 
 
 def test_APP设备指示中断电测试():

@@ -2,6 +2,7 @@
 # 导入测试引擎
 import engine
 import time
+
 config = engine.get_config()
 
 
@@ -61,10 +62,12 @@ def power_control(init_time=config["被测设备上电后初始化时间"]):
     engine.wait(seconds=10, tips='保证被测设备充分断电')
     engine.control_relay(0, 1)
 
-    start_time = time.time()
-    engine.wait(seconds=init_time)  # 普通载波设备上电初始化，预留足够时间供载波初始化
-    init_触发设备检测监测器()
-    passed_time = time.time() - start_time
-    engine.add_doc_info('载波设备上电初始化+触发设备检测监测器共计用时{:.3f}秒'.format(passed_time))
-
+    if init_time != 0:
+        start_time = time.time()
+        engine.wait(seconds=init_time)  # 普通载波设备上电初始化，预留足够时间供载波初始化
+        init_触发设备检测监测器()
+        passed_time = time.time() - start_time
+        engine.add_doc_info('载波设备上电初始化+触发设备检测监测器共计用时{:.3f}秒'.format(passed_time))
+    else:
+        engine.add_doc_info('当初始化时间为0时，设备上电后不进行初始化等待+设备检测流程，便于特殊情况测试')
     return passed_time

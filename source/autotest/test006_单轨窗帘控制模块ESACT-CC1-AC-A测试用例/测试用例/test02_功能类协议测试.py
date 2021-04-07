@@ -150,6 +150,7 @@ def test_单轨电机窗帘上升下降行程时间0A02():
     05_单轨电机窗帘上升下降行程时间0A02
     1、出厂默认行程时间为00 00 00 00，在未设置行程时查询单轨窗帘目标开度0A03，窗帘模块会回复82 03 00；
     2、设置不同的行程时间，平台限定时间范围是5-120s，设备范围为5-180s，并进行查询验证；
+    '窗帘控制模块特殊用法：设置行程时间的时候，会比较本次下降行程和上次下降行程时间，按照较大的行程时间进行动作'
     3、设置不符合时间范围的行程时间，要求回复82 03 00，并进行查询验证；
     4、行程时间无法设置00 00 00 00 ，可以通过CD00数据标识，进行恢复；
     """
@@ -160,33 +161,31 @@ def test_单轨电机窗帘上升下降行程时间0A02():
     engine.expect_did('READ', '单轨窗帘目标开度0A03', '03 00')
 
     engine.add_doc_info('2、设置不同的行程时间，平台限定时间范围是5-120s，设备范围为5-180s，并进行查询验证；')
-    engine.add_doc_info('设置上升行程和下降行程不一致的情况，并进行查询验证；如上升行程60s大于下降行程59s、上升行程60s小于下降行程61s')
-    for value in ['70 17 0C 17', '70 17 D4 17']:
-        engine.send_did('WRITE', '单轨电机窗帘上升下降行程时间0A02', value)
-        engine.expect_did('WRITE', '单轨电机窗帘上升下降行程时间0A02', value)
+    engine.add_doc_info('设置上升行程和下降行程不一致的情况，并进行查询验证；如上升行程60s大于下降行程50s、上升行程60s小于下降行程70s,'
+                        '设置行程后，按照下降行程*1.25倍时间反转')
+    for value in [50, 70, 60]:
+        engine.send_did('WRITE', '单轨电机窗帘上升下降行程时间0A02', 上升行程=60 * 100, 下降行程=value * 100)
+        engine.expect_did('WRITE', '单轨电机窗帘上升下降行程时间0A02', 上升行程=60 * 100, 下降行程=value * 100)
         engine.send_did('READ', '单轨电机窗帘上升下降行程时间0A02', '')
-        engine.expect_did('READ', '单轨电机窗帘上升下降行程时间0A02', value)
+        engine.expect_did('READ', '单轨电机窗帘上升下降行程时间0A02', 上升行程=60 * 100, 下降行程=value * 100)
+        if value == 60:
+            engine.add_doc_info('窗帘控制模块特殊用法：设置行程时间的时候，会比较本次下降行程和上次下降行程时间，按照较大的下降行程时间进行动作')
+            value = 70
+        output_detect_220V(False, 60, value)
 
     engine.add_doc_info('备注：因为窗帘控制模块，正反转电压输出最长时间为180s，当行程时间为180s时，180*1.25=225s大于180s，实际输出180s后就会断电，'
                         '所以实际最长行程可设置时间 = 180/1.25=144s')
+    engine.send_did('WRITE', '复位等待时间CD00', '00')
+    engine.expect_did('WRITE', '复位等待时间CD00', '00')
+    engine.wait(5, tips='通过复位等待时间CD00恢复出厂，预留充足时间')
+    engine.send_did('READ', '单轨电机窗帘上升下降行程时间0A02', '')
+    engine.expect_did('READ', '单轨电机窗帘上升下降行程时间0A02', '00 00 00 00')
     for value in [5, 120, 144]:
         engine.send_did('WRITE', '单轨电机窗帘上升下降行程时间0A02', 上升行程=value * 100, 下降行程=value * 100)
         engine.expect_did('WRITE', '单轨电机窗帘上升下降行程时间0A02', 上升行程=value * 100, 下降行程=value * 100)
         engine.send_did('READ', '单轨电机窗帘上升下降行程时间0A02', '')
         engine.expect_did('READ', '单轨电机窗帘上升下降行程时间0A02', 上升行程=value * 100, 下降行程=value * 100)
-        wait_time = value * 1.25  # 测试设置行程时间时，反转动作持续时间长度
-        engine.wait(1, tips='反转开始时检测输出正常')
-        engine.expect_cross_zero_status(0, 0)
-        engine.expect_cross_zero_status(1, 1)
-        engine.wait(wait_time - 1, tips='反转结束时，检测输出也正常')
-        engine.expect_cross_zero_status(0, 0)
-        engine.expect_cross_zero_status(1, 1)
-        engine.wait(2)
-        engine.expect_cross_zero_status(0, 0)
-        engine.expect_cross_zero_status(1, 0)
-        engine.send_did('READ', '单轨窗帘目标开度0A03', '')
-        engine.expect_did('READ', '单轨窗帘目标开度0A03', 开度=0)
-        engine.wait(10, tips='不同测试保持10s间隔')
+        output_detect_220V(False, value, value)
 
     engine.add_doc_info('3、设置不符合时间范围的行程时间，要求回复82 03 00，并进行查询验证；')
     for value in [0, 4, 181]:
@@ -367,13 +366,13 @@ def test_电机转动0A04():
         if value == '正转':
             engine.expect_cross_zero_status(0, 1)
             engine.expect_cross_zero_status(1, 0)
-            engine.wait(25 - 1, tips='输出最长持续180s')
+            engine.wait(25 - 1, tips='输出最长持续20*1.25=25s')
             engine.expect_cross_zero_status(0, 1)
             engine.expect_cross_zero_status(1, 0)
         elif value == '反转':
             engine.expect_cross_zero_status(0, 0)
             engine.expect_cross_zero_status(1, 1)
-            engine.wait(25 - 1, tips='输出最长持续180s')
+            engine.wait(25 - 1, tips='输出最长持续20*1.25=25s')
             engine.expect_cross_zero_status(0, 0)
             engine.expect_cross_zero_status(1, 1)
 
@@ -534,16 +533,20 @@ def test_窗帘校准后动作次数0A0C():
     engine.add_doc_info('（7）测试开度控制，设置不同的开度40% 60%，分别设置15轮，共计30次，查询此时校准次数为30次')
     engine.send_did('READ', '窗帘校准后动作次数0A0C', '')
     engine.expect_did('READ', '窗帘校准后动作次数0A0C', '00')
+    engine.add_doc_info('为避免家庭复位逻辑干扰，设置为天空模型使能')
+    engine.send_did('WRITE', '窗帘天空模型配置0A0A', 使能状态='使能')
+    engine.expect_did('WRITE', '窗帘天空模型配置0A0A', 使能状态='使能')
+
     for num in range(15):
         engine.add_doc_info('******第{}轮开度控制测试******'.format(num + 1))
         engine.send_did('WRITE', '单轨窗帘目标开度0A03', 开度=40)
         engine.expect_did('WRITE', '单轨窗帘目标开度0A03', 开度=40)
         if num == 0:
             engine.wait(10, tips='首次测试，开度从0至40%，预留10s间隔')
-        engine.wait(5, tips='每次开度控制操作，预留5s间隔')
+        engine.wait(7, tips='每次开度控制操作，预留5s间隔')
         engine.send_did('WRITE', '单轨窗帘目标开度0A03', 开度=60)
         engine.expect_did('WRITE', '单轨窗帘目标开度0A03', 开度=60)
-        engine.wait(5, tips='每次开度控制操作，预留5s间隔')
+        engine.wait(7, tips='每次开度控制操作，预留5s间隔')
     engine.send_did('READ', '窗帘校准后动作次数0A0C', '')
     engine.expect_did('READ', '窗帘校准后动作次数0A0C', '1E')
 
@@ -553,6 +556,8 @@ def test_窗帘校准后动作次数0A0C():
     engine.wait(20 * 1.25)
     engine.send_did('READ', '窗帘校准后动作次数0A0C', '')
     engine.expect_did('READ', '窗帘校准后动作次数0A0C', '00')
+    engine.send_did('WRITE', '窗帘天空模型配置0A0A', 使能状态='禁能')
+    engine.expect_did('WRITE', '窗帘天空模型配置0A0A', 使能状态='禁能')
 
 
 def test_错误类报文测试():
