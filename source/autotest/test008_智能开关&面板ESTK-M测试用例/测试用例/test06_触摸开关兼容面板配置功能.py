@@ -1,6 +1,6 @@
 # encoding:utf-8
 # 导入测试引擎
-
+import engine
 from autotest.公共用例.public常用测试模块 import *
 from .常用测试模块 import *
 
@@ -50,8 +50,11 @@ def test_配置单灯模式():
         for num in range(2):
             engine.add_doc_info('模拟点击控制按键，进行第 {} 次测试'.format(num + 1))
             engine.set_device_sensor_status("按键输入", "短按", channel=(channel - 1))
-            engine.expect_did('WRITE', '继电器翻转C018', value, check_seq=False)
-            engine.send_did('WRITE', '通断操作C012', value, reply=True)
+            if config["被测设备类型"] == "开关":
+                engine.expect_did('WRITE', '继电器翻转C018', value, check_seq=False)
+                engine.send_did('WRITE', '通断操作C012', value, reply=True)
+            else:
+                engine.add_doc_info('判断发现此设备是触摸面板，不进行继电器翻转控制！')
             engine.wait(5)
 
 
@@ -64,7 +67,7 @@ def test_配置情景模式():
     """
     engine.add_doc_info('03_配置情景模式')
     for channel, value in channel_dict.items():
-        button = str(channel).rjust(2, '0')
+        button = str(channel).rjust(2, '0')  # 增加长度到2，用0填充
         engine.add_doc_info('测试通道{}配置其他设备AID'.format(channel))
 
         engine.add_doc_info('单组地址广播报文测试')
@@ -76,8 +79,10 @@ def test_配置情景模式():
         for num in range(2):
             engine.add_doc_info('模拟点击控制按键，进行第 {} 次测试'.format(num + 1))
             engine.set_device_sensor_status("按键输入", "短按", channel=(channel - 1))
-            engine.expect_did('WRITE', '通断操作C012', value, gids=[2, 5, 6, 12], gid_type='BIT1', taid=0xFFFFFFFF)
-
+            if config["被测设备类型"] == "开关":
+                engine.expect_did('WRITE', '通断操作C012', value, gids=[2, 5, 6, 12], gid_type='BIT1', taid=0xFFFFFFFF)
+            else:
+                engine.add_doc_info('判断此设备为触摸面板，无上报期待')
             engine.wait(5)
 
         engine.add_doc_info('多组地址广播报文测试')
@@ -89,10 +94,13 @@ def test_配置情景模式():
         for num in range(2):
             engine.add_doc_info('模拟点击控制按键，进行第 {} 次测试'.format(num + 1))
             engine.set_device_sensor_status("按键输入", "短按", channel=(channel - 1))
-            engine.broadcast_expect_multi_dids('WRITE',
-                                               [73], 'U8', '单轨窗帘目标开度0A03', '64',
-                                               [2, 5, 6, 12], 'BIT1', '开关机E013', '01',
-                                               [75], 'U8', '通断操作C012', value)
+            if config["被测设备类型"] == "开关":
+                engine.broadcast_expect_multi_dids('WRITE',
+                                                   [73], 'U8', '单轨窗帘目标开度0A03', '64',
+                                                   [2, 5, 6, 12], 'BIT1', '开关机E013', '01',
+                                                   [75], 'U8', '通断操作C012', value)
+            else:
+                engine.add_doc_info('判断此设备为触摸面板，无上报期待')
             engine.wait(5)
 
         engine.add_doc_info('面板类设备，超长广播报文，数据域支持127字节测试')
@@ -112,15 +120,18 @@ def test_配置情景模式():
         for num in range(2):
             engine.add_doc_info('模拟点击控制按键，进行第 {} 次测试'.format(num + 1))
             engine.set_device_sensor_status("按键输入", "短按", channel=(channel - 1))
-            engine.broadcast_expect_multi_dids("WRITE",
-                                               [7, 8, 9, 10, 11, 161, 162, 163, 164, 165, 166, 167, 169], "U16",
-                                               "通断操作C012", "08",
-                                               [7, 8, 9, 10, 11, 161, 162, 163, 164, 165, 166, 167, 169], "U16",
-                                               "通断操作C012", "04",
-                                               [7, 8, 9, 10, 11, 161, 162, 163, 164, 165, 166, 167, 169], "U16",
-                                               "通断操作C012", "02",
-                                               [7, 8, 9, 10, 11, 161, 162, 163, 164, 165, 166], "U16",
-                                               "通断操作C012", value)
+            if config["被测设备类型"] == "开关":
+                engine.broadcast_expect_multi_dids("WRITE",
+                                                   [7, 8, 9, 10, 11, 161, 162, 163, 164, 165, 166, 167, 169], "U16",
+                                                   "通断操作C012", "08",
+                                                   [7, 8, 9, 10, 11, 161, 162, 163, 164, 165, 166, 167, 169], "U16",
+                                                   "通断操作C012", "04",
+                                                   [7, 8, 9, 10, 11, 161, 162, 163, 164, 165, 166, 167, 169], "U16",
+                                                   "通断操作C012", "02",
+                                                   [7, 8, 9, 10, 11, 161, 162, 163, 164, 165, 166], "U16",
+                                                   "通断操作C012", value)
+            else:
+                engine.add_doc_info('判断此设备为触摸面板，无上报期待')
             engine.wait(5)
 
 
