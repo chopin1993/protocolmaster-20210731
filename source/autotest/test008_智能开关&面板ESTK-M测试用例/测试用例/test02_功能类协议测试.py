@@ -4,8 +4,15 @@ from autotest.公共用例.public常用测试模块 import *
 from .常用测试模块 import *
 
 测试组说明 = "功能类报文测试"
-
-channel_dict = {1: '01', 2: '02', 3: '04', 4: '08'}  # 设备通道及对应值
+# 判断按键数量
+if config["被测设备按键数"] == 4:
+    channel_dict = {1: '01', 2: '02', 3: '04', 4: '08'}  # 设备通道及对应值
+elif config["被测设备按键数"] == 3:
+    channel_dict = {1: '01', 2: '02', 3: '04'}
+elif config["被测设备按键数"] == 2:
+    channel_dict = {1: '01', 2: '02'}
+else:
+    channel_dict = {1: '01'}
 
 
 def rcv_data_no_check(data):
@@ -33,12 +40,17 @@ def test_出厂默认参数():
         engine.send_did("READ", "主动上报使能标志D005")
         engine.expect_did("READ", "主动上报使能标志D005", "00 03")
     else:
-        # 面板类设备部测试以上数据标识
-        pass
+        engine.add_doc_info('检测到此设备是触摸面板，不测试此项！！！')
 
     if config["被测设备硬件版本"] == "继电器版本":
-        engine.send_did("READ", "继电器过零点动作延迟时间C020", "07")
-        engine.expect_did("READ", "继电器过零点动作延迟时间C020", "07 33 39 33 39 33 39")
+        if config["被测设备按键数"] == 1:
+            engine.send_did("READ", "继电器过零点动作延迟时间C020", "01")
+            engine.expect_did("READ", "继电器过零点动作延迟时间C020", "01 33 39")
+        else:   # config["被测设备按键数"] == 2:
+            engine.send_did("READ", "继电器过零点动作延迟时间C020", "01")
+            engine.expect_did("READ", "继电器过零点动作延迟时间C020", "01 33 39")
+            engine.send_did("READ", "继电器过零点动作延迟时间C020", "02")
+            engine.expect_did("READ", "继电器过零点动作延迟时间C020", "02 33 39")
     else:
         engine.send_did("READ", "继电器过零点动作延迟时间C020", "07")
         engine.expect_did("READ", "继电器过零点动作延迟时间C020", "04 00")
@@ -47,9 +59,15 @@ def test_出厂默认参数():
         engine.send_did("READ", "读取或设置被控设备端的控制地址FB20", 设备通道=channel)
         engine.expect_did("READ", "读取或设置被控设备端的控制地址FB20",
                           设备通道=channel, 被控设备AID=config["测试设备地址"], 被控设备通道=value)
-
-    engine.send_did("READ", "读写面板默认背光亮度百分比C135", "07")
-    engine.expect_did("READ", "读写面板默认背光亮度百分比C135", '07 01 01 01')
+    if config["被测设备按键数"] == 3:
+        engine.send_did("READ", "读写面板默认背光亮度百分比C135", "07")
+        engine.expect_did("READ", "读写面板默认背光亮度百分比C135", '07 32 32 32')
+    elif config["被测设备按键数"] == 2:
+        engine.send_did("READ", "读写面板默认背光亮度百分比C135", "03")
+        engine.expect_did("READ", "读写面板默认背光亮度百分比C135", '03 32 32')
+    else:
+        engine.send_did("READ", "读写面板默认背光亮度百分比C135", "01")
+        engine.expect_did("READ", "读写面板默认背光亮度百分比C135", '01 32')
 
     if config["被测设备硬件版本"] == "继电器版本":
         engine.send_did("READ", "读取继电器操作次数C132", "07")
@@ -57,8 +75,8 @@ def test_出厂默认参数():
     elif config["被测设备硬件版本"] == "开关":
         pass
     else:
-        engine.send_did("READ", "读取继电器操作次数C132", "07")
-        engine.expect_did("READ", "读取继电器操作次数C132", "04 00")
+        engine.send_did("READ", "读取继电器操作次数C132", "03")
+        engine.expect_did("READ", "读取继电器操作次数C132", "** ** ** ** **")
 
 
 def test_读取或设置被控设备端的控制地址FB20():
@@ -122,8 +140,15 @@ def test_读写面板默认背光亮度百分比C135():
         >50：错误配置""")
     engine.add_doc_info("1、查询默认的背光亮度百分比为1%")
 
-    engine.send_did("READ", "读写面板默认背光亮度百分比C135", "07")
-    engine.expect_did("READ", "读写面板默认背光亮度百分比C135", '07 01 01 01')
+    if config["被测设备按键数"] == 3:
+        engine.send_did("READ", "读写面板默认背光亮度百分比C135", "07")
+        engine.expect_did("READ", "读写面板默认背光亮度百分比C135", '07 32 32 32')
+    elif config["被测设备按键数"] == 2:
+        engine.send_did("READ", "读写面板默认背光亮度百分比C135", "03")
+        engine.expect_did("READ", "读写面板默认背光亮度百分比C135", '03 32 32')
+    else:
+        engine.send_did("READ", "读写面板默认背光亮度百分比C135", "01")
+        engine.expect_did("READ", "读写面板默认背光亮度百分比C135", '01 32')
 
     engine.add_doc_info("2、设置背光亮度百分比为其他数值")
     for channel, value in channel_dict.items():
@@ -144,10 +169,31 @@ def test_读写面板默认背光亮度百分比C135():
         engine.expect_did("READ", "读写面板默认背光亮度百分比C135", 设备通道=value, 背光亮度=50)
 
     engine.add_doc_info("3、设置背光亮度百分比回默认1%，并进行验证")
-    engine.send_did("WRITE", "读写面板默认背光亮度百分比C135", '07 01 01 01')
-    engine.expect_did("WRITE", "读写面板默认背光亮度百分比C135", '07 01 01 01')
-    engine.send_did("READ", "读写面板默认背光亮度百分比C135", "07")
-    engine.expect_did("READ", "读写面板默认背光亮度百分比C135", '07 01 01 01')
+    if config["被测设备按键数"] == 4:
+        engine.send_did("WRITE", "读写面板默认背光亮度百分比C135", '0f 01 01 01 01')
+        engine.expect_did("WRITE", "读写面板默认背光亮度百分比C135", '0f 01 01 01 01')
+        engine.send_did("READ", "读写面板默认背光亮度百分比C135", "0f")
+        engine.expect_did("READ", "读写面板默认背光亮度百分比C135", '0f 01 01 01 01')
+    elif config["被测设备按键数"] == 3:
+        engine.send_did("WRITE", "读写面板默认背光亮度百分比C135", '07 01 01 01')
+        engine.expect_did("WRITE", "读写面板默认背光亮度百分比C135", '07 01 01 01')
+        engine.send_did("READ", "读写面板默认背光亮度百分比C135", "07")
+        engine.expect_did("READ", "读写面板默认背光亮度百分比C135", '07 01 01 01')
+    elif config["被测设备按键数"] == 2:
+        engine.send_did("WRITE", "读写面板默认背光亮度百分比C135", '01 01')
+        engine.expect_did("WRITE", "读写面板默认背光亮度百分比C135", '01 01')
+        engine.send_did("READ", "读写面板默认背光亮度百分比C135", "01")
+        engine.expect_did("READ", "读写面板默认背光亮度百分比C135", '01 01')
+
+        engine.send_did("WRITE", "读写面板默认背光亮度百分比C135", '02 01')
+        engine.expect_did("WRITE", "读写面板默认背光亮度百分比C135", '02 01')
+        engine.send_did("READ", "读写面板默认背光亮度百分比C135", "02")
+        engine.expect_did("READ", "读写面板默认背光亮度百分比C135", '02 01')
+    else:
+        engine.send_did("WRITE", "读写面板默认背光亮度百分比C135", '01 01')
+        engine.expect_did("WRITE", "读写面板默认背光亮度百分比C135", '01 01')
+        engine.send_did("READ", "读写面板默认背光亮度百分比C135", "01")
+        engine.expect_did("READ", "读写面板默认背光亮度百分比C135", '01 01')
 
 
 def test_通断操作C012():
@@ -172,12 +218,15 @@ def test_通断操作C012():
 
     engine.add_doc_info("通道2控制通断测试")
     relay_output_test(did="通断操作C012", relay_channel=2, output_channel=[1])
+    engine.add_doc_info("2个通道同时控制通断测试")
+    relay_output_test(did="通断操作C012", relay_channel=7, output_channel=[0, 1])
 
-    engine.add_doc_info("通道3控制通断测试")
-    relay_output_test(did="通断操作C012", relay_channel=4, output_channel=[2])
+    if config["被测设备按键数"] == 3:
+        engine.add_doc_info("通道3控制通断测试")
+        relay_output_test(did="通断操作C012", relay_channel=4, output_channel=[2])
 
-    engine.add_doc_info("3个通道同时控制通断测试")
-    relay_output_test(did="通断操作C012", relay_channel=7, output_channel=[0, 1, 2])
+        engine.add_doc_info("3个通道同时控制通断测试")
+        relay_output_test(did="通断操作C012", relay_channel=7, output_channel=[0, 1, 2])
 
 
 def test_继电器翻转C018():

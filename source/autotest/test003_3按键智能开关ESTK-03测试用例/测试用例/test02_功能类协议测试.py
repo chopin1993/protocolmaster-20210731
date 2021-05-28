@@ -6,8 +6,10 @@ from .常用测试模块 import *
 
 channel_dict = {1: '01', 2: '02', 3: '04'}  # 设备通道及对应值
 
+
 def rcv_data_no_check(data):
     return True
+
 
 def test_出厂默认参数():
     """
