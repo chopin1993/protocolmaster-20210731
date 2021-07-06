@@ -57,5 +57,4 @@ def render(file_name):
 
 if __name__ == "__main__":
     render("python入门教程/3.基本控制语句.md")
-
     sys.exit(0)
