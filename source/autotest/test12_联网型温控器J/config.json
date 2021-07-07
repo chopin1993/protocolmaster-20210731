@@ -1,0 +1,209 @@
+{
+    "配置初始化": {
+        "enable": true,
+        "paras": {},
+        "subcase": {
+            "01_设置aid、波特率和透传": {
+                "enable": true,
+                "paras": {},
+                "subcase": {}
+            },
+            "02_配置设备初始供电": {
+                "enable": false,
+                "paras": {},
+                "subcase": {}
+            }
+        }
+    },
+    "01_基本功能测试": {
+        "enable": false,
+        "paras": {},
+        "subcase": {
+            "默认": {
+                "enable": false,
+                "paras": {},
+                "subcase": {}
+            },
+            "01_设备类型0001": {
+                "enable": false,
+                "paras": {},
+                "subcase": {}
+            },
+            "02_设备描述信息设备制造商0003": {
+                "enable": false,
+                "paras": {},
+                "subcase": {}
+            },
+            "03_载波版本号0004": {
+                "enable": false,
+                "paras": {},
+                "subcase": {}
+            },
+            "04_适配层版本号0606": {
+                "enable": false,
+                "paras": {},
+                "subcase": {}
+            },
+            "05_网络层版本号060A": {
+                "enable": false,
+                "paras": {},
+                "subcase": {}
+            },
+            "06_DKEY0005": {
+                "enable": false,
+                "paras": {},
+                "subcase": {}
+            },
+            "07_SN0007": {
+                "enable": false,
+                "paras": {},
+                "subcase": {}
+            },
+            "08_多DID组合报文测试": {
+                "enable": false,
+                "paras": {},
+                "subcase": {}
+            },
+            "09_设备PWD000A": {
+                "enable": false,
+                "paras": {},
+                "subcase": {}
+            },
+            "10_应用层通讯协议及版本0002": {
+                "enable": false,
+                "paras": {},
+                "subcase": {}
+            }
+        }
+    },
+    "02_功能类协议测试": {
+        "enable": false,
+        "paras": {},
+        "subcase": {
+            "01_默认出厂参数测试": {
+                "enable": false,
+                "paras": {},
+                "subcase": {}
+            },
+            "02_阀门类型配置E10A": {
+                "enable": false,
+                "paras": {},
+                "subcase": {}
+            },
+            "03_开关机E013": {
+                "enable": false,
+                "paras": {},
+                "subcase": {}
+            },
+            "04_按键解锁/锁定E01E": {
+                "enable": false,
+                "paras": {},
+                "subcase": {}
+            },
+            "05_风机控制E011": {
+                "enable": false,
+                "paras": {},
+                "subcase": {}
+            }
+        }
+    },
+    "03_状态同步测试": {
+        "enable": true,
+        "paras": {},
+        "subcase": {
+            "01 _添加上报测试": {
+                "enable": false,
+                "paras": {},
+                "subcase": {}
+            },
+            "02_温湿度定频上报测试": {
+                "enable": true,
+                "paras": {},
+                "subcase": {}
+            }
+        }
+    },
+    "04_载波通信功能测试": {
+        "enable": false,
+        "paras": {},
+        "subcase": {
+            "01_频繁通断电测试": {
+                "enable": false,
+                "paras": {},
+                "subcase": {}
+            }
+        }
+    },
+    "05_远程升级测试": {
+        "enable": false,
+        "paras": {},
+        "subcase": {
+            "00_测试环境搭建": {
+                "enable": false,
+                "paras": {},
+                "subcase": {}
+            },
+            "01_应用层远程升级（测试版本升级至其他版本）": {
+                "enable": false,
+                "paras": {},
+                "subcase": {}
+            },
+            "02_断点续传": {
+                "enable": false,
+                "paras": {},
+                "subcase": {}
+            },
+            "03_断电重传": {
+                "enable": false,
+                "paras": {},
+                "subcase": {}
+            },
+            "04_升级成功瞬间断电": {
+                "enable": false,
+                "paras": {},
+                "subcase": {}
+            },
+            "05_相同版本重复升级测试": {
+                "enable": false,
+                "paras": {},
+                "subcase": {}
+            },
+            "06_载波适配层升级测试": {
+                "enable": false,
+                "paras": {},
+                "subcase": {}
+            },
+            "07_载波网络层升级测试": {
+                "enable": false,
+                "paras": {},
+                "subcase": {}
+            },
+            "08_升级过程中被控制": {
+                "enable": false,
+                "paras": {},
+                "subcase": {}
+            },
+            "09_兼容性升级测试（已发布版本升级至提测版本）": {
+                "enable": false,
+                "paras": {},
+                "subcase": {}
+            },
+            "10_升级结束后恢复默认参数": {
+                "enable": false,
+                "paras": {},
+                "subcase": {}
+            }
+        }
+    },
+    "07_测试完成恢复至出厂参数": {
+        "enable": false,
+        "paras": {},
+        "subcase": {
+            "测试完成恢复出厂状态": {
+                "enable": false,
+                "paras": {},
+                "subcase": {}
+            }
+        }
+    }
+}
