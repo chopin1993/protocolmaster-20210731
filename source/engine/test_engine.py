@@ -171,18 +171,33 @@ class TestEngine(object):
                                                          e.__traceback__.tb_lineno)
                 self.add_fail_test("engine", "exception", msg)
                 logging.exception(e)
+
         if valids is None:
             valids = self.get_valid_infos()
-        for group in valids:
-            self.current_group = group
-            self.current_test = group
-            if self.current_group.func is None:
-                group.clear()
-                for case in group.get_valid_sub_cases():
-                    self.current_test = case
-                    run_test(case)
-            else:
-                run_test(self.current_group)
+
+        # 根据配置中的循环次数进行测试
+        if 'test_loop_times' in self.config:
+            test_loop_times = self.config["test_loop_times"]
+        else:
+            test_loop_times = 1
+
+        times = 1
+        while test_loop_times > 0:
+            logging.debug("这是第%d次测试", times)
+            times = times + 1
+            test_loop_times = test_loop_times - 1
+
+            for group in valids:
+                self.current_group = group
+                self.current_test = group
+                if self.current_group.func is None:
+                    group.clear()
+                    for case in group.get_valid_sub_cases():
+                        self.current_test = case
+                        run_test(case)
+                else:
+                    run_test(self.current_group)
+
         total, passed, fails = TestEngine.instance().summary(valids)
         if total == passed:
             logging.info("测试通过：totoal:%d  passed:%d", total, passed)

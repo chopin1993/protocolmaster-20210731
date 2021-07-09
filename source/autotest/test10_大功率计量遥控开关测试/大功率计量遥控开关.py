@@ -6,7 +6,7 @@ import engine
 config = dict()
 config["测试程序名称"] = r"大功率计量遥控开关ESEM-1S63A-K-D35测试报告"
 # 定义抄控器的基本信息
-config["串口"] = "COM14"
+config["串口"] = "COM1"
 config["波特率"] = "115200"     # 当前测试上位机，只支持9600bps和115200bps
 config["校验位"] = 'None'
 config["抄控器默认源地址"] = 91
@@ -44,6 +44,9 @@ config["载波网络层上一版本"] = "SSC1663-PLC(v1.0)-20170510"
 # config["载波适配层上一版本"] = "ESMD-AD6768(v1.1)-20180706"
 # config["载波网络层上一版本"] = "SSC1667-PLC(v5.0)-20180706"
 config["升级后等待重启时间"] = 15  # 默认30s，可根据具体设备升级后重启时间为例修改
+
+# 增加测试循环次数
+config["test_loop_times"] = 3
 
 engine.config(config)
 
