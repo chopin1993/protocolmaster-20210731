@@ -216,6 +216,7 @@ def run_all_tests(gui=False):
     except Exception as e:
         logging.exception(e)
         exit(0)
+
     if gui:
         app = QApplication(sys.argv)
         ui = CaseEditor(TestEngine.instance())
