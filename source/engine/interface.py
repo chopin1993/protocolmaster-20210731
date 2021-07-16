@@ -1,4 +1,5 @@
 # encoding:utf-8
+import engine
 from tools.esloging import *
 from PyQt5.QtCore import QCoreApplication
 from PyQt5.QtWidgets import QApplication
@@ -40,6 +41,24 @@ def send_did(cmd, did, value=None, taid=None, gids=None, gid_type="U16", reply=F
     """
     role = TestEngine.instance().get_default_role()
     role.send_did(cmd, did, value=value, taid=taid, gids=gids, gid_type=gid_type, reply=reply, **kwargs)
+# FE02dingyi
+
+
+def send_FE02_did(cmd, dids, value=None, taid=None, gids=None, gid_type="U16", reply=False, **kwargs):
+    """
+    发送7e报文
+    :param cmd:支持“READ”,"WRITE","REPORT","NOTIFY"(不可靠上报)
+    :param did:可以使用数字，也可以使用《数据表示分类表格》的中文名称
+    :param value:可是数字,也可以是类似于“00 34 78”的字符串
+    :param taid:目标地址
+    :param gids:组地址列表，可以是组地址列表。
+    :param gid_type: 组地址编码类型，支持"BIT1","U8","U16"
+    :param reply:序号自动取自上一帧，并将其最高位置1
+    :param kwargs:如果数据标识中有多个数据单元，可以使用key,value的方式赋值
+    :EIOU工装7E包7E
+    """
+    role = TestEngine.instance().get_default_role()
+    role.send_FE02_did(cmd, dids, value=value, taid=taid, gids=gids, gid_type=gid_type, reply=reply, **kwargs)
 
 
 def expect_did(cmd, did, value=None,
@@ -59,6 +78,47 @@ def expect_did(cmd, did, value=None,
     :param kwargs: 如果did有多个数据项，可以使用key,value的方式传递数据
     """
     role = TestEngine.instance().get_default_role()
+    role.expect_did(cmd,
+                    did,
+                    value=value,
+                    timeout=timeout,
+                    ack=ack,
+                    said=said,
+                    gids=gids,
+                    gid_type=gid_type,
+                    check_seq=check_seq,
+                    **kwargs)
+
+
+#dingyi
+def expect_FE02_did(cmd, did, value=None,
+               timeout=2, ack=False, said=None,
+               gids=None, gid_type="U16",
+               check_seq=True,
+               **kwargs):
+    """
+    :param cmd: 支持“READ”,"WRITE","REPORT","NOTIFY""
+    :param did: 可以使用数字，也可以使用《数据表示分类表格》的中文名称
+    :param value:可是数字,也可以是类似于“00 34 78”的字符串, 可以使用*作为占位符"** **",可以传入函数
+    :param timeout:
+    :param ack: 是否给与回复
+    :param gids:广播地址列表
+    :param gid_type:广播地址编码类型 支持"BIT1","U8","U16"
+    :param check_seq: True:比对seq, False:忽略seq
+    :param kwargs: 如果did有多个数据项，可以使用key,value的方式传递数据
+    :解EIOU工装7E包7E
+    """
+    role = TestEngine.instance().get_default_role()
+    role.expect_did(cmd,
+                    did,
+                    value=value,
+                    timeout=timeout,
+                    ack=ack,
+                    said=said,
+                    gids=gids,
+                    gid_type=gid_type,
+                    check_seq=check_seq,
+                    **kwargs)
     role.expect_did(cmd,
                     did,
                     value=value,
