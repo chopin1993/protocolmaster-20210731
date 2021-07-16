@@ -401,10 +401,10 @@ class TestEquiment(object):
             self.setting_uart(0, config["波特率"], config['校验位'])
         elif config["波特率"] == "9600":
             add_doc_info("将通信波特率同步为9600")
-            self.setting_uart(0, "115200", config['校验位'])
+            # self.setting_uart(0, "115200", config['校验位'])
             self.local_routine.send_local_msg("设置串口波特率", '02 00')  # 9600bps
             self.wait_event(1)
-            self.setting_uart(0, config["波特率"], config['校验位'])
+            # self.setting_uart(0, config["波特率"], config['校验位'])
         else:
             assert False
 
@@ -444,12 +444,21 @@ class TestEquiment(object):
     def write(self, data):
         if isinstance(data, Smart7EData):
             self.legal_devices.add(data.taid)
-            monitor_data = Monitor7EData.create_uart_message(data, cmd=UARTCmd.W_DATA)
-            log_snd_frame("测试工装", monitor_data, only_log=True)
-            self.session.write(monitor_data)
+            # monitor_data = Monitor7EData.create_uart_message(data, cmd=UARTCmd.W_DATA)
+            # log_snd_frame("测试工装", monitor_data, only_log=True)
+            # self.session.write(monitor_data)
+
+            log_snd_frame("测试工装", data, only_log=True)
+            self.session.write(data)
         else:
             log_snd_frame("测试工装", data, only_log=True)
             self.session.write(data)
+
+        # added by 修晓东
+        # at 2021.07.14
+        # 直接发7E的数据
+        # log_snd_frame("测试工装", data, only_log=True)
+        # self.session.write(data)
 
     def set_device_sensor_status(self, sensor, value, channel):
         sensor = SPIMessageType.to_enum(sensor)
@@ -487,7 +496,10 @@ class TestEquiment(object):
         self.wait_event(2, self.cross_zero_timeout)
 
     def control_relay(self,channel, value):
-        mointor_data = Monitor7EData.create_relay_message(channel, value)
+        # mointor_data = Monitor7EData.create_relay_message(channel, value)
+
+        # added by 修晓东
+        mointor_data = Smart7EData.create_relay_message(channel, value)
         self.write(mointor_data)
 
     def setting_uart(self,  channel, baudrate, parity=Parity.无校验):
