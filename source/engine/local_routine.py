@@ -17,8 +17,9 @@ class LocalRoutine(Routine):
     def send_local_msg(self, cmd, value, **kwargs):
         fbd = LocalFBD(cmd, value)
         data = Smart7EData(0, 0, fbd)
-        self.device.write(data)
         log_snd_frame(self.name, data)
+        self.device.write(data)
+        # log_snd_frame(self.name, data)
 
     def expect_local_msg(self, cmd, value=None, timeout=2, **kwargs):
         self.validate = SmartLocalValidator(cmd=cmd)
