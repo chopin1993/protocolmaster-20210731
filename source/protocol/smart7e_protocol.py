@@ -13,6 +13,17 @@ from .smart7e_DID import *
 import logging
 SMART_7e_HEAD = bytes([0x7e])
 
+class RELAYCmd(EsEnum):
+    DATA = 0x01
+    W_DATA= 0x81
+
+class HardwareEnum(EsEnum):
+    SPI = 0
+    UART = 1
+    GPIO = 2
+    RELAY = 3
+    CROSS_ZERO = 4 #过零检测
+    监测器 = 0xf
 
 class UpdateStartInfo(DataStruct):
     def __init__(self, decoder=None, **kwargs):
@@ -236,6 +247,13 @@ class Smart7EData(DataStruct):
         msg = Smart7EData(self.taid, self.said, self.fbd)
         msg.seq = self.seq|0x80
         return msg
+
+    @staticmethod
+    def create_relay_message(channel, status, cmd=RELAYCmd.W_DATA):
+        encoder = BinaryEncoder()
+        encoder.encode_u8(status)
+        data = encoder.get_data()
+        return Smart7EData(hardware=HardwareEnum.RELAY, group=channel, cmd=cmd, data=data)
 
 
 class Smart7eProtocol(Protocol):
