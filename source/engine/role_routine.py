@@ -36,6 +36,17 @@ class RoleRoutine(Routine):
         taid = self.device.get_taid(taid)
         data = Smart7EData(self.said, taid, fbd, reply=reply)
         self.write(data)
+        return str(data)
+
+    def send_FE02_did(self, cmd, did, value=None, taid=None, gids=None, gid_type="U16", reply=False, **kwargs):
+        gid, taid = self.get_gid(taid, gids, gid_type)
+        taid = self.device.get_taid(taid)
+        fbd = RemoteFBD.create(cmd, did, value,gids=gids, gid_type=gid_type, **kwargs)
+        data = Smart7EData(self.said, taid, fbd, reply=reply)
+        fbd = RemoteFBD.create(cmd, "FE02", str(data), gids=gids, gid_type=gid_type, **kwargs)
+        data = Smart7EData(self.said, taid, fbd, reply=reply)
+        self.write(data)
+        return data
 
     def get_gid(self, taid, gids, gid_type):
         gid = None
