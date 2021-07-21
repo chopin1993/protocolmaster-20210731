@@ -2,16 +2,18 @@ from tools.converter import *
 import types
 import weakref
 from engine.validator import *
-from .test_engine import TestEngine,log_snd_frame,log_rcv_frame,Routine,TestEquiment
+from .test_engine import TestEngine, log_snd_frame, log_rcv_frame, Routine, TestEquiment
 import logging
 from .spy_device import SpyDevice
 import engine
+
 
 class RoleRoutine(Routine):
     """
     主要用来处理单个did，上报和联动测试
     """
-    def __init__(self, name, said, device:TestEquiment):
+
+    def __init__(self, name, said, device: TestEquiment):
         super(RoleRoutine, self).__init__(name, device)
         self.said = said
         self.current_seq = None
@@ -32,43 +34,48 @@ class RoleRoutine(Routine):
 
     def send_did(self, cmd, did, value=None, taid=None, gids=None, gid_type="U16", reply=False, **kwargs):
         gid, taid = self.get_gid(taid, gids, gid_type)
-        fbd = RemoteFBD.create(cmd, did, value,gids=gids, gid_type=gid_type, **kwargs)
+        fbd = RemoteFBD.create(cmd, did, value, gids=gids, gid_type=gid_type, **kwargs)
         taid = self.device.get_taid(taid)
         data = Smart7EData(self.said, taid, fbd, reply=reply)
         self.write(data)
         return str(data)
 
     def send_FE02_did(self, cmd, did, value=None, taid=None, gids=None, gid_type="U16", reply=False, **kwargs):
+        """
+
+        :param cmd: 支持“READ”,"WRITE","REPORT","NOTIFY"(不可靠上报)
+        :param did: 此处的did固定为FE02
+        :param value: 可是数字,也可以是类似于“00 34 78”的字符串
+        :param taid: 目标地址
+        :param gids: 组地址列表，可以是组地址列表。
+        :param gid_type: 组地址编码类型，支持"BIT1","U8","U16"
+        :param reply: 序号自动取自上一帧，并将其最高位置1
+        :param kwargs: 如果数据标识中有多个数据单元，可以使用key,value的方式赋值
+        :return:
+        """
+        # 第一层7E
         gid, taid = self.get_gid(taid, gids, gid_type)
         taid = self.device.get_taid(taid)
-        fbd = RemoteFBD.create(cmd, did, value,gids=gids, gid_type=gid_type, **kwargs)
+        fbd = RemoteFBD.create(cmd, did, value, gids=gids, gid_type=gid_type, **kwargs)
         data = Smart7EData(self.said, taid, fbd, reply=reply)
+        # 第二层7E，使用了第一层的str(data)
         fbd = RemoteFBD.create(cmd, "FE02", str(data), gids=gids, gid_type=gid_type, **kwargs)
         data = Smart7EData(self.said, taid, fbd, reply=reply)
         self.write(data)
         return data
 
-    def send_FE02_did(self, cmd, did, value=None, taid=None, gids=None, gid_type="U16", reply=False, **kwargs):
-        gid, taid = self.get_gid(taid, gids, gid_type)
-        taid = self.device.get_taid(taid)
-        fbd = RemoteFBD.create(cmd, did, value, gids=gids, gid_type=gid_type, **kwargs)
-        data = Smart7EData(self.said, taid, fbd, reply=reply)
-        fbd = RemoteFBD.create(cmd, "FE02", str(data), gids=gids, gid_type=gid_type, **kwargs)
-        data = Smart7EData(self.said, taid, fbd, reply=reply)
-        self.write(data)
-
-
     def get_gid(self, taid, gids, gid_type):
         gid = None
-        if taid==0xffffffff and gids is None:
+        if taid == 0xffffffff and gids is None:
             raise ValueError("taid is boardcast but gids is None")
         if gids is not None:
             gid = GID(gid_type, gids)
             taid = 0xffffffff
-        return gid,taid
+        return gid, taid
 
     def send_multi_dids(self, cmd, *args, taid=None, reply=False):
-        dids = [DIDRemote.create_did(name=args[i+2], value=args[i+3], gids=args[i],gid_type=args[i+1]) for i in range(0, len(args), 4)]
+        dids = [DIDRemote.create_did(name=args[i + 2], value=args[i + 3], gids=args[i], gid_type=args[i + 1]) for i in
+                range(0, len(args), 4)]
         fbd = RemoteFBD(cmd, dids)
         taid = self.device.get_taid(taid)
         data = Smart7EData(self.said, taid, fbd, reply=reply)
@@ -84,7 +91,7 @@ class RoleRoutine(Routine):
                 if frame.taid == self.validate.taid:
                     engine.add_doc_info("****warnging***抄控器没有收到数据，使用监控器数据代替进行测试")
                     msg = "使用spy监控器数据代替进行抄控器数据"
-                    TestEngine.instance().add_fix_rcv_operation(self.name,"doc", msg)
+                    TestEngine.instance().add_fix_rcv_operation(self.name, "doc", msg)
                     self.handle_rcv_msg(frame)
                     SpyDevice.instance().clear_send_frames()
                     return
@@ -115,7 +122,7 @@ class RoleRoutine(Routine):
             raise ValueError("cant not encode value for did {0}".format(did))
         return DIDValidtor(did_cls.DID, value, gid)
 
-    def get_expect_seq(self,cmd, check):
+    def get_expect_seq(self, cmd, check):
         if cmd in [CMD.WRITE, CMD.READ] and check:
             return self.current_seq
         else:
@@ -132,7 +139,7 @@ class RoleRoutine(Routine):
         taid = self.said
         if gids is not None:
             self.is_expect_boradcast = True
-            did = [self._create_did_validtor(did, value,gids=gids, gid_type=gid_type, **kwargs)]
+            did = [self._create_did_validtor(did, value, gids=gids, gid_type=gid_type, **kwargs)]
             seq = None
             taid = 0xffffffff
         else:
@@ -145,6 +152,49 @@ class RoleRoutine(Routine):
                                            dids=did,
                                            seq=seq,
                                            ack=ack)
+        self.wait_event(timeout)
+
+    def expect_FE02_did(self, cmd, did, value=None, timeout=2, ack=False, said=None, gids=None, gid_type="U16",
+                        check_seq=True, **kwargs):
+        """
+
+        """
+        # 解析外层报文，无对比验证
+        cmd = CMD.to_enum(cmd)
+
+        seq = self.get_expect_seq(cmd, check_seq)
+        taid = self.said
+        if gids is not None:
+            self.is_expect_boradcast = True
+            # 第一层验证did=FE02
+            did_fe02 = [self._create_did_validtor(did='FE02', value=value, gids=gids, gid_type=gid_type, **kwargs)]
+            seq = None
+            taid = 0xffffffff
+        else:
+            did_fe02 = [self._create_did_validtor(did='FE02', value=value, **kwargs)]
+            self.is_expect_boradcast = False
+
+        data_in_7e = SmartDataValidator(said=self.device.get_taid(said), taid=taid,
+                                        cmd=cmd, dids=did_fe02, seq=seq, ack=ack)
+        # self.wait_event(timeout)
+
+        # 解析内层报文，需要验证报文正确性
+        cmd = CMD.to_enum(cmd)
+
+        seq = self.get_expect_seq(cmd, check_seq)
+        taid = self.said
+        if gids is not None:
+            self.is_expect_boradcast = True
+            did = [self._create_did_validtor(did, value=data_in_7e, gids=gids, gid_type=gid_type, **kwargs)]
+            seq = None
+            taid = 0xffffffff
+        else:
+            did = [self._create_did_validtor(did, value=data_in_7e, **kwargs)]
+            self.is_expect_boradcast = False
+
+        # except值与接收数据对比
+        self.validate = SmartDataValidator(said=self.device.get_taid(said), taid=taid,
+                                           cmd=cmd, dids=did, seq=seq, ack=ack)
         self.wait_event(timeout)
 
     def wait_event(self, timeout):
@@ -167,7 +217,7 @@ class RoleRoutine(Routine):
                           said=None, timeout=2, ack=False,
                           check_seq=True
                           ):
-        assert len(args)%4 == 0
+        assert len(args) % 4 == 0
         cmd = CMD.to_enum(cmd)
         seq = self.get_expect_seq(cmd, check_seq)
         dids = []
@@ -178,10 +228,10 @@ class RoleRoutine(Routine):
                 self.is_expect_boradcast = True
                 seq = None
                 taid = 0xffffffff
-            did = self._create_did_validtor(did=args[i+2],
-                                            value=args[i+3],
+            did = self._create_did_validtor(did=args[i + 2],
+                                            value=args[i + 3],
                                             gids=args[i],
-                                            gid_type=args[i+1])
+                                            gid_type=args[i + 1])
             dids.append(did)
         said = self.device.get_taid(said)
         self.validate = SmartDataValidator(said=said,
@@ -203,13 +253,13 @@ class RoleRoutine(Routine):
         fbd = BytesCompare(fbd)
         self.validate = SmartDataValidator(said=self.device.get_taid(said),
                                            taid=self.said,
-                                           fbd = fbd)
+                                           fbd=fbd)
         self.wait_event(timeout)
 
     def handle_rcv_msg(self, data):
-        #检查是否可以忽略上报报文
+        # 检查是否可以忽略上报报文
         if self.re_sending_status:
-            if (data.seq&0x7f) == (self.current_seq&0x7f):
+            if (data.seq & 0x7f) == (self.current_seq & 0x7f):
                 logging.warning("监测器检测失败，载波接收成功，不再重试发送")
                 self.send_OK = True
                 self.timer.stop()
@@ -218,7 +268,7 @@ class RoleRoutine(Routine):
             self.waiting_received_frames.append(data)
             return
 
-        #保证报文的收发顺序
+        # 保证报文的收发顺序
         if len(self.waiting_received_frames) > 0:
             self.waiting_received_frames.append(data)
             data = self.waiting_received_frames.pop(0)
@@ -226,7 +276,7 @@ class RoleRoutine(Routine):
         if data is not None and \
                 data.fbd.cmd in [CMD.REPORT, CMD.NOTIFY] and \
                 not TestEngine.instance().report_enable:
-            log_rcv_frame(self.name+" report ignone" +"如果你想要检测上报，需要调用 engine.report_check_enable_all(True)", data)
+            log_rcv_frame(self.name + " report ignone" + "如果你想要检测上报，需要调用 engine.report_check_enable_all(True)", data)
             return
 
         # 手动组织回复报文
@@ -264,7 +314,7 @@ class RoleRoutine(Routine):
         data = data.ack_message()
         self.waiting_send_frames.append(data)
 
-    def write(self,data, swb_spy=True):
+    def write(self, data, swb_spy=True):
         from .spy_device import SpyDevice
         log_snd_frame(self.name, data)
         self.current_seq = data.seq
@@ -273,11 +323,13 @@ class RoleRoutine(Routine):
                 data.is_need_spy() and \
                 swb_spy:
             self.re_sending_status = True
-            self.send_OK  = False
+            self.send_OK = False
+
             def receive_frame(frame):
                 if frame.said == data.said and frame.seq == data.seq:
                     self.timer.stop()
                     self.send_OK = True
+
             SpyDevice.instance().install_rcv_hook(receive_frame)
             self.device.write(data)
             snd_cnt = 0
