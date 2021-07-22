@@ -26,9 +26,6 @@ def test_设备描述信息设备制造商0003():
     engine.expect_did("READ", "设备描述信息设备制造商0003", config["设备描述信息设备制造商0003"])
 
 
-
-
-
 def test_DKEY0005():
     """
     06_DKEY0005
@@ -62,14 +59,13 @@ def test_组合报文():
                              "SN0007", config["SN0007"])
 
 
-
-
 def test_设备PWD000A():
     """
     09_设备PWD000A
     """
     engine.send_did("READ", "设备PWD000A")
     engine.expect_did("READ", "设备PWD000A", config["设备PWD000A"])
+
 
 def test_应用层通讯协议及版本0002():
     """

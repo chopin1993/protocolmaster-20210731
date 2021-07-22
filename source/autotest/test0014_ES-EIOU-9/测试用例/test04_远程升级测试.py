@@ -24,7 +24,6 @@ def check_update_configure(version=config["设备描述信息设备制造商0003
     engine.send_did("READ", "设备描述信息设备制造商0003")
     engine.expect_did("READ", "设备描述信息设备制造商0003", version)
 
-
     engine.send_multi_dids("READ",
                            "设备类型0001", "",
                            "设备描述信息设备制造商0003", "",
@@ -40,16 +39,11 @@ def check_update_configure(version=config["设备描述信息设备制造商0003
 config["检测版本号和参数保持不变"] = check_update_configure
 
 
-
-
-
 def test_升级过程中被控制():
     """
     08_升级过程中被控制
     升级过程中配置UI05、UI08，均可以正常响应
     """
-
-
 
     engine.add_doc_info("升级前，查询版本及SN、DK、配置参数")
     engine.send_did("WRITE", "IO配置D201", "05 20")
@@ -58,7 +52,7 @@ def test_升级过程中被控制():
     engine.expect_did("WRITE", "IO配置D201", "08 00")
     check_update_configure(version=config["设备描述信息设备制造商0003"])
 
-    engine.update(config["应用程序同版本号测试版本"], None,)
+    engine.update(config["应用程序同版本号测试版本"], None, )
     engine.wait(config["升级后等待重启时间"], tips="设备升级完成，校验版本")
     engine.add_doc_info("升级后，查询版本及SN、DK、配置参数，要求版本号变更，其余参数不变")
     engine.send_did("READ", "IO配置D201", "05")
@@ -98,7 +92,6 @@ def test_兼容性升级测试():
     engine.wait(config["升级后等待重启时间"], tips="设备升级完成，校验版本")
     engine.add_doc_info("升级后，查询版本及SN、DK、配置参数")
 
-
     engine.send_did("READ", "设备描述信息设备制造商0003")
     engine.expect_did("READ", "设备描述信息设备制造商0003", config["应用程序上一版发布版本"])
 
@@ -129,6 +122,3 @@ def test_兼容性升级测试():
     engine.expect_did("READ", "IO配置D201", "01 20")
     engine.send_did("READ", "IO配置D201", "09")
     engine.expect_did("READ", "IO配置D201", "09 FF")
-
-
-

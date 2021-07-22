@@ -1,5 +1,6 @@
 # encoding:utf-8
 # 导入测试引擎
+import engine
 from autotest.公共用例.public常用测试模块 import *
 import time
 
@@ -379,20 +380,61 @@ def back_devices():
     engine.expect_did('WRITE', '查询设置超温保护温度上限C0A5', '02 64')
     engine.send_did('WRITE', '查询设置超温保护温度上限C0A5', '01 64')
     engine.expect_did('WRITE', '查询设置超温保护温度上限C0A5', '01 64')
-    # engine.expect_multi_dids('REPORT',
-    #                          "通断操作C012", '**', "亮度值C0A2", "01 ** **", "亮度值C0A2", "02 ** **",
-    #                          "导致状态改变的控制设备AIDC01A", '00 00 00 00', ack=True, timeout=10)
-    # engine.expect_multi_dids('REPORT',
-    #                          "通断操作C012", '**', "亮度值C0A2", "01 ** **", "亮度值C0A2", "02 ** **",
-    #                          "导致状态改变的控制设备AIDC01A", '00 00 00 00', ack=True, timeout=11)
     engine.wait(2, tips='等待设备恢复')
     engine.send_did('WRITE', '亮度值C0A2', '02 00')
     engine.expect_did('WRITE', '亮度值C0A2', '02 00 **')
     engine.send_did('WRITE', '亮度值C0A2', '01 00')
     engine.expect_did('WRITE', '亮度值C0A2', '01 00 **')
-    # engine.expect_multi_dids('REPORT',
-    #                          "通断操作C012", '**', "亮度值C0A2", "01 ** **", "亮度值C0A2", "02 ** **",
-    #                          "导致状态改变的控制设备AIDC01A", config["抄控器默认源地址"], ack=True, timeout=10)
-    # engine.expect_multi_dids('REPORT',
-    #                          "通断操作C012", '**', "亮度值C0A2", "01 ** **", "亮度值C0A2", "02 ** **",
-    #                          "导致状态改变的控制设备AIDC01A", config["抄控器默认源地址"], ack=True, timeout=11)
+
+
+def choice_temp_test_type(type=None):
+    """
+
+    :param type:
+    :return:
+    """
+    type_list = [20, 21, 22, 23, 24, 25]
+    if type == type_list[0]:
+        engine.add_doc_info('配置为NTC10K-3435(0x20)输入模式')
+        engine.send_FE02_did('WRITE', 'IO配置D201', '01 20 02 20 03 20 04 20 05 20 06 20 07 20 08 20 09 20')
+        engine.expect_FE02_did('WRITE', 'IO配置D201', '01 20 02 20 03 20 04 20 05 20 06 20 07 20 08 20 09 20')
+    elif type == type_list[1]:
+        engine.add_doc_info('配置为NTC10K-3950(0x21)输入模式')
+        engine.send_FE02_did('WRITE', 'IO配置D201', '01 21 02 21 03 21 04 21 05 21 06 21 07 21 08 21 09 21')
+        engine.expect_FE02_did('WRITE', 'IO配置D201', '01 20 02 20 03 20 04 20 05 20 06 20 07 20 08 20 09 20')
+    elif type == type_list[2]:
+        engine.add_doc_info('配置为PT1000(0x22)输入模式')
+        engine.send_FE02_did('WRITE', 'IO配置D201', '01 22 02 22 03 22 04 22 05 22 06 22 07 22 08 22 09 22')
+        engine.expect_FE02_did('WRITE', 'IO配置D201', '01 22 02 22 03 22 04 22 05 22 06 22 07 22 08 22 09 22')
+    elif type == type_list[3]:
+        engine.add_doc_info('配置为NI1000(0x23)输入模式')
+        engine.send_FE02_did('WRITE', 'IO配置D201', '01 23 02 23 03 23 04 23 05 23 06 23 07 23 08 23 09 23')
+        engine.expect_FE02_did('WRITE', 'IO配置D201', '01 23 02 23 03 23 04 23 05 23 06 23 07 23 08 23 09 23')
+    elif type == type_list[4]:
+        engine.add_doc_info('配置为NTC20K-3950(0x24)输入模式')
+        engine.send_FE02_did('WRITE', 'IO配置D201', '01 24 02 24 03 24 04 24 05 24 06 24 07 24 08 24 09 24')
+        engine.expect_FE02_did('WRITE', 'IO配置D201', '01 24 02 24 03 24 04 24 05 24 06 24 07 24 08 24 09 24')
+    else:   # type == 25
+        engine.add_doc_info('配置为NTC100K-3950(0x25)输入模式')
+        engine.send_FE02_did('WRITE', 'IO配置D201', '01 25 02 25 03 25 04 25 05 25 06 25 07 25 08 25 09 25')
+        engine.expect_FE02_did('WRITE', 'IO配置D201', '01 25 02 25 03 25 04 25 05 25 06 25 07 25 08 25 09 25')
+
+
+def ctrl_relay_open(channel):
+    """
+    EIOU-控制工装对应继电器，开
+    :param channel:工装上的继电器通道号
+    :return:
+    """
+    engine.send_did('WRITE', '22V通断电FE04', '01 '+str(channel))
+    engine.expect_did('WRITE', '22V通断电FE04', '01 '+str(channel))
+
+
+def ctrl_relay_close(channel):
+    """
+    EIOU-控制工装对应继电器，关
+    :param channel:工装上的继电器通道号
+    :return:
+    """
+    engine.send_did('WRITE', '22V通断电FE04', '00 ' + str(channel))
+    engine.expect_did('WRITE', '22V通断电FE04', '00 ' + str(channel))
