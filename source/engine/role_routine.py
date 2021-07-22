@@ -154,48 +154,49 @@ class RoleRoutine(Routine):
                                            ack=ack)
         self.wait_event(timeout)
 
-    def expect_FE02_did(self, cmd, did, value=None, timeout=2, ack=False, said=None, gids=None, gid_type="U16",
-                        check_seq=True, **kwargs):
-        """
-
-        """
-        # 解析外层报文，无对比验证
-        cmd = CMD.to_enum(cmd)
-
-        seq = self.get_expect_seq(cmd, check_seq)
-        taid = self.said
-        if gids is not None:
-            self.is_expect_boradcast = True
-            # 第一层验证did=FE02
-            did_fe02 = [self._create_did_validtor(did='FE02', value=value, gids=gids, gid_type=gid_type, **kwargs)]
-            seq = None
-            taid = 0xffffffff
-        else:
-            did_fe02 = [self._create_did_validtor(did='FE02', value=value, **kwargs)]
-            self.is_expect_boradcast = False
-
-        data_in_7e = SmartDataValidator(said=self.device.get_taid(said), taid=taid,
-                                        cmd=cmd, dids=did_fe02, seq=seq, ack=ack)
-        # self.wait_event(timeout)
-
-        # 解析内层报文，需要验证报文正确性
-        cmd = CMD.to_enum(cmd)
-
-        seq = self.get_expect_seq(cmd, check_seq)
-        taid = self.said
-        if gids is not None:
-            self.is_expect_boradcast = True
-            did = [self._create_did_validtor(did, value=data_in_7e, gids=gids, gid_type=gid_type, **kwargs)]
-            seq = None
-            taid = 0xffffffff
-        else:
-            did = [self._create_did_validtor(did, value=data_in_7e, **kwargs)]
-            self.is_expect_boradcast = False
-
-        # except值与接收数据对比
-        self.validate = SmartDataValidator(said=self.device.get_taid(said), taid=taid,
-                                           cmd=cmd, dids=did, seq=seq, ack=ack)
-        self.wait_event(timeout)
+    # def expect_FE02_did(self, cmd, did, value=None, timeout=2, ack=False, said=None, gids=None, gid_type="U16",
+    #                     check_seq=True, **kwargs):
+    #     """
+    #
+    #     """
+    #     # 解析外层报文，无对比验证
+    #     cmd = CMD.to_enum(cmd)
+    #
+    #     seq = self.get_expect_seq(cmd, check_seq)
+    #     taid = self.said
+    #     if gids is not None:
+    #         self.is_expect_boradcast = True
+    #         # 第一层验证did=FE02
+    #         did_fe02 = [self._create_did_validtor(did='FE02', value=value, gids=gids, gid_type=gid_type, **kwargs)]
+    #         seq = None
+    #         taid = 0xffffffff
+    #
+    #     else:
+    #         did_fe02 = [self._create_did_validtor(did=did, value=value, **kwargs)]
+    #         self.is_expect_boradcast = False
+    #
+    #     data_in_7e = SmartDataValidator(said=self.device.get_taid(said), taid=taid,
+    #                                     cmd=cmd, dids=did_fe02, seq=seq, ack=ack)
+    #     # self.wait_event(timeout)
+    #
+    #     # 解析内层报文，需要验证报文正确性
+    #     cmd = CMD.to_enum(cmd)
+    #
+    #     seq = self.get_expect_seq(cmd, check_seq)
+    #     taid = self.said
+    #     if gids is not None:
+    #         self.is_expect_boradcast = True
+    #         did = [self._create_did_validtor(did, value=data_in_7e, gids=gids, gid_type=gid_type, **kwargs)]
+    #         seq = None
+    #         taid = 0xffffffff
+    #     else:
+    #         did = [self._create_did_validtor(did, value=data_in_7e, **kwargs)]
+    #         self.is_expect_boradcast = False
+    #
+    #     # except值与接收数据对比
+    #     self.validate = SmartDataValidator(said=self.device.get_taid(said), taid=taid,
+    #                                        cmd=cmd, dids=did, seq=seq, ack=ack)
+    #     self.wait_event(timeout)
 
     def wait_event(self, timeout):
         SpyDevice.instance().clear_send_frames()

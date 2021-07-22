@@ -3,20 +3,18 @@ from media import Media
 from session import SessionSuit
 from engine.test_case import TestCaseInfo
 import json
-import logging
-import os
-from PyQt5.QtCore import QTimer,QCoreApplication
-import time
+from PyQt5.QtCore import QTimer, QCoreApplication
 from engine.validator import *
 import weakref
 from user_exceptions import MeidaException
 from protocol.monitor9e_protocol import *
 from protocol.fifo_buffer import FifoBuffer
 
+
 def get_current_time_str():
     cur = time.time()
-    s, ms = int(cur),cur - int(cur)
-    return time.strftime('%H:%M:%S', time.localtime(s))+":{0:0>3}".format(int(ms*1000))
+    s, ms = int(cur), cur - int(cur)
+    return time.strftime('%H:%M:%S', time.localtime(s)) + ":{0:0>3}".format(int(ms * 1000))
 
 
 class TestEngine(object):
@@ -77,8 +75,8 @@ class TestEngine(object):
         return device
 
     def group_begin(self, name, func, brief=None):
-        #logging.info("start test group %s", name)
-        self.current_group = TestCaseInfo(name,func,brief)
+        # logging.info("start test group %s", name)
+        self.current_group = TestCaseInfo(name, func, brief)
         self.all_infos.append(self.current_group)
         self.current_test = self.current_group
 
@@ -86,8 +84,8 @@ class TestEngine(object):
         self.current_group = None
 
     def test_begin(self, name, func, brief):
-        #logging.info("start test case %s", name)
-        self.current_test = self.current_group.add_sub_case(name,func, brief)
+        # logging.info("start test case %s", name)
+        self.current_test = self.current_group.add_sub_case(name, func, brief)
 
     def test_end(self, name):
         self.current_test = None
@@ -98,7 +96,7 @@ class TestEngine(object):
         self.current_test.add_fail_test(role, tag, msg, fail_idx)
         logging.info("case %s fail, %s %s ", self.current_test.name, tag, msg)
 
-    def add_normal_operation(self,role, tag, msg):
+    def add_normal_operation(self, role, tag, msg):
         self.current_test.add_normal_operation(role, tag, msg, get_current_time_str())
         if tag == "snd":
             logging.info("%s snd %s", role, msg)
@@ -118,10 +116,10 @@ class TestEngine(object):
         self.fixrcv_cnt += 1
 
     def summary(self, infos):
-        total, passed = 0,0
+        total, passed = 0, 0
         fails = []
         for case in infos:
-            case_total, case_passed ,fail = case.summary()
+            case_total, case_passed, fail = case.summary()
             passed += case_passed
             total += case_total
             fails.extend(fail)
@@ -137,15 +135,15 @@ class TestEngine(object):
     def get_valid_infos(self):
         valids = []
         for i, group in enumerate(self.all_infos):
-            if group.is_enable() or i==0:
+            if group.is_enable() or i == 0:
                 valids.append(group)
         return valids
 
     def is_running(self):
         return self.running
 
-    def run_single_case(self,case):
-        return self.run_all_test([self.all_infos[0],case])
+    def run_single_case(self, case):
+        return self.run_all_test([self.all_infos[0], case])
 
     def run_all_test(self, valids=None):
         self.running = True
@@ -167,8 +165,8 @@ class TestEngine(object):
                 raise e
             except Exception as e:
                 msg = "异常原因:{}\nfile:{} line:{}".format(str(e),
-                                                         e.__traceback__.tb_frame.f_globals["__file__"],
-                                                         e.__traceback__.tb_lineno)
+                                                        e.__traceback__.tb_frame.f_globals["__file__"],
+                                                        e.__traceback__.tb_lineno)
                 self.add_fail_test("engine", "exception", msg)
                 logging.exception(e)
 
@@ -213,14 +211,22 @@ class TestEngine(object):
         return os.path.exists(file_path)
 
     def save_config(self):
+        """
+        config配置信息保存为json文件
+        :return:
+        """
         outputs = {}
         for group in self.all_infos:
             outputs[group.name] = group.config_dict()
         file_path = os.path.join(self.output_dir, "config.json")
-        with open(file_path, "w",encoding="utf-8") as handle:
-            json.dump(outputs,handle,ensure_ascii=False,indent=4)
+        with open(file_path, "w", encoding="utf-8") as handle:
+            json.dump(outputs, handle, ensure_ascii=False, indent=4)
 
     def load_config(self):
+        """
+        运行时载入config.json中的配置信息
+        :return:
+        """
         file_path = os.path.join(self.output_dir, "config.json")
         if os.path.exists(file_path):
             with open(file_path, "r", encoding="utf-8") as handle:
@@ -240,11 +246,10 @@ class TestEngine(object):
             self.output_doc_dir = os.path.join(self.output_dir, "测试报告")
             if not os.path.exists(self.output_doc_dir):
                 os.mkdir(self.output_doc_dir)
-            self.output_doc_dir = os.path.join(self.output_dir, "测试报告",time_str)
+            self.output_doc_dir = os.path.join(self.output_dir, "测试报告", time_str)
             if not os.path.exists(self.output_doc_dir):
                 os.mkdir(self.output_doc_dir)
         return self.output_doc_dir
-
 
 
 def log_snd_frame(name, data, only_log=False):
@@ -252,20 +257,20 @@ def log_snd_frame(name, data, only_log=False):
         return
     if not only_log:
         TestEngine.instance().add_normal_operation(name, "snd", str(data))
-        TestEngine.instance().add_normal_operation(name, "annotation", data.to_readable_str())
+        TestEngine.instance().add_normal_operation(name, "annotation", data.to_readable_str)
     else:
-        if name in ["被测设备","测试工装","被测设备.raw", "ignore"]:
+        if name in ["被测设备", "测试工装", "被测设备.raw", "ignore"]:
             logger = logging.getLogger(name)
             logger.info("snd %s", str(data))
-            logger.info("txt %s", data.to_readable_str())
+            logger.info("txt %s", data.to_readable_str)
         else:
             logger = logging.getLogger()
             logger.info("%s snd %s", name, str(data))
-            logger.info("%s txt %s", name, data.to_readable_str())
+            logger.info("%s txt %s", name, data.to_readable_str)
 
 
 def log_info(name, msg, *args, **kwargs):
-    if name in ["被测设备","测试工装","被测设备.raw", "ignore"]:
+    if name in ["被测设备", "测试工装", "被测设备.raw", "ignore"]:
         logger = logging.getLogger(name)
     else:
         logger = logging.getLogger()
@@ -277,16 +282,16 @@ def log_rcv_frame(name, data, only_log=False):
         return
     if not only_log:
         TestEngine.instance().add_normal_operation(name, "rcv", str(data))
-        TestEngine.instance().add_normal_operation(name, "annotation", data.to_readable_str())
+        TestEngine.instance().add_normal_operation(name, "annotation", data.to_readable_str)
     else:
-        if name in ["被测设备","测试工装","被测设备.raw", "ignore"]:
+        if name in ["被测设备", "测试工装", "被测设备.raw", "ignore"]:
             logger = logging.getLogger(name)
             logger.info("rcv %s", str(data))
-            logger.info("txt %s", data.to_readable_str())
+            logger.info("txt %s", data.to_readable_str)
         else:
             logger = logging.getLogger()
-            logger.info("%s rcv %s",name, str(data))
-            logger.info("%s txt %s",name, data.to_readable_str())
+            logger.info("%s rcv %s", name, str(data))
+            logger.info("%s txt %s", name, data.to_readable_str)
 
 
 class Routine(object):
@@ -306,11 +311,11 @@ class Routine(object):
 
     def get_remaining_time(self):
         if self.timer.isActive():
-            return max(1,self.timer.remainingTime()//1000)
+            return max(1, self.timer.remainingTime() // 1000)
         return 0
 
     def wait_event(self, timeout):
-        self.timer.start(int(timeout*1000))
+        self.timer.start(int(timeout * 1000))
         total = self.get_remaining_time()
         while True:
             left = self.get_remaining_time()
@@ -323,7 +328,7 @@ class Routine(object):
 
     def handle_rcv_msg(self, msg):
         if msg is not None:
-            log_rcv_frame(self.name,msg)
+            log_rcv_frame(self.name, msg)
         if self.validate is not None:
             valid, msg = self.validate(msg)
             if valid:
@@ -333,12 +338,12 @@ class Routine(object):
             self.timer.stop()
 
 
-
 class TestEquiment(object):
     """
     串口相关的设备
     """
-    def __init__(self, name, media="SerialMedia", protocol="Monitor7eProtocol"):
+
+    def __init__(self, name, media="SerialMedia", protocol="Smart7eProtocol"):
         self.name = name
         self.media = Media.create_sub_class(media)
         self.protocol = Protocol.create_sub_class(protocol)
@@ -362,7 +367,7 @@ class TestEquiment(object):
 
     def get_remaining_time(self):
         if self.timer.isActive():
-            return max(1,self.timer.remainingTime()//1000)
+            return max(1, self.timer.remainingTime() // 1000)
         return 0
 
     def wait_event(self, timeout, func=None):
@@ -371,7 +376,7 @@ class TestEquiment(object):
         if func is not None:
             self.timer.timeout.connect(func)
         self.connect_func = func
-        self.timer.start(int(timeout*1000))
+        self.timer.start(int(timeout * 1000))
         total = self.get_remaining_time()
         while True:
             left = self.get_remaining_time()
@@ -387,12 +392,16 @@ class TestEquiment(object):
         return ret
 
     def sync_plc_baud(self):
+        """
+        串口配置
+        :return:
+        """
         from engine.interface import add_doc_info
         config = TestEngine.instance().config
 
         self.config_com(port=config["串口"], baudrate=config["波特率"], parity=config["校验位"])
 
-        assert config["波特率"] in ["115200","9600"]
+        assert config["波特率"] in ["115200", "9600"]
         if config["波特率"] == "115200":
             add_doc_info("将通信波特率同步为115200")
             self.setting_uart(0, "9600", config['校验位'])
@@ -464,7 +473,7 @@ class TestEquiment(object):
         sensor = SPIMessageType.to_enum(sensor)
         from .spy_device import SpyDevice
         if not SpyDevice.instance().probe_connected:
-            msg = "Probe Not Connected,忽略设置传感器{} status {} channel:{}".format(sensor.name, value,  channel)
+            msg = "Probe Not Connected,忽略设置传感器{} status {} channel:{}".format(sensor.name, value, channel)
             TestEngine.instance().add_normal_operation("equiment", "doc", msg)
             return
         data = SPIData(msg_type=sensor, data=value, chn=channel)
@@ -476,7 +485,7 @@ class TestEquiment(object):
 
         from .spy_device import SpyDevice
         if not SpyDevice.instance().probe_connected:
-            msg = "Probe Not Connected,忽略检测传感器{} status {} channel:{}".format(sensor.name, value,  channel)
+            msg = "Probe Not Connected,忽略检测传感器{} status {} channel:{}".format(sensor.name, value, channel)
             TestEngine.instance().add_normal_operation("equiment", "doc", msg)
             return
 
@@ -495,17 +504,17 @@ class TestEquiment(object):
         self.cross_zero_validater = MonitorCrossZeroValidator(channel, value)
         self.wait_event(2, self.cross_zero_timeout)
 
-    def control_relay(self,channel, value):
+    def control_relay(self, channel, value):
         # mointor_data = Monitor7EData.create_relay_message(channel, value)
 
         # added by 修晓东
         mointor_data = Smart7EData.create_relay_message(channel, value)
         self.write(mointor_data)
 
-    def setting_uart(self,  channel, baudrate, parity=Parity.无校验):
-        convert_dict ={"Even":"偶校验","Odd":"奇校验","None":"无校验"}
+    def setting_uart(self, channel, baudrate, parity=Parity.无校验):
+        convert_dict = {"Even": "偶校验", "Odd": "奇校验", "None": "无校验"}
         if parity in convert_dict:
-           parity = convert_dict[parity]
+            parity = convert_dict[parity]
         parity = Parity.to_enum(parity)
         setting = UARTSettingFbd(baudrate=baudrate, parity=parity)
         data = Monitor7EData.create_uart_message(setting, UARTCmd.W_SETTING, group=channel)
@@ -545,26 +554,26 @@ class TestEquiment(object):
                     if data.taid == role.said:
                         role.handle_rcv_msg(data)
 
-
     def handle_rcv_msg(self, monitor_data):
         try:
             log_rcv_frame("测试工装", monitor_data, only_log=True)
             if monitor_data.is_uart_data():
-               self.buffer.receive(monitor_data.data)
-               buffer_data = self.buffer.peek(-1)
-               protocol = Smart7eProtocol()
-               decoder = BinaryDecoder()
-               (found, start, length) = protocol.find_frame_in_buff(buffer_data)
-               if found:
-                   self.buffer.read(start + length)
-                   frame_data = buffer_data[start:start + length]
-                   decoder.set_data(frame_data)
-                   monitor_data = protocol.decode(decoder)
-                   self.handle_plc_msg(monitor_data)
-               else:
-                   if self.buffer.data_length() > 300:
-                       logging.warning("test engine buff too big %d, we will clear all buff", self.buffer.data_length())
-                       self.buffer.read(self.buffer.read(self.buffer.data_length()))
+                self.buffer.receive(monitor_data.data)
+                buffer_data = self.buffer.peek(-1)
+                protocol = Smart7eProtocol()
+                decoder = BinaryDecoder()
+                (found, start, length) = protocol.find_frame_in_buff(buffer_data)
+                if found:
+                    self.buffer.read(start + length)
+                    frame_data = buffer_data[start:start + length]
+                    decoder.set_data(frame_data)
+                    monitor_data = protocol.decode(decoder)
+                    self.handle_plc_msg(monitor_data)
+                else:
+                    if self.buffer.data_length() > 300:
+                        logging.warning("test engine buff too big %d, we will clear all buff",
+                                        self.buffer.data_length())
+                        self.buffer.read(self.buffer.read(self.buffer.data_length()))
             elif monitor_data.is_spi_data():
                 from engine.spy_device import SpyDevice
                 SpyDevice.handle_spi_msg(monitor_data)

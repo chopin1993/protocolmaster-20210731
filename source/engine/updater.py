@@ -128,13 +128,13 @@ class UpdateRoutine(Routine):
         taid = self.device.get_taid(None)
         data = Smart7EData(self.said, taid, fbd)
         logging.info("update snd %s", str(data))
-        logging.info("update txt %s", data.to_readable_str())
+        logging.info("update txt %s", data.to_readable_str)
         self.device.write(data)
 
     def handle_rcv_msg(self, data):
         if data is not None:
             logging.info("update rcv %s", str(data))
-            logging.info("update txt %s", data.to_readable_str())
+            logging.info("update txt %s", data.to_readable_str)
 
         if self.status == self.STOP:
             return

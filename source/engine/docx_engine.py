@@ -1,13 +1,15 @@
-#encoding:utf-8
+# encoding:utf-8
 import docx
 import logging
 import time
 import os
+
 __version__ = "V1.0"
 
 
 def get_config_file(name):
     return os.path.join(os.path.dirname(__file__), "../resource", name)
+
 
 class DocxEngine(object):
     def __init__(self, name=None):
@@ -24,8 +26,8 @@ class DocxEngine(object):
         self.document.add_heading("自动测试", 0)
         self.document.add_heading(name, 0)
         self.document.add_heading("\n\n\n\n\n", 0)
-        time_str = "测试时间:{0}".format(time.strftime('%Y-%m-%d %H:%M:%S',time.localtime(time.time())))
-        self.document.add_paragraph(" "*35 + time_str)
+        time_str = "测试时间:{0}".format(time.strftime('%Y-%m-%d %H:%M:%S', time.localtime(time.time())))
+        self.document.add_paragraph(" " * 35 + time_str)
         engine_version = "测试引擎版本:{0}".format(__version__)
         self.document.add_paragraph(" " * 35 + engine_version)
         self.document.add_page_break()
@@ -34,14 +36,14 @@ class DocxEngine(object):
         fails_cnt = len(fails)
         self.document.add_heading("概要", 1)
         txt = "总测试用例:{0} 通过:{1} 失败:{2}  接收失败次数:{3} 发送失败次数{4}\n".format(total,
-                                                                      passed,
-                                                                      fails_cnt,
-                                                                      resend_cnt,
-                                                                      fixsnd_cnt)
+                                                                       passed,
+                                                                       fails_cnt,
+                                                                       resend_cnt,
+                                                                       fixsnd_cnt)
         self.document.add_paragraph(txt, style="important")
-        self.document.add_paragraph("接收失败：抄控器发送报文，但是设备没有收到报文\n发送失败：设备发送报文，但是抄控器没有收到报文",style="doc")
+        self.document.add_paragraph("接收失败：抄控器发送报文，但是设备没有收到报文\n发送失败：设备发送报文，但是抄控器没有收到报文", style="doc")
         self.document.add_heading("失败用例汇总", 2)
-        table = self.document.add_table(rows=1, cols=3,style="Table Grid")
+        table = self.document.add_table(rows=1, cols=3, style="Table Grid")
         hdr_cells = table.rows[0].cells
         hdr_cells[0].text = '失败用例'
         hdr_cells[1].text = '失败原因'
@@ -54,7 +56,7 @@ class DocxEngine(object):
             row_cells[0].text = "无"
             row_cells[1].text = "无"
         self.document.add_heading("所有测试用例汇总", 2)
-        table = self.document.add_table(rows=1, cols=3,style="Table Grid")
+        table = self.document.add_table(rows=1, cols=3, style="Table Grid")
         hdr_cells = table.rows[0].cells
         hdr_cells[0].text = '测试组'
         hdr_cells[1].text = '测试用例'
@@ -95,23 +97,23 @@ class DocxEngine(object):
         if tag == "snd":
             body = "{0} {1}::{2} -> {3}".format(timestr, name, tag, msg)
             style = "code"
-        elif tag in ["rcv","rev"]:
+        elif tag in ["rcv", "rev"]:
             body = "{0} {1}::{2} <- {3}".format(timestr, name, tag, msg)
             style = "rcv"
         elif tag == "annotation":
             body = msg
             style = "annotation"
-        elif tag in ["expect success","sucess","success"]:
+        elif tag in ["expect success", "sucess", "success"]:
             body = msg
             style = "success"
-        elif tag in ["expect fail","fail","exception"]:
+        elif tag in ["expect fail", "fail", "exception"]:
             body = "{} {}".format(timestr, msg)
             style = "fail"
         elif tag in ['doc']:
             body = msg
             style = "doc"
         else:
-            logging.info("no handle tag %s",tag)
+            logging.info("no handle tag %s", tag)
             body = "{0}::{1} {2}".format(name, tag, msg)
             style = "annotation"
         self.document.add_paragraph(body, style=style)
@@ -119,11 +121,11 @@ class DocxEngine(object):
     def add_fail(self, body):
         self.document.add_paragraph(body, style='fail')
 
-    def save_doc(self,output_dir):
-       name = self.name+".docx"
-       name = os.path.join(output_dir,name)
-       logging.info("generate doc %s",name)
-       self.document.save(name)
+    def save_doc(self, output_dir):
+        name = self.name + ".docx"
+        name = os.path.join(output_dir, name)
+        logging.info("generate doc %s", name)
+        self.document.save(name)
 
 
 if __name__ == "__main__":
@@ -146,5 +148,3 @@ if __name__ == "__main__":
     doc.end_test("上电上报")
     doc.end_group("上报测试")
     doc.save_doc()
-
-

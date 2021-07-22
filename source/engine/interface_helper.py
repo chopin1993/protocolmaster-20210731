@@ -6,17 +6,20 @@ import time
 from .test_engine import TestEngine
 import os
 
+
 def set_output_dir(path):
     import os
     def to_source_dir(path):
-        ret = re.search(r"(.*)autotest.*",path)
+        ret = re.search(r"(.*)autotest.*", path)
         if ret is None:
             return None
         return ret.group(1)
+
     source_path = to_source_dir(path)
     if source_path is not None:
         os.chdir(source_path)
     TestEngine.instance().set_output_dir(path)
+
 
 def _parse_doc_string(doc_string):
     if doc_string is None:
@@ -27,21 +30,22 @@ def _parse_doc_string(doc_string):
     if len(names) >= 2:
         briefs = [data.lstrip() for data in names[1:]]
         brief = "\n".join(briefs)
-    return names[0],brief
+    return names[0], brief
 
 
 def key(data):
     if data.startswith("init"):
-        return "0000_" +data
+        return "0000_" + data
     else:
-        return "1111_" +data
+        return "1111_" + data
+
 
 def gather_all_test(variables):
     import types
     tests = []
     inits = []
     for key, value in variables.items():
-        if isinstance(value,types.FunctionType):
+        if isinstance(value, types.FunctionType):
             if key.startswith("init"):
                 inits.append(value)
             if key.startswith("test"):
@@ -49,6 +53,7 @@ def gather_all_test(variables):
     for init in inits[::-1]:
         tests.insert(0, init)
     return tests
+
 
 def parse_func_testcase():
     public_dir = os.path.join(TestEngine.instance().output_dir, "测试用例")
@@ -63,7 +68,7 @@ def parse_func_testcase():
         if name.startswith("__"):
             continue
         file = os.path.split(TestEngine.instance().output_dir)[-1]
-        mod = importlib.import_module("autotest." + file +".测试用例." + name)
+        mod = importlib.import_module("autotest." + file + ".测试用例." + name)
         group_brief = getattr(mod, "测试组说明", None)
         tests = gather_all_test(mod.__dict__)
         TestEngine.instance().group_begin(name[4:], None, group_brief)

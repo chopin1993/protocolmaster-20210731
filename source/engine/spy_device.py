@@ -1,9 +1,10 @@
-from engine.test_engine import log_snd_frame,log_rcv_frame, log_info
+from engine.test_engine import log_snd_frame, log_rcv_frame, log_info
 from protocol.monitor9e_protocol import *
 from protocol.fifo_buffer import FifoBuffer
 import logging
-from protocol.smart7e_protocol import  Smart7eProtocol
+from protocol.smart7e_protocol import Smart7eProtocol
 import engine
+
 
 class SpyDevice(object):
     _instance = None
@@ -27,7 +28,7 @@ class SpyDevice(object):
             spi_data = msg.get_parsed_data()
             SpyDevice.instance().rcv_probe_msg(spi_data)
         else:
-            log_rcv_frame("被测设备","ignore " + msg, only_log=True)
+            log_rcv_frame("被测设备", "ignore " + msg, only_log=True)
 
     @staticmethod
     def instance():
@@ -91,7 +92,7 @@ class SpyDevice(object):
 
     def set_sensor_status(self, chn, msg_type, status):
         key = "{}-{}".format(msg_type.name, chn)
-        log_info("被测设备","%s: channel:%s value:%s",msg_type.name, chn, str2hexstr(status))
+        log_info("被测设备", "%s: channel:%s value:%s", msg_type.name, chn, str2hexstr(status))
         self.sensor_status[key] = status
 
     def clear_status(self):
@@ -107,4 +108,3 @@ class SpyDevice(object):
 
     def install_rcv_hook(self, hook):
         self.rcv_hook = hook
-

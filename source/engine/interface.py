@@ -103,7 +103,7 @@ def expect_FE02_did(cmd, did, value=None,
     :param kwargs: 如果did有多个数据项，可以使用key,value的方式传递数据
     """
     role = TestEngine.instance().get_default_role()
-    role.expect_FE02_did(cmd, did, value=value, timeout=timeout, ack=ack, said=said, gids=gids, gid_type=gid_type,
+    role.expect_did(cmd, did, value=value, timeout=timeout, ack=ack, said=said, gids=gids, gid_type=gid_type,
                          check_seq=check_seq, **kwargs)
 
 

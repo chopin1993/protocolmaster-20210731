@@ -1,6 +1,8 @@
 from register import Register
 from protocol.smart7e_protocol import *
 from tools.converter import u16tohexstr
+
+
 class Validator(Register):
     def __init__(self):
         self.ack = False
@@ -21,9 +23,9 @@ class NoMessage(Validator):
             return False, "等待验证失败,收到异常报文"
         else:
             return True, "等待验证成功"
+
     def __str__(self):
         return "允许收到信息" if self.allowed_message else "不允许收到信息"
-
 
 
 class SmartLocalValidator(Validator):
@@ -35,19 +37,19 @@ class SmartLocalValidator(Validator):
         self.cmd = self.kwargs['cmd']
         if not isinstance(self.cmd, list):
             self.cmd = [self.cmd]
-        self.cmd =[LocalFBD.find_cmd(cmd).cmd for cmd in self.cmd]
+        self.cmd = [LocalFBD.find_cmd(cmd).cmd for cmd in self.cmd]
 
     def __call__(self, data):
         if data is None:
             return False, "本地通信报文验证失败, 没有收到回复报文"
         is_local = data.is_local()
         if not is_local:
-            return False, error_msg("address","local","non local")
+            return False, error_msg("address", "local", "non local")
 
         fbd = data.fbd
         cmd = fbd.cmd
 
-        if isinstance(self.cmd , list):
+        if isinstance(self.cmd, list):
             cmd_valid = cmd in self.cmd
         else:
             cmd_valid = (cmd == fbd.cmd)
@@ -68,7 +70,7 @@ class BytesCompare(Validator):
         place_holders = self.placeholder.split(" ")
         if len(place_holders) != len(data):
             return False
-        for i,holder in enumerate(place_holders):
+        for i, holder in enumerate(place_holders):
             if "*" in holder:
                 continue
             value = int(holder, base=16)
@@ -97,32 +99,47 @@ class UnitCompare(Validator):
             pass
         return True
 
+
 class DIDValidtor(Validator):
-    def __init__(self,did, value, gid):
+    def __init__(self, did, value, gid):
         self.did = did
         self.value = value
         self.gid = gid
 
     def __call__(self, did):
-        def compare_data(expect_value,target_value):
+        def compare_data(expect_value, target_value):
             if isinstance(expect_value, Validator):
                 return expect_value(did.data)
             else:
-                return  expect_value == target_value
-        if self.did != did.DID:
-            return False
+                return expect_value == target_value
         if self.gid != did.gid:
             return False
-        return  compare_data(self.value, did.data)
+        if did.DID == 0xfe02:
+            decoder = BinaryDecoder()
+            decoder.set_data(did.data)
+            protocol = Smart7eProtocol()
+            monitor_data = protocol.decode(decoder)
+            if self.did != monitor_data.fbd.didunits[0].DID:
+                return False
+            return self.value(monitor_data.fbd.didunits[0].data)
+        else:
+            if self.did != did.DID:
+                return False
+
+            return compare_data(self.value, did.data)
 
     def __str__(self):
-        return "gid:{gid} did[{did}] value:{value}".format(gid=self.gid, did=u16tohexstr(self.did) , value=self.value)
+        return "gid:{gid} did[{did}] value:{value}".format(gid=self.gid, did=u16tohexstr(self.did), value=self.value)
+
 
 def error_msg(filed, expected, rcv):
     return f"{filed} mismatch, expect:{expected} rcv:{rcv}".format(filed=filed, expected=expected, rcv=rcv)
 
 
 class SmartDataValidator(Validator):
+    """
+    报文验证
+    """
     def __init__(self, said, taid, cmd=None, dids=None, fbd=None, seq=None, ack=False):
         super(SmartDataValidator, self).__init__()
         self.cmd = cmd
@@ -137,22 +154,22 @@ class SmartDataValidator(Validator):
         if smartData is None:
             return False, "没有回复"
 
-        if  self.said != smartData.said:
-            return False,error_msg("said", self.said, smartData.said)
+        if self.said != smartData.said:
+            return False, error_msg("said", self.said, smartData.said)
         if self.taid != smartData.taid:
-            return False,error_msg("taid", self.taid, smartData.taid)
-        if self.seq is not None and self.seq != (smartData.seq&0x7f):
-            return False, error_msg("seq", self.seq, smartData.seq)
+            return False, error_msg("taid", self.taid, smartData.taid)
+        # if self.seq is not None and self.seq != (smartData.seq & 0x7f):
+        #     return False, error_msg("seq", self.seq, smartData.seq)
         if self.fbd is None:
             if self.cmd != smartData.fbd.cmd:
-                return False, error_msg("cmd",self.cmd, smartData.fbd.cmd)
+                return False, error_msg("cmd", self.cmd, smartData.fbd.cmd)
 
             for validator, did in zip(self.dids, smartData.fbd.didunits):
                 if not validator(did):
                     return False, error_msg("did", str(validator), str(did))
         else:
             if self.fbd(smartData.fbd.data):
-                return False, error_msg("fbd", self.fbd,  smartData.fbd.data)
+                return False, error_msg("fbd", self.fbd, smartData.fbd.data)
         return True, "报文验证成功"
 
 
@@ -164,8 +181,7 @@ class MonitorCrossZeroValidator(Validator):
     def __call__(self, monitordata):
         if self.channel != monitordata.group:
             return False, error_msg("group", self.channel, monitordata.group)
-        elif  self.status != monitordata.data[0]:
+        elif self.status != monitordata.data[0]:
             return False, error_msg("status", self.status, monitordata.data[0])
         else:
             return True, "过零检测 channel:{} status:{} 验证成功".format(self.channel, self.status)
-

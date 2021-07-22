@@ -71,7 +71,7 @@
        <item>
         <widget class="QPushButton" name="saveConfigButton">
          <property name="text">
-          <string>保存配置</string>
+          <string>保存选中配置</string>
          </property>
         </widget>
        </item>
@@ -156,6 +156,12 @@
         <horstretch>0</horstretch>
         <verstretch>3</verstretch>
        </sizepolicy>
+      </property>
+      <property name="minimumSize">
+       <size>
+        <width>716</width>
+        <height>0</height>
+       </size>
       </property>
      </widget>
     </item>

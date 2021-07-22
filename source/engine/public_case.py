@@ -1,6 +1,7 @@
 from register import Register
 from protocol.data_meta_type import DataMetaType
 
+
 class PublicCase(Register):
 
     @classmethod
@@ -26,7 +27,7 @@ class PublicCase(Register):
     def __call__(self, monitor):
         raise NotImplementedError
 
-    def append_unit(self,unit):
+    def append_unit(self, unit):
         self.units.append(unit)
 
     def get_para_widgets(self):
@@ -46,17 +47,17 @@ class PublicCase(Register):
 
     def get_para_value(self, name):
         for unit in self.units:
-            if unit.name==name:
+            if unit.name == name:
                 return unit.value
 
 
 class FunCaseAdapter(PublicCase):
     def __init__(self, func):
-        super(FunCaseAdapter,self).__init__()
+        super(FunCaseAdapter, self).__init__()
         self.func = func
-        for key,value in func.__annotations__.items():
-            paras ={}
-            paras[key]= value.__name__
+        for key, value in func.__annotations__.items():
+            paras = {}
+            paras[key] = value.__name__
             self.append_unit(DataMetaType.create(paras))
 
     def __call__(self, *args, **kwargs):
