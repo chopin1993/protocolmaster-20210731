@@ -45,7 +45,10 @@ class SessionSuit(QObject):
         self._media = value
 
     def handle_receive_data(self, string):
-        assert len(string) > 0
+        #assert len(string) > 0
+        if len(string) > 0:
+            pass
+        
         self.buffer.receive(string)
         protocol = deepcopy(self.protocol)
         #print(datetime.datetime.now()," rcv bytes:",len(string),string[0])
