@@ -59,7 +59,7 @@ def send_FE02_did(cmd, did, value=None, taid=None, gids=None, gid_type="U16", re
     role.send_FE02_did(cmd, did, value=value, taid=taid, gids=gids, gid_type=gid_type, reply=reply, **kwargs)
 
 
-def expect_did(cmd, did, value=None, timeout=2, ack=False, said=None, gids=None, gid_type="U16", check_seq=True,
+def expect_did(cmd, did, value=None, timeout=4, ack=False, said=None, gids=None, gid_type="U16", check_seq=True,
                **kwargs):
     """
     :param cmd: 支持“READ”,"WRITE","REPORT","NOTIFY""
@@ -83,6 +83,7 @@ def expect_did(cmd, did, value=None, timeout=2, ack=False, said=None, gids=None,
                     gid_type=gid_type,
                     check_seq=check_seq,
                     **kwargs)
+    return role.rcv_msg
 
 
 def expect_FE02_did(cmd, did, value=None,
@@ -103,8 +104,9 @@ def expect_FE02_did(cmd, did, value=None,
     :param kwargs: 如果did有多个数据项，可以使用key,value的方式传递数据
     """
     role = TestEngine.instance().get_default_role()
-    role.expect_did(cmd, did, value=value, timeout=timeout, ack=ack, said=said, gids=gids, gid_type=gid_type,
+    role.expect_FE02_did(cmd, did, value=value, timeout=timeout, ack=ack, said=said, gids=gids, gid_type=gid_type,
                          check_seq=check_seq, **kwargs)
+    return role.rcv_msg
 
 
 def send_multi_dids(cmd, *args, taid=None, reply=False):
@@ -123,6 +125,24 @@ def send_multi_dids(cmd, *args, taid=None, reply=False):
         padding_args.append(args[i])
         padding_args.append(args[i + 1])
     role.send_multi_dids(cmd, *padding_args, taid=taid, reply=reply)
+
+
+def send_FE02_multi_dids(cmd, *args, taid=None, reply=False):
+    """
+    :param cmd:支持“READ”,"WRITE","REPORT","NOTIFY"
+    :param args:did1,value1,did2,value2...did和value交替排列
+    :param taid:目的地址，默认是被测设备
+    :param reply:序号自动取自上一帧，并将其最高位置1
+    """
+    role = TestEngine.instance().get_default_role()
+    assert len(args) % 2 == 0
+    padding_args = []
+    for i in range(0, len(args), 2):
+        padding_args.append(None)
+        padding_args.append(None)
+        padding_args.append(args[i])
+        padding_args.append(args[i + 1])
+    role.send_FE02_multi_dids(cmd, *padding_args, taid=taid, reply=reply)
 
 
 def expect_multi_dids(cmd, *args,
@@ -148,6 +168,32 @@ def expect_multi_dids(cmd, *args,
     role.expect_multi_dids(cmd, *padding_args, timeout=timeout, ack=ack,
                            said=said,
                            check_seq=check_seq)
+
+
+def expect_FE02_multi_dids(cmd, *args,
+                           timeout=2, ack=False, said=None,
+                           check_seq=True):
+    """
+    期望收到多个did
+    :param cmd:支持“READ”,"WRITE","REPORT","NOTIFY"
+    :param args:did1,value1,did2,value2...did和value交替排列
+    :param timeout:超时时间
+    :param ack:是否给与回复，主要在上报的时候使用
+    :param said: 目标设备地址，默认发给被测设备
+    :param check_seq: True:比对seq, False:忽略seq
+    """
+    padding_args = []
+    for i in range(0, len(args), 2):
+        padding_args.append(None)
+        padding_args.append(None)
+        padding_args.append(args[i])
+        padding_args.append(args[i + 1])
+
+    role = TestEngine.instance().get_default_role()
+    role.expect_FE02_multi_dids(cmd, *padding_args, timeout=timeout, ack=ack,
+                                said=said,
+                                check_seq=check_seq)
+    return role.rcv_msg
 
 
 def broadcast_send_multi_dids(cmd, *args):

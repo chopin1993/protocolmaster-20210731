@@ -411,8 +411,8 @@ class TestEquiment(object):
         elif config["波特率"] == "9600":
             add_doc_info("将通信波特率同步为9600")
             # self.setting_uart(0, "115200", config['校验位'])
-            self.local_routine.send_local_msg("设置串口波特率", '02 00')  # 9600bps
-            self.wait_event(1)
+            # self.local_routine.send_local_msg("设置串口波特率", '02 00')  # 9600bps
+            # self.wait_event(1)
             # self.setting_uart(0, config["波特率"], config['校验位'])
         else:
             assert False
@@ -440,8 +440,8 @@ class TestEquiment(object):
             self.roles.append(self.local_routine)
             self.roles.append(self.updater)
         self.sync_plc_baud()
-        self.local_routine.send_local_msg("设置应用层地址", said)
-        self.local_routine.expect_local_msg(["确认", "否认"], timeout=2)
+        # self.local_routine.send_local_msg("设置应用层地址", said)
+        # self.local_routine.expect_local_msg(["确认", "否认"], timeout=2)
         return role
 
     def get_taid(self, taid=None):
@@ -552,7 +552,9 @@ class TestEquiment(object):
                         log_rcv_frame("ignore", data, only_log=True)
                 else:
                     if data.taid == role.said:
+                        role.rcv_msg = data
                         role.handle_rcv_msg(data)
+
 
     def handle_rcv_msg(self, monitor_data):
         try:

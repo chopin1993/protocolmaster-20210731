@@ -68,6 +68,9 @@ class BytesCompare(Validator):
         if len(self.placeholder) == 0 and len(data) == 0:
             return True
         place_holders = self.placeholder.split(" ")
+        place_holders = [x.strip() for x in place_holders]
+        place_holders = [x for x in place_holders if len(x) > 0]
+
         if len(place_holders) != len(data):
             return False
         for i, holder in enumerate(place_holders):
@@ -101,35 +104,40 @@ class UnitCompare(Validator):
 
 
 class DIDValidtor(Validator):
-    def __init__(self, did, value, gid):
+    def __init__(self,did, value, gid):
         self.did = did
         self.value = value
         self.gid = gid
 
     def __call__(self, did):
-        def compare_data(expect_value, target_value):
+        def compare_data(expect_value,target_value):
             if isinstance(expect_value, Validator):
                 return expect_value(did.data)
             else:
-                return expect_value == target_value
+                return  expect_value == target_value
+        if self.did != did.DID:
+            return False
         if self.gid != did.gid:
             return False
+
         if did.DID == 0xfe02:
+            protocol = Smart7eProtocol()
             decoder = BinaryDecoder()
             decoder.set_data(did.data)
-            protocol = Smart7eProtocol()
-            monitor_data = protocol.decode(decoder)
-            if self.did != monitor_data.fbd.didunits[0].DID:
-                return False
-            return self.value(monitor_data.fbd.didunits[0].data)
+            sub7e_data = protocol.decode(decoder)
+            for i in range(len(self.value)):
+                didx = self.value[i].did
+                valuex = self.value[i].value
+                if didx != sub7e_data.fbd.didunits[i].DID:
+                    return False
+                if isinstance(valuex,bytes):
+                    return valuex == sub7e_data.fbd.didunits[i].data
+                return valuex(sub7e_data.fbd.didunits[i].data)
         else:
-            if self.did != did.DID:
-                return False
-
-            return compare_data(self.value, did.data)
+            return  compare_data(self.value, did.data)
 
     def __str__(self):
-        return "gid:{gid} did[{did}] value:{value}".format(gid=self.gid, did=u16tohexstr(self.did), value=self.value)
+        return "gid:{gid} did[{did}] value:{value}".format(gid=self.gid, did=u16tohexstr(self.did) , value=self.value)
 
 
 def error_msg(filed, expected, rcv):
@@ -163,10 +171,20 @@ class SmartDataValidator(Validator):
         if self.fbd is None:
             if self.cmd != smartData.fbd.cmd:
                 return False, error_msg("cmd", self.cmd, smartData.fbd.cmd)
+            # if smartData.fbd.didunits[0].DID == 0xfe02:
+            #     protocol = Smart7eProtocol()
+            #     decoder = BinaryDecoder()
+            #     decoder.set_data(smartData.fbd.didunits[0].data)
+            #     sub7e_data = protocol.decode(decoder)
 
-            for validator, did in zip(self.dids, smartData.fbd.didunits):
-                if not validator(did):
-                    return False, error_msg("did", str(validator), str(did))
+                for validator, did in zip(self.dids, smartData.fbd.didunits[0].data):
+                    if not validator(did):
+                        return False, error_msg("did", str(validator), str(did))
+
+            else:
+                for validator, did in zip(self.dids, smartData.fbd.didunits):
+                    if not validator(did):
+                        return False, error_msg("did", str(validator), str(did))
         else:
             if self.fbd(smartData.fbd.data):
                 return False, error_msg("fbd", self.fbd, smartData.fbd.data)

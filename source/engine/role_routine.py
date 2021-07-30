@@ -53,13 +53,17 @@ class RoleRoutine(Routine):
         :param kwargs: 如果数据标识中有多个数据单元，可以使用key,value的方式赋值
         :return:
         """
-        # 第一层7E
+        # 内层7E
         gid, taid = self.get_gid(taid, gids, gid_type)
-        taid = self.device.get_taid(taid)
+        if 'cmd_outer' in kwargs:
+            cmd_outer = kwargs['cmd_outer']
+        else:
+            cmd_outer = cmd
         fbd = RemoteFBD.create(cmd, did, value, gids=gids, gid_type=gid_type, **kwargs)
+        taid = self.device.get_taid(taid)
         data = Smart7EData(self.said, taid, fbd, reply=reply)
-        # 第二层7E，使用了第一层的str(data)
-        fbd = RemoteFBD.create(cmd, "FE02", str(data), gids=gids, gid_type=gid_type, **kwargs)
+        # 外层7E，将内层7E作为data
+        fbd = RemoteFBD.create(cmd_outer, "FE02", str(data), gids=gids, gid_type=gid_type, **kwargs)  # 写死了cmd-20210720
         data = Smart7EData(self.said, taid, fbd, reply=reply)
         self.write(data)
         return data
@@ -80,6 +84,19 @@ class RoleRoutine(Routine):
         taid = self.device.get_taid(taid)
         data = Smart7EData(self.said, taid, fbd, reply=reply)
         self.write(data)
+
+    def send_FE02_multi_dids(self, cmd, *args, taid=None, reply=False):
+        # 第一层7E
+        dids = [DIDRemote.create_did(name=args[i + 2], value=args[i + 3], gids=args[i], gid_type=args[i + 1]) for i in
+                range(0, len(args), 4)]
+        fbd = RemoteFBD(cmd, dids)
+        taid = self.device.get_taid(taid)
+        data = Smart7EData(self.said, taid, fbd, reply=reply)
+        # 第二层7E，使用了第一层的str(data)
+        fbd = RemoteFBD.create(cmd, "FE02", str(data))
+        data = Smart7EData(self.said, taid, fbd, reply=reply)
+        self.write(data)
+        return data
 
     def timeout_handle(self):
         if self.re_sending_status:
@@ -116,6 +133,8 @@ class RoleRoutine(Routine):
             pass
         elif value is None and len(kwargs) > 0:
             value = did_cls.encode_reply(**kwargs)
+        elif isinstance(value, list):
+            pass
         elif value is not None:
             value = did_cls.encode_reply(value)
         else:
@@ -154,49 +173,34 @@ class RoleRoutine(Routine):
                                            ack=ack)
         self.wait_event(timeout)
 
-    # def expect_FE02_did(self, cmd, did, value=None, timeout=2, ack=False, said=None, gids=None, gid_type="U16",
-    #                     check_seq=True, **kwargs):
-    #     """
-    #
-    #     """
-    #     # 解析外层报文，无对比验证
-    #     cmd = CMD.to_enum(cmd)
-    #
-    #     seq = self.get_expect_seq(cmd, check_seq)
-    #     taid = self.said
-    #     if gids is not None:
-    #         self.is_expect_boradcast = True
-    #         # 第一层验证did=FE02
-    #         did_fe02 = [self._create_did_validtor(did='FE02', value=value, gids=gids, gid_type=gid_type, **kwargs)]
-    #         seq = None
-    #         taid = 0xffffffff
-    #
-    #     else:
-    #         did_fe02 = [self._create_did_validtor(did=did, value=value, **kwargs)]
-    #         self.is_expect_boradcast = False
-    #
-    #     data_in_7e = SmartDataValidator(said=self.device.get_taid(said), taid=taid,
-    #                                     cmd=cmd, dids=did_fe02, seq=seq, ack=ack)
-    #     # self.wait_event(timeout)
-    #
-    #     # 解析内层报文，需要验证报文正确性
-    #     cmd = CMD.to_enum(cmd)
-    #
-    #     seq = self.get_expect_seq(cmd, check_seq)
-    #     taid = self.said
-    #     if gids is not None:
-    #         self.is_expect_boradcast = True
-    #         did = [self._create_did_validtor(did, value=data_in_7e, gids=gids, gid_type=gid_type, **kwargs)]
-    #         seq = None
-    #         taid = 0xffffffff
-    #     else:
-    #         did = [self._create_did_validtor(did, value=data_in_7e, **kwargs)]
-    #         self.is_expect_boradcast = False
-    #
-    #     # except值与接收数据对比
-    #     self.validate = SmartDataValidator(said=self.device.get_taid(said), taid=taid,
-    #                                        cmd=cmd, dids=did, seq=seq, ack=ack)
-    #     self.wait_event(timeout)
+    def expect_FE02_did(self, cmd, did, value=None, timeout=2, ack=False, said=None, gids=None, gid_type="U16",
+                        check_seq=True, **kwargs):
+        """
+
+        """
+        # 解析外层报文，无对比验证
+
+        cmd = CMD.to_enum(cmd)
+
+        seq = self.get_expect_seq(cmd, check_seq)
+        taid = self.said
+        if gids is not None:
+            self.is_expect_boradcast = True
+            # 外层验证did=FE02
+            did_fe02 = [self._create_did_validtor(did='FE02', value=value, gids=gids, gid_type=gid_type, **kwargs)]
+            seq = None
+            taid = 0xffffffff
+
+        elif True:
+            didx = [self._create_did_validtor(did=did, value=value, **kwargs)]
+            did_fe02 = [self._create_did_validtor(did='FE02', value=didx, **kwargs)]
+        else:
+            did_fe02 = [self._create_did_validtor(did='FE02', value=value, **kwargs)]
+            self.is_expect_boradcast = False
+
+        self.validate = SmartDataValidator(said=self.device.get_taid(said), taid=taid,
+                                           cmd=cmd, dids=did_fe02, seq=seq, ack=ack)
+        self.wait_event(timeout)
 
     def wait_event(self, timeout):
         SpyDevice.instance().clear_send_frames()
@@ -239,6 +243,37 @@ class RoleRoutine(Routine):
                                            taid=taid,
                                            cmd=cmd,
                                            dids=dids,
+                                           seq=seq,
+                                           ack=ack)
+        self.wait_event(timeout)
+
+    def expect_FE02_multi_dids(self, cmd, *args,
+                               said=None, timeout=2, ack=False,
+                               check_seq=True
+                               ):
+        assert len(args) % 4 == 0
+        cmd = CMD.to_enum(cmd)
+        seq = self.get_expect_seq(cmd, check_seq)
+        dids = []
+        self.is_expect_boradcast = False
+        taid = self.said
+        for i in range(0, len(args), 4):
+            if args[i] is not None:
+                self.is_expect_boradcast = True
+                seq = None
+                taid = 0xffffffff
+            did = self._create_did_validtor(did=args[i + 2],
+                                            value=args[i + 3],
+                                            gids=args[i],
+                                            gid_type=args[i + 1])
+            dids.append(did)
+
+            did_fe02 = [self._create_did_validtor(did='FE02', value=dids)]
+        said = self.device.get_taid(said)
+        self.validate = SmartDataValidator(said=said,
+                                           taid=taid,
+                                           cmd=cmd,
+                                           dids=did_fe02,
                                            seq=seq,
                                            ack=ack)
         self.wait_event(timeout)
@@ -291,8 +326,10 @@ class RoleRoutine(Routine):
                     return
                 else:
                     log_rcv_frame(self.name, data)
+            TestEngine.instance().rcv_msg = data
             valid, msg = self.validate(data)
             if valid:
+                self.rcv_msg = data
                 TestEngine.instance().add_normal_operation(self.name, "expect success", msg)
             else:
                 TestEngine.instance().add_fail_test(self.name, "expect fail", msg)
