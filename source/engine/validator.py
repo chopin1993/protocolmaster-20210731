@@ -169,22 +169,23 @@ class SmartDataValidator(Validator):
         # if self.seq is not None and self.seq != (smartData.seq & 0x7f):
         #     return False, error_msg("seq", self.seq, smartData.seq)
         if self.fbd is None:
-            if self.cmd != smartData.fbd.cmd:
-                return False, error_msg("cmd", self.cmd, smartData.fbd.cmd)
-            # if smartData.fbd.didunits[0].DID == 0xfe02:
-            #     protocol = Smart7eProtocol()
-            #     decoder = BinaryDecoder()
-            #     decoder.set_data(smartData.fbd.didunits[0].data)
-            #     sub7e_data = protocol.decode(decoder)
 
-                for validator, did in zip(self.dids, smartData.fbd.didunits[0].data):
-                    if not validator(did):
-                        return False, error_msg("did", str(validator), str(did))
-
+            if smartData.fbd.didunits[0].DID == 0xfe02:
+                protocol = Smart7eProtocol()
+                decoder = BinaryDecoder()
+                decoder.set_data(smartData.fbd.didunits[0].data)
+                sub7e_data = protocol.decode(decoder)
+                if self.cmd != sub7e_data.fbd.cmd:
+                    return False, error_msg("cmd", self.cmd, sub7e_data.fbd.cmd)
             else:
-                for validator, did in zip(self.dids, smartData.fbd.didunits):
-                    if not validator(did):
-                        return False, error_msg("did", str(validator), str(did))
+                if self.cmd != smartData.fbd.cmd:
+                    return False, error_msg("cmd", self.cmd, smartData.fbd.cmd)
+
+
+
+            for validator, did in zip(self.dids, smartData.fbd.didunits):
+                if not validator(did):
+                     return False, error_msg("did", str(validator), str(did))
         else:
             if self.fbd(smartData.fbd.data):
                 return False, error_msg("fbd", self.fbd, smartData.fbd.data)
