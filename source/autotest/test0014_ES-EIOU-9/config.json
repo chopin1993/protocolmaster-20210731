@@ -1,0 +1,152 @@
+{
+    "配置初始化": {
+        "enable": true,
+        "paras": {},
+        "subcase": {
+            "01_设置aid、波特率和透传": {
+                "enable": true,
+                "paras": {},
+                "subcase": {}
+            },
+            "02_配置设备初始供电": {
+                "enable": false,
+                "paras": {},
+                "subcase": {}
+            }
+        }
+    },
+    "01_基本协议测试": {
+        "enable": false,
+        "paras": {},
+        "subcase": {
+            "01_设备类型0001": {
+                "enable": false,
+                "paras": {},
+                "subcase": {}
+            },
+            "03_设备描述信息设备制造商0003": {
+                "enable": false,
+                "paras": {},
+                "subcase": {}
+            },
+            "04_DKEY0005": {
+                "enable": false,
+                "paras": {},
+                "subcase": {}
+            },
+            "07_SN0007": {
+                "enable": false,
+                "paras": {},
+                "subcase": {}
+            },
+            "08_多DID组合报文测试": {
+                "enable": false,
+                "paras": {},
+                "subcase": {}
+            },
+            "09_设备PWD000A": {
+                "enable": false,
+                "paras": {},
+                "subcase": {}
+            }
+        }
+    },
+    "02_设备功能测试": {
+        "enable": true,
+        "paras": {},
+        "subcase": {
+            "实验": {
+                "enable": true,
+                "paras": {},
+                "subcase": {}
+            },
+            "11_模式与数据测试D201": {
+                "enable": false,
+                "paras": {},
+                "subcase": {}
+            },
+            "12_模式与数据测试D200": {
+                "enable": false,
+                "paras": {},
+                "subcase": {}
+            },
+            "13_无源电子开关输出模式测试D201": {
+                "enable": false,
+                "paras": {},
+                "subcase": {}
+            },
+            "14_模拟输入模式测试D201": {
+                "enable": false,
+                "paras": {},
+                "subcase": {}
+            },
+            "15_NTC_PTC输入测试": {
+                "enable": false,
+                "paras": {},
+                "subcase": {}
+            }
+        }
+    },
+    "03_通讯测试": {
+        "enable": false,
+        "paras": {},
+        "subcase": {
+            "09_错误类报文测试": {
+                "enable": false,
+                "paras": {},
+                "subcase": {}
+            }
+        }
+    },
+    "04_远程升级测试": {
+        "enable": false,
+        "paras": {},
+        "subcase": {
+            "01_应用层远程升级（测试版本升级至其他版本）": {
+                "enable": false,
+                "paras": {},
+                "subcase": {}
+            },
+            "02_断点续传": {
+                "enable": false,
+                "paras": {},
+                "subcase": {}
+            },
+            "03_断电重传": {
+                "enable": false,
+                "paras": {},
+                "subcase": {}
+            },
+            "04_升级成功瞬间断电": {
+                "enable": false,
+                "paras": {},
+                "subcase": {}
+            },
+            "05_相同版本重复升级测试": {
+                "enable": false,
+                "paras": {},
+                "subcase": {}
+            },
+            "06_载波适配层升级测试": {
+                "enable": false,
+                "paras": {},
+                "subcase": {}
+            },
+            "07_载波网络层升级测试": {
+                "enable": false,
+                "paras": {},
+                "subcase": {}
+            },
+            "08_升级过程中被控制": {
+                "enable": false,
+                "paras": {},
+                "subcase": {}
+            },
+            "09_兼容性升级测试（已发布版本升级至提测版本）": {
+                "enable": false,
+                "paras": {},
+                "subcase": {}
+            }
+        }
+    }
+}

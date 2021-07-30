@@ -4,6 +4,8 @@ import engine
 from autotest.公共用例.public常用测试模块 import *
 import time
 
+from protocol import Smart7eProtocol
+
 config = engine.get_config()
 
 
@@ -426,8 +428,12 @@ def ctrl_relay_open(channel):
     :param channel:工装上的继电器通道号
     :return:
     """
-    engine.send_did('WRITE', '22V通断电FE04', '01 '+str(channel))
-    engine.expect_did('WRITE', '22V通断电FE04', '01 '+str(channel))
+    if len(str(channel)) == 1:
+        engine.send_did('WRITE', '22V通断电FE04', '01 '+'0'+str(channel))
+        engine.expect_did('WRITE', '22V通断电FE04', '01 '+'0'+str(channel))
+    else:   # len(str(channel)) == 2
+        engine.send_did('WRITE', '22V通断电FE04', '01 '+str(channel))
+        engine.expect_did('WRITE', '22V通断电FE04', '01 '+str(channel))
 
 
 def ctrl_relay_close(channel):
@@ -436,5 +442,50 @@ def ctrl_relay_close(channel):
     :param channel:工装上的继电器通道号
     :return:
     """
-    engine.send_did('WRITE', '22V通断电FE04', '00 ' + str(channel))
-    engine.expect_did('WRITE', '22V通断电FE04', '00 ' + str(channel))
+    if len(str(channel)) == 1:
+        engine.send_did('WRITE', '22V通断电FE04', '00 ' + '0' + str(channel))
+        engine.expect_did('WRITE', '22V通断电FE04', '00 ' + '0' + str(channel))
+    else:   # len(str(channel)) == 2
+        engine.send_did('WRITE', '22V通断电FE04', '00 ' + str(channel))
+        engine.expect_did('WRITE', '22V通断电FE04', '00 ' + str(channel))
+
+
+# def read_FE06_date(data_type):
+#     """
+#     工装数据读取：
+#     TT数据类型=> 0x01:DO正压数据读取；
+#             0x02:DO负压数据读取；
+#             0x03:AI电压数据读取；
+#             0x04:AI电流数据读取；
+#             0x05:AI电阻数据读取；
+#     工装回复数据格式:TT+XX;
+#         对于DO类型，XX为1Byte；XX-0x01输出控制有正压/负压，XX-0x00输出控制无正压/负压；
+#         对于AI类型，XX为5Byte；BCD小端表示；
+#     :param data_type:
+#     :return:
+#     """
+#     engine.send_did('READ', '工装数据读取FE06', '0'+str(data_type))
+#     engine.wait(1, tips='等待工装回复')
+#     engine.expect_did('READ', '工装数据读取FE06', '0'+str(data_type), "00")     # 取得的数据稍有差别
+
+
+def get_rcv_msg_date(msg):
+    """
+    获取设备回复报文中的数据
+    :param msg: 收到的except报文
+    :return:
+    """
+    protocol = Smart7eProtocol()
+    (found, start, length) = protocol.find_frame_in_buff(msg.data)
+    if found:
+        frame_data = msg.data[start:start + length]
+        first = frame_data[-6:-2][::-1]     # 报文中倒数-2到-6位是电阻数据
+        reversed_data = []
+        for raw_data in first:
+            if raw_data <= 9:
+                reversed_data.append('0' + str(raw_data))
+            else:  # raw_data > 9:
+                reversed_data.append(str(raw_data))
+        rcv_msg_date = reversed_data[0] + reversed_data[1] + reversed_data[2] + reversed_data[3]
+        rcv_msg_date = int(rcv_msg_date)
+        return rcv_msg_date

@@ -1,5 +1,6 @@
 # encoding:utf-8
 # 导入测试引擎
+import engine
 from autotest.公共用例.public05远程升级测试 import *
 from .常用测试模块 import *
 
@@ -21,19 +22,17 @@ def check_update_configure(version=config["设备描述信息设备制造商0003
     """
     查询升级前后参数，验证版本号变更，验证升级前后，SN、DK、配置参数要求保持一致，前后不变
     """
-    engine.send_did("READ", "设备描述信息设备制造商0003")
-    engine.expect_did("READ", "设备描述信息设备制造商0003", version)
+    engine.send_FE02_did("READ", "设备描述信息设备制造商0003")
+    engine.expect_FE02_did("READ", "设备描述信息设备制造商0003", version)
 
-    engine.send_multi_dids("READ",
-                           "设备类型0001", "",
-                           "设备描述信息设备制造商0003", "",
-                           "DKEY0005", "",
-                           "SN0007", "")
-    engine.expect_multi_dids("READ",
-                             "设备类型0001", config["设备类型0001"],
-                             "设备描述信息设备制造商0003", version,
-                             "DKEY0005", config["DKEY0005"],
-                             "SN0007", config["SN0007"])
+    engine.send_FE02_multi_dids("READ", "设备类型0001", "",
+                                "设备描述信息设备制造商0003", "",
+                                "DKEY0005", "",
+                                "SN0007", "")
+    engine.expect_FE02_multi_dids("READ", "设备类型0001", config["设备类型0001"],
+                                  "设备描述信息设备制造商0003", config["设备描述信息设备制造商0003"],
+                                  "DKEY0005", config["DKEY0005"],
+                                  "SN0007", config["SN0007"])
 
 
 config["检测版本号和参数保持不变"] = check_update_configure
@@ -46,29 +45,29 @@ def test_升级过程中被控制():
     """
 
     engine.add_doc_info("升级前，查询版本及SN、DK、配置参数")
-    engine.send_did("WRITE", "IO配置D201", "05 20")
-    engine.expect_did("WRITE", "IO配置D201", "05 20")
-    engine.send_did("WRITE", "IO配置D201", "08 00")
-    engine.expect_did("WRITE", "IO配置D201", "08 00")
+    engine.send_FE02_did("WRITE", "IO配置D201", "05 20")
+    engine.expect_FE02_did("WRITE", "IO配置D201", "05 20")
+    engine.send_FE02_did("WRITE", "IO配置D201", "08 00")
+    engine.expect_FE02_did("WRITE", "IO配置D201", "08 00")
     check_update_configure(version=config["设备描述信息设备制造商0003"])
 
     engine.update(config["应用程序同版本号测试版本"], None, )
     engine.wait(config["升级后等待重启时间"], tips="设备升级完成，校验版本")
     engine.add_doc_info("升级后，查询版本及SN、DK、配置参数，要求版本号变更，其余参数不变")
-    engine.send_did("READ", "IO配置D201", "05")
-    engine.expect_did("READ", "IO配置D201", "05 20")
-    engine.send_did("READ", "IO配置D201", "08")
-    engine.expect_did("READ", "IO配置D201", "08 00")
+    engine.send_FE02_did("READ", "IO配置D201", "05")
+    engine.expect_FE02_did("READ", "IO配置D201", "05 20")
+    engine.send_FE02_did("READ", "IO配置D201", "08")
+    engine.expect_FE02_did("READ", "IO配置D201", "08 00")
     check_update_configure(version=config["应用程序同版本号测试版本"])
 
     # 再升级回测试版本
     engine.update(config["设备描述信息设备制造商0003"], None, )
     engine.wait(config["升级后等待重启时间"], tips="设备升级完成，校验版本")
     engine.add_doc_info("升级后，查询版本及SN、DK、配置参数，要求版本号变更，其余参数不变")
-    engine.send_did("READ", "IO配置D201", "05")
-    engine.expect_did("READ", "IO配置D201", "05 20")
-    engine.send_did("READ", "IO配置D201", "08")
-    engine.expect_did("READ", "IO配置D201", "08 00")
+    engine.send_FE02_did("READ", "IO配置D201", "05")
+    engine.expect_FE02_did("READ", "IO配置D201", "05 20")
+    engine.send_FE02_did("READ", "IO配置D201", "08")
+    engine.expect_FE02_did("READ", "IO配置D201", "08 00")
     check_update_configure(version=config["设备描述信息设备制造商0003"])
 
 
@@ -92,24 +91,24 @@ def test_兼容性升级测试():
     engine.wait(config["升级后等待重启时间"], tips="设备升级完成，校验版本")
     engine.add_doc_info("升级后，查询版本及SN、DK、配置参数")
 
-    engine.send_did("READ", "设备描述信息设备制造商0003")
-    engine.expect_did("READ", "设备描述信息设备制造商0003", config["应用程序上一版发布版本"])
+    engine.send_FE02_did("READ", "设备描述信息设备制造商0003")
+    engine.expect_FE02_did("READ", "设备描述信息设备制造商0003", config["应用程序上一版发布版本"])
 
-    engine.send_multi_dids("READ",
-                           "设备类型0001", "",
-                           "设备描述信息设备制造商0003", "",
-                           "DKEY0005", "",
-                           "SN0007", "")
-    engine.expect_multi_dids("READ",
-                             "设备类型0001", config["设备类型0001"],
-                             "设备描述信息设备制造商0003", config["应用程序上一版发布版本"],
-                             "DKEY0005", config["DKEY0005"],
-                             "SN0007", config["SN0007"])
+    engine.send_FE02_multi_dids("READ",
+                                "设备类型0001", "",
+                                "设备描述信息设备制造商0003", "",
+                                "DKEY0005", "",
+                                "SN0007", "")
+    engine.expect_FE02_multi_dids("READ",
+                                  "设备类型0001", config["设备类型0001"],
+                                  "设备描述信息设备制造商0003", config["应用程序上一版发布版本"],
+                                  "DKEY0005", config["DKEY0005"],
+                                  "SN0007", config["SN0007"])
 
-    engine.send_did("WRITE", "IO配置D201", "01 20")
-    engine.expect_did("WRITE", "IO配置D201", "01 20")
-    engine.send_did("WRITE", "IO配置D201", "09 FF")
-    engine.expect_did("WRITE", "IO配置D201", "09 FF")
+    engine.send_FE02_did("WRITE", "IO配置D201", "01 20")
+    engine.expect_FE02_did("WRITE", "IO配置D201", "01 20")
+    engine.send_FE02_did("WRITE", "IO配置D201", "09 FF")
+    engine.expect_FE02_did("WRITE", "IO配置D201", "09 FF")
 
     engine.update(config["设备描述信息设备制造商0003"])
     engine.wait(config["升级后等待重启时间"], tips="设备升级完成，校验版本")
@@ -118,7 +117,7 @@ def test_兼容性升级测试():
     # 断电重启后，再次查看版本和配置信息
     power_control()
     check_update_configure(version=config["设备描述信息设备制造商0003"])
-    engine.send_did("READ", "IO配置D201", "01")
-    engine.expect_did("READ", "IO配置D201", "01 20")
-    engine.send_did("READ", "IO配置D201", "09")
-    engine.expect_did("READ", "IO配置D201", "09 FF")
+    engine.send_FE02_did("READ", "IO配置D201", "01")
+    engine.expect_FE02_did("READ", "IO配置D201", "01 20")
+    engine.send_FE02_did("READ", "IO配置D201", "09")
+    engine.expect_FE02_did("READ", "IO配置D201", "09 FF")
