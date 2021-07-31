@@ -83,6 +83,8 @@ class SerialMedia(Media):
                 if len(data) > 0:
                     #print("recive data len:",len(data))
                     self.data_ready.emit(data)
+                else:
+                    self.data_ready.emit(b'')
             except SerialException as err:
                 self.error.emit(str(err))
                 self.close()

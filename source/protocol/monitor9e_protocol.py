@@ -6,6 +6,7 @@ from tools.esenum import EsEnum
 import time
 from .smart7e_DID import *
 from register import Register
+
 Monitor_ID = bytes([0x9e])
 
 
@@ -14,7 +15,7 @@ class HardwareEnum(EsEnum):
     UART = 1
     GPIO = 2
     RELAY = 3
-    CROSS_ZERO = 4 #过零检测
+    CROSS_ZERO = 4  # 过零检测
     监测器 = 0xf
 
 
@@ -32,12 +33,13 @@ class UARTCmd(EsEnum):
     DATA = 0x01
     W_DATA = 0x81
     SETTING = 0x12
-    W_SETTING= 0x92
+    W_SETTING = 0x92
 
 
 class RELAYCmd(EsEnum):
     DATA = 0x01
-    W_DATA= 0x81
+    W_DATA = 0x81
+
 
 class GPIOCmd(EsEnum):
     DATA = 0x01
@@ -47,11 +49,11 @@ class GPIOCmd(EsEnum):
 class CrossZeroCmd(EsEnum):
     DATA = 0x01
 
-class Parity(EsEnum):
-      无校验=0
-      奇校验=1
-      偶校验=2
 
+class Parity(EsEnum):
+    无校验 = 0
+    奇校验 = 1
+    偶校验 = 2
 
 
 class SPIMessageType(EsEnum):
@@ -87,8 +89,10 @@ class BytesChannelEnum(EsEnum):
 class MonitorUnit(DataStruct):
     SUPPORT_CMDS = []
 
+
 class MonitorByteArray(MonitorUnit):
     SUPPORT_CMDS = []
+
     def __init__(self, decoder=None, **kwargs):
         super(MonitorUnit, self).__init__()
         self.declare_unit(DataByteArray(name="data"))
@@ -102,7 +106,7 @@ class UARTSettingFbd(MonitorUnit):
         super(UARTSettingFbd, self).__init__()
         self.declare_unit(DataU32(name="baudrate"))
         self.declare_unit(DataU8Enum(name="parity", name_dict=Parity.name_dict()))
-        self.load_args(decoder,**kwargs)
+        self.load_args(decoder, **kwargs)
 
 
 class SPIDeviceID(MonitorUnit):
@@ -114,7 +118,7 @@ class SPIDeviceID(MonitorUnit):
         """
         super(SPIDeviceID, self).__init__()
         self.declare_unit(DataU8(name="version"))
-        self.declare_unit(DataByteArray(name="sn",length=12))
+        self.declare_unit(DataByteArray(name="sn", length=12))
         self.declare_unit(DataByteArray(name="dkey", length=8))
         self.declare_unit(DataU32(name="aid"))
         self.declare_unit(DataU16(name="pwd"))
@@ -125,7 +129,7 @@ class SPIDeviceID(MonitorUnit):
 
 
 class SPIData(MonitorUnit):
-    SUPPORT_CMDS = [SPICmd.DATA,SPICmd.W_DATA]
+    SUPPORT_CMDS = [SPICmd.DATA, SPICmd.W_DATA]
 
     def __init__(self, chn=None, msg_type=None, data=None, decoder=None):
         """
@@ -134,7 +138,7 @@ class SPIData(MonitorUnit):
         super(SPIData, self).__init__()
         self.chn = chn
         self.msg_type = SPIMessageType.to_enum(msg_type)
-        if data is not None and not isinstance(data, (bytes,bytearray)):
+        if data is not None and not isinstance(data, (bytes, bytearray)):
             data = SPIData.encode_data(msg_type, data)
         self.data = data
         if decoder is not None:
@@ -150,30 +154,30 @@ class SPIData(MonitorUnit):
 
     @staticmethod
     def get_data_parse_object(msg_type):
-        if msg_type in [SPIMessageType.二进制输入,\
-                             SPIMessageType.二进制输出,\
-                             SPIMessageType.光学人体存在,\
-                             SPIMessageType.红外传感器,\
-                             SPIMessageType.雷达人体存在,\
-                             SPIMessageType.可控硅输出,\
-                             SPIMessageType.干节点输入,\
-                             SPIMessageType.继电器输出,\
-                             SPIMessageType.干簧管输入,\
-                             SPIMessageType.插卡取电,\
-                             SPIMessageType.光耦输出]:
+        if msg_type in [SPIMessageType.二进制输入, \
+                        SPIMessageType.二进制输出, \
+                        SPIMessageType.光学人体存在, \
+                        SPIMessageType.红外传感器, \
+                        SPIMessageType.雷达人体存在, \
+                        SPIMessageType.可控硅输出, \
+                        SPIMessageType.干节点输入, \
+                        SPIMessageType.继电器输出, \
+                        SPIMessageType.干簧管输入, \
+                        SPIMessageType.插卡取电, \
+                        SPIMessageType.光耦输出]:
             return DataU8()
         elif msg_type in [SPIMessageType.按键输入]:
-            name_dict={"短按":1, "长按":2}
+            name_dict = {"短按": 1, "长按": 2}
             return DataU8Enum(name_dict=name_dict)
-        elif msg_type in [SPIMessageType.温度,\
-                               SPIMessageType.湿度,\
-                               SPIMessageType.大量程照度,\
-                               SPIMessageType.照度,\
-                               SPIMessageType.电压,\
-                               SPIMessageType.电流,\
-                               SPIMessageType.电阻,\
-                               SPIMessageType.自然光照度,\
-                               ]:
+        elif msg_type in [SPIMessageType.温度, \
+                          SPIMessageType.湿度, \
+                          SPIMessageType.大量程照度, \
+                          SPIMessageType.照度, \
+                          SPIMessageType.电压, \
+                          SPIMessageType.电流, \
+                          SPIMessageType.电阻, \
+                          SPIMessageType.自然光照度, \
+                          ]:
             return DataU32
         elif msg_type in [SPIMessageType.字节类型]:
             return DataByteArray()
@@ -198,26 +202,27 @@ class SPIData(MonitorUnit):
     def decode(self, decoder):
         self.chn = decoder.decode_u8()
         self.msg_type = SPIMessageType.to_enum(decoder.decode_u8())
-        self.len  = decoder.decode_u8()
+        self.len = decoder.decode_u8()
         self.data = decoder.decode_bytes(self.len)
-
 
     def __str__(self):
         if self.msg_type == SPIMessageType.字节类型:
             chn_name = BytesChannelEnum.value_to_name(self.chn)
         else:
             chn_name = self.chn
-        txt = "chn[{}]:{} {}[{}] len[{}]:{} data:{}".format(\
-                    u8tohexstr(self.chn),chn_name,\
-                    self.msg_type.name, self.msg_type.value,\
-                    u8tohexstr(self.len),self.len,\
-                    str2hexstr(self.data))
+        txt = "chn[{}]:{} {}[{}] len[{}]:{} data:{}".format( \
+            u8tohexstr(self.chn), chn_name, \
+            self.msg_type.name, self.msg_type.value, \
+            u8tohexstr(self.len), self.len, \
+            str2hexstr(self.data))
         return txt
+
 
 class Monitor7EData(DataStruct):
     """
     0X9E INTERFACE(u8) CMD(u8) LEN(u8) DATA 0X9E
     """
+
     @staticmethod
     def create_uart_message(data, cmd=UARTCmd.DATA, group=0):
         if isinstance(data, DataStruct):
@@ -225,7 +230,7 @@ class Monitor7EData(DataStruct):
         return Monitor7EData(hardware=HardwareEnum.UART, group=group, cmd=cmd, data=data)
 
     @staticmethod
-    def create_spi_message(data,  group=0, cmd=SPICmd.W_DATA):
+    def create_spi_message(data, group=0, cmd=SPICmd.W_DATA):
         return Monitor7EData(hardware=HardwareEnum.SPI, group=group, cmd=cmd, data=data)
 
     @staticmethod
@@ -260,7 +265,7 @@ class Monitor7EData(DataStruct):
         return self.hardware == HardwareEnum.SPI
 
     def is_crosszero_data(self):
-        return self.hardware== HardwareEnum.CROSS_ZERO
+        return self.hardware == HardwareEnum.CROSS_ZERO
 
     def decode(self, decoder):
         self.raw_data = deepcopy(decoder.data)
@@ -271,7 +276,7 @@ class Monitor7EData(DataStruct):
         decoder = BinaryDecoder(real_data)
         u8_data = decoder.decode_u8()
         self.hardware = HardwareEnum.to_enum((u8_data & 0xf0) >> 4)
-        self.group = u8_data&0x0f
+        self.group = u8_data & 0x0f
         self.cmd = self.to_enum_cmd(decoder.decode_u8())
         self.len = decoder.decode_u8()
         self.data = decoder.decode_bytes(self.len)
@@ -292,7 +297,7 @@ class Monitor7EData(DataStruct):
         output = bytes()
         for byte in data:
             if byte == Monitor_ID[0]:
-                output += bytes([0X7D, byte^0x20])
+                output += bytes([0X7D, byte ^ 0x20])
             elif byte == 0x7d:
                 output += bytes([0X7D, 0X5D])
             else:
@@ -318,11 +323,11 @@ class Monitor7EData(DataStruct):
 
     def get_cmd_enum(self, hardware):
         enum_dict = {
-            HardwareEnum.UART:UARTCmd,
-            HardwareEnum.SPI:SPICmd,
-            HardwareEnum.GPIO:GPIOCmd,
-            HardwareEnum.RELAY:RELAYCmd,
-            HardwareEnum.CROSS_ZERO:CrossZeroCmd
+            HardwareEnum.UART: UARTCmd,
+            HardwareEnum.SPI: SPICmd,
+            HardwareEnum.GPIO: GPIOCmd,
+            HardwareEnum.RELAY: RELAYCmd,
+            HardwareEnum.CROSS_ZERO: CrossZeroCmd
         }
         assert self.hardware in enum_dict
         return enum_dict[hardware]
@@ -340,10 +345,10 @@ class Monitor7EData(DataStruct):
 
     def to_readable_str(self):
         interface = (self.hardware.value << 4) | self.group
-        text = "interface[{}] 功能:{} channel:{} cmd[{}]:{} len[{}]:{} {}".format(\
-            u8tohexstr(interface),self.hardware.name,self.group,\
-            u8tohexstr(self.cmd.value),self.cmd.name,\
-            u8tohexstr(self.len),self.len,\
+        text = "interface[{}] 功能:{} channel:{} cmd[{}]:{} len[{}]:{} {}".format( \
+            u8tohexstr(interface), self.hardware.name, self.group, \
+            u8tohexstr(self.cmd.value), self.cmd.name, \
+            u8tohexstr(self.len), self.len, \
             self.get_parsed_data())
         return text
 
@@ -369,15 +374,14 @@ class Monitor7eProtocol(Protocol):
             if start_pos == -1:
                 break
             frame_data = data[start_pos:]
-            end =find_head(frame_data, 1, Monitor_ID)
-            if start_pos == (end-1):
-                start_pos +=1
+            end = find_head(frame_data, 1, Monitor_ID)
+            if start_pos == (end - 1):
+                start_pos += 1
                 continue
             if end == -1:
                 break
             else:
-                return True, start_pos, end+1
+                return True, start_pos, end + 1
         if (show_time):
             print("time const:", time.time() - start, "data length", total_len)
         return False, 0, 0
-

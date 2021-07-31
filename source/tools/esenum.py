@@ -1,5 +1,6 @@
 from enum import Enum
 
+
 class EsEnum(Enum):
 
     @classmethod
@@ -11,7 +12,7 @@ class EsEnum(Enum):
             if value in cls.name_dict():
                 return cls[value]
             else:
-                value = int(value,base=16)
+                value = int(value, base=16)
                 return cls(value=value)
         elif isinstance(value, int):
             return cls(value=value)
@@ -28,9 +29,9 @@ class EsEnum(Enum):
         return outputs
 
     @classmethod
-    def value_to_name(cls,value):
+    def value_to_name(cls, value):
         dict_ = cls.name_dict()
-        for key,value_ in dict_.items():
+        for key, value_ in dict_.items():
             if value == value_:
                 return key
         return "unknown"

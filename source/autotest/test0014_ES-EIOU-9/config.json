@@ -16,36 +16,36 @@
         }
     },
     "01_基本协议测试": {
-        "enable": false,
+        "enable": true,
         "paras": {},
         "subcase": {
             "01_设备类型0001": {
-                "enable": false,
+                "enable": true,
                 "paras": {},
                 "subcase": {}
             },
             "03_设备描述信息设备制造商0003": {
-                "enable": false,
+                "enable": true,
                 "paras": {},
                 "subcase": {}
             },
             "04_DKEY0005": {
-                "enable": false,
+                "enable": true,
                 "paras": {},
                 "subcase": {}
             },
             "07_SN0007": {
-                "enable": false,
+                "enable": true,
                 "paras": {},
                 "subcase": {}
             },
             "08_多DID组合报文测试": {
-                "enable": false,
+                "enable": true,
                 "paras": {},
                 "subcase": {}
             },
             "09_设备PWD000A": {
-                "enable": false,
+                "enable": true,
                 "paras": {},
                 "subcase": {}
             }
@@ -81,7 +81,7 @@
                 "subcase": {}
             },
             "15_NTC_PTC输入测试": {
-                "enable": false,
+                "enable": true,
                 "paras": {},
                 "subcase": {}
             }

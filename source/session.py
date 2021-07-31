@@ -3,18 +3,20 @@ from media.serial_media import SerialMedia
 from protocol.codec import BinaryEncoder, BinaryDecoder
 from protocol.fifo_buffer import FifoBuffer
 from tools.converter import hexstr2bytes, str2hexstr
-from PyQt5.QtCore import QObject, pyqtSignal,QTimer
-from tools.converter import bytearray2str,str2bytearray
+from PyQt5.QtCore import QObject, pyqtSignal, QTimer
+from tools.converter import bytearray2str, str2bytearray
 from protocol import Protocol
 import datetime
 import logging
 from copy import deepcopy
-from protocol.data_container import DataMetaType,DataByteArray
+from protocol.data_container import DataMetaType, DataByteArray
+
 
 class SessionSuit(QObject):
     data_ready = pyqtSignal(DataMetaType)
     data_snd = pyqtSignal(DataMetaType)
     data_clean = pyqtSignal(DataMetaType)
+
     @staticmethod
     def create_binary_suit(media, protocol):
         encoder = BinaryEncoder()
@@ -33,6 +35,8 @@ class SessionSuit(QObject):
         self.bytes_timer = QTimer()
         self.bytes_timer.timeout.connect(self.clear_data)
 
+        self.tailing = 0
+
     @property
     def media(self):
         return self._media
@@ -45,20 +49,24 @@ class SessionSuit(QObject):
         self._media = value
 
     def handle_receive_data(self, string):
-        #assert len(string) > 0
+        # assert len(string) > 0
         if len(string) > 0:
+            self.tailing = 0
             pass
-        
+        self.tailing += 1
+        if self.tailing < 5:
+            pass
+
         self.buffer.receive(string)
         protocol = deepcopy(self.protocol)
-        #print(datetime.datetime.now()," rcv bytes:",len(string),string[0])
+        # print(datetime.datetime.now()," rcv bytes:",len(string),string[0])
         while True:
             data = self.buffer.peek(-1)
             (found, start, length) = protocol.find_frame_in_buff(data)
             if found:
                 raw_data = self.buffer.read(start + length)
-                #logging.info("rev raw: %s",str2hexstr(raw_data))
-                frame_data = data[start:start+length]
+                # logging.info("rev raw: %s",str2hexstr(raw_data))
+                frame_data = data[start:start + length]
                 self.decoder.set_data(frame_data)
                 data = protocol.decode(self.decoder)
                 self.data_ready.emit(data)
@@ -78,7 +86,7 @@ class SessionSuit(QObject):
         data = self.buffer.read(-1)
         if len(data) > 0:
             self.data_clean.emit(DataByteArray(value=data))
-            logging.warning("noise data %s" ,str2hexstr(data))
+            logging.warning("noise data %s", str2hexstr(data))
         self.bytes_timer.stop()
 
     def write(self, data, **kwargs):
@@ -87,7 +95,6 @@ class SessionSuit(QObject):
         self.encoder.encode_object(data)
         data = self.encoder.get_data()
         self._media.send(data)
-
 
     def close(self):
         self._media.close()

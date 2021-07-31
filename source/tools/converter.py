@@ -14,7 +14,7 @@ def hexstr2bytes(string):
         if byte is '':
             continue
         for i in range(0, len(byte), 2):
-            hex_data += struct.pack("@B", int(byte[i:i+2], 16))
+            hex_data += struct.pack("@B", int(byte[i:i + 2], 16))
     return hex_data
 
 
@@ -23,7 +23,7 @@ def str2hexstr(string):
     if isinstance(string, str):
         string = bytes(string, encoding="utf-8")
     for byte in string:
-        des += "%02x" %(byte)
+        des += "%02x" % (byte)
         des += " "
     return des.strip().upper()
 
@@ -43,6 +43,7 @@ def u16tohexstr(nb):
 def u8tohexstr(value):
     return "{:0>2x}".format(value)
 
+
 def str2bytearray(string):
     out = bytes(string, encoding="utf-8")
     return out
@@ -57,4 +58,3 @@ def bytearray2str(bytes):
 
 def toint(value):
     pass
-

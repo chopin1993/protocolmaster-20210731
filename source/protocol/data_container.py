@@ -2,6 +2,7 @@
 from .data_meta_type import *
 from copy import deepcopy
 
+
 class DataStruct(DataMetaType):
 
     @staticmethod
@@ -14,7 +15,7 @@ class DataStruct(DataMetaType):
     def __init__(self):
         self.units = []
 
-    def load_args(self, decoder=None,**kwargs):
+    def load_args(self, decoder=None, **kwargs):
         if decoder is not None:
             self.decode(decoder)
         else:
@@ -49,8 +50,8 @@ class DataStruct(DataMetaType):
 
 
 class DataArray(DataMetaType):
-    def __init__(self, name, metas,cnt_name="",values=[], cnt=-1, decoder=None):
-        assert len(metas)>=0
+    def __init__(self, name, metas, cnt_name="", values=[], cnt=-1, decoder=None):
+        assert len(metas) >= 0
         self.metas = metas
         self.cnt_name = cnt_name
         self.data_struct = DataStruct.create_data_struct(metas)
@@ -65,13 +66,12 @@ class DataArray(DataMetaType):
 
     @value.setter
     def value(self, value):
-        assert isinstance(value, list),"必须使用list给数组赋值"
+        assert isinstance(value, list), "必须使用list给数组赋值"
         self.meta_values = []
         for unit in value:
             self.data_struct.load_args(unit)
             unit = deepcopy(self.data_struct)
             self.meta_values.append(unit)
-
 
     def decode(self, decoder, **kwargs):
         self.meta_values = []
@@ -86,7 +86,7 @@ class DataArray(DataMetaType):
 
     def __str__(self):
         txt = "["
-        for idx,unit in enumerate(self.meta_values):
-            txt +="\n        {},".format(str(unit))
+        for idx, unit in enumerate(self.meta_values):
+            txt += "\n        {},".format(str(unit))
         txt += "]"
         return txt

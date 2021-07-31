@@ -72,7 +72,7 @@ class ESMainWindow(QMainWindow, Ui_MainWindow):
     def log_history_clicked(self, row, col):
         txt = self.tableWidgetFrame.item(row, col).text()
         self.textBrowserFrameInfo.setText(txt)
-        readable_text =  self.get_current_protocol().to_readable_str(txt)
+        readable_text =  self.get_current_protocol().to_readable_str
         self.textBrowserFrameInfo.append(readable_text)
 
     def log_tablewidgit_menu(self,pos):

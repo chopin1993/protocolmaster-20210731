@@ -1,9 +1,10 @@
 # encoding:utf-8
 from tools.converter import str2hexstr, hexstr2bytes
-from .codec import BinaryDecoder,BinaryEncoder
+from .codec import BinaryDecoder, BinaryEncoder
 from register import Register
 from .fifo_buffer import FifoBuffer
 import logging
+
 
 def find_head(buff, start, head):
     """
@@ -19,6 +20,7 @@ def find_head(buff, start, head):
     if -1 == pos:
         return pos
     return pos + start
+
 
 class Protocol(Register):
 
@@ -63,8 +65,8 @@ class Protocol(Register):
         data = hexstr2bytes(text)
         found, start, datalen = self.find_frame_in_buff(data)
         if found:
-            data = data[start:start+datalen]
+            data = data[start:start + datalen]
             data = BinaryDecoder.data2object(self.data_cls, data)
-            return data.to_readable_str()
+            return data.to_readable_str
         else:
             return "no valid frame"

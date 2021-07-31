@@ -11,6 +11,7 @@ from .data_meta_type import *
 from .smart_utils import *
 from .smart7e_DID import *
 import logging
+
 SMART_7e_HEAD = bytes([0x7e])
 
 class RELAYCmd(EsEnum):
@@ -32,15 +33,15 @@ class UpdateStartInfo(DataStruct):
         """
         super(UpdateStartInfo, self).__init__()
         self.declare_unit(DataU32("size"))
-        self.declare_unit(DataByteArray("crc",length=2))
+        self.declare_unit(DataByteArray("crc", length=2))
         self.declare_unit(DataU8("blocksize"))
-        self.declare_unit(DataByteArray("devicetype",length=8))
+        self.declare_unit(DataByteArray("devicetype", length=8))
         self.declare_unit(DataCString("softversion"))
         self.load_args(decoder=decoder, **kwargs)
 
 
 class UpdateFBD(DataStruct):
-    def __init__(self, decoder=None, cmd=None, seq=None, ack=None, data=bytes(),crc=None, **kwargs):
+    def __init__(self, decoder=None, cmd=None, seq=None, ack=None, data=bytes(), crc=None, **kwargs):
         self.cmd = CMD.to_enum(cmd)
         self.seq = seq
         self.ack = ack
@@ -59,7 +60,7 @@ class UpdateFBD(DataStruct):
         encoder.encode_bytes(self.data)
 
     def decode(self, decoder):
-        if decoder.left_bytes() <6:
+        if decoder.left_bytes() < 6:
             return
         self.seq = decoder.decode_u16()
         self.ack = decoder.decode_u8()
@@ -74,7 +75,7 @@ class UpdateFBD(DataStruct):
             self.ack,
             str2hexstr(self.crc),
             self.length)
-        if self.seq == 0 and len(self.data)>0:
+        if self.seq == 0 and len(self.data) > 0:
             decoder = BinaryDecoder(self.data)
             txt += str(decoder.decoder_for_object(UpdateStartInfo))
         return txt
@@ -83,11 +84,11 @@ class UpdateFBD(DataStruct):
 class RemoteFBD(DataStruct):
 
     @staticmethod
-    def create(cmd, did_name, data, gids=None, gid_type=None,**kwargs):
-        did = DIDRemote.create_did(did_name, data, gids=gids, gid_type=gid_type,**kwargs)
+    def create(cmd, did_name, data, gids=None, gid_type=None, **kwargs):
+        did = DIDRemote.create_did(did_name, data, gids=gids, gid_type=gid_type, **kwargs)
         return RemoteFBD(cmd, did, **kwargs)
 
-    def __init__(self, cmd=None, didunits=None, decoder=None,**kwargs):
+    def __init__(self, cmd=None, didunits=None, decoder=None, **kwargs):
         self.didunits = []
         self.cmd = CMD.to_enum(cmd)
         if decoder is None:
@@ -100,7 +101,7 @@ class RemoteFBD(DataStruct):
 
     def is_applylication_did(self):
         for did in self.didunits:
-            if did.DID&0xff00 == 0x0600 or did.DID in [0x0004,]:
+            if did.DID & 0xff00 == 0x0600 or did.DID in [0x0004, ]:
                 return False
         return True
 
@@ -126,15 +127,16 @@ class RemoteFBD(DataStruct):
                 self.didunits.append(didunit)
 
     def __str__(self):
-       text = "{}[{}]".format(self.cmd.name, u8tohexstr(self.cmd.value))
-       for did in self.didunits:
-           text += "\n    " + str(did)
-       return text
+        text = "{}[{}]".format(self.cmd.name, u8tohexstr(self.cmd.value))
+        for did in self.didunits:
+            text += "\n    " + str(did)
+        return text
 
 
 class Smart7EData(DataStruct):
     SEQ = 1
-    LAST_FRAME_SEQ = 1   #用于手动组织回复报文使用
+    LAST_FRAME_SEQ = 1  # 用于手动组织回复报文使用
+
     def __init__(self, said=None, taid=None, fbd=None, reply=False, decoder=None):
         self.data = None
         if decoder is not None:
@@ -147,7 +149,7 @@ class Smart7EData(DataStruct):
                 self.seq = Smart7EData.LAST_FRAME_SEQ | 0x80
             else:
                 self.seq = Smart7EData.SEQ
-                Smart7EData.SEQ +=1
+                Smart7EData.SEQ += 1
                 if Smart7EData.SEQ > 127:
                     Smart7EData.SEQ = 1
             self.len = self.get_fbd_len()
@@ -155,34 +157,36 @@ class Smart7EData(DataStruct):
     def increase_seq(self):
         self.seq += 1
         if self.seq > 127:
-            self.seq =1
+            self.seq = 1
+
+    def is_uart_data(self):
+        return True
 
     def is_reply(self):
-        return self.seq&0x80==0x80
+        return self.seq & 0x80 == 0x80
 
     def is_report(self):
         return isinstance(self.fbd, RemoteFBD) and self.fbd.cmd in [CMD.NOTIFY, CMD.REPORT]
 
     def is_update(self):
-        return  isinstance(self.fbd, UpdateFBD) and self.fbd.cmd in [CMD.UPDATE,CMD.UPDATE_PLC]
+        return isinstance(self.fbd, UpdateFBD) and self.fbd.cmd in [CMD.UPDATE, CMD.UPDATE_PLC]
 
     def is_local(self):
-        return self.said ==0 and self.taid == 0
+        return self.said == 0 and self.taid == 0
 
     def is_boardcast(self):
-        return  self.taid == 0xffffffff
+        return self.taid == 0xffffffff
 
     def is_need_spy(self):
         if self.is_local():
             return False
         if self.is_update():
             return False
-        if  isinstance(self.fbd, RemoteFBD):
+        if isinstance(self.fbd, RemoteFBD):
             return self.fbd.is_applylication_did()
         if self.is_boardcast():
             return True
         return True
-
 
     def decode(self, decoder):
         self.data = decoder.data
@@ -196,7 +200,7 @@ class Smart7EData(DataStruct):
             self.fbd = fbd_decoder.decoder_for_object(LocalFBD)
         else:
             cmd = CMD.to_enum(fbd_decoder.decode_u8())
-            if cmd in [CMD.UPDATE,CMD.UPDATE_PLC]:
+            if cmd in [CMD.UPDATE, CMD.UPDATE_PLC]:
                 self.fbd = fbd_decoder.decoder_for_object(UpdateFBD, cmd=cmd, ctx=self)
             else:
                 self.fbd = fbd_decoder.decoder_for_object(RemoteFBD, cmd=cmd, ctx=self)
@@ -230,22 +234,23 @@ class Smart7EData(DataStruct):
             data = BinaryEncoder.object2data(self)
         return str2hexstr(data)
 
+    @property
     def to_readable_str(self):
         hex_said = u32tohexstr(self.said)
         hex_taid = u32tohexstr(self.taid)
         hex_seq = u8tohexstr(self.seq)
         hex_len = u8tohexstr(self.len)
-        text = "said:{}[{}] taid：{}[{}] seq:{}[{}] len:{}[{}] fbd:{}".format(\
-            self.said,hex_said,\
-            self.taid,hex_taid,\
-            self.seq, hex_seq,\
-            self.len, hex_len,\
+        text = "said:{}[{}] taid：{}[{}] seq:{}[{}] len:{}[{}] fbd:{}".format( \
+            self.said, hex_said, \
+            self.taid, hex_taid, \
+            self.seq, hex_seq, \
+            self.len, hex_len, \
             str(self.fbd))
         return text
 
     def ack_message(self):
         msg = Smart7EData(self.taid, self.said, self.fbd)
-        msg.seq = self.seq|0x80
+        msg.seq = self.seq | 0x80
         return msg
 
     @staticmethod
@@ -260,7 +265,6 @@ class Smart7eProtocol(Protocol):
 
     def __init__(self):
         super(Smart7eProtocol, self).__init__(Smart7EData)
-
 
     @staticmethod
     def find_frame_in_buff(data):
@@ -278,16 +282,19 @@ class Smart7eProtocol(Protocol):
             if len(frame_data) < 11:
                 break
             data_len = frame_data[10]
+            # if data_len + 12 > len(frame_data):
+            #     start_pos += 1
+            #     continue
             if data_len + 12 > len(frame_data):
-                start_pos += 1
-                continue
+                 start_pos = -1
+                 break
+
             if frame_data[11 + data_len] != checksum(frame_data[0:data_len + 11]):
                 logging.warning("smart7e check error")
                 start_pos += 1
                 show_time = True
             else:
-                return True,start_pos,data_len+12
-        if(show_time):
-            print("time const:" ,time.time()-start,"data length",total_len)
+                return True, start_pos, data_len + 12
+        if show_time:
+            print("time const:", time.time() - start, "data length", total_len)
         return False, 0, 0
-

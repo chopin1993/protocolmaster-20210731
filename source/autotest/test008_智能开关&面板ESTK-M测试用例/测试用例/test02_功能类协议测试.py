@@ -11,7 +11,7 @@ elif config["被测设备按键数"] == 3:
     channel_dict = {1: '01', 2: '02', 3: '04'}
 elif config["被测设备按键数"] == 2:
     channel_dict = {1: '01', 2: '02'}
-else:
+else:   # config["被测设备按键数"] == 1
     channel_dict = {1: '01'}
 
 
@@ -61,13 +61,13 @@ def test_出厂默认参数():
                           设备通道=channel, 被控设备AID=config["测试设备地址"], 被控设备通道=value)
     if config["被测设备按键数"] == 3:
         engine.send_did("READ", "读写面板默认背光亮度百分比C135", "07")
-        engine.expect_did("READ", "读写面板默认背光亮度百分比C135", '07 32 32 32')
+        engine.expect_did("READ", "读写面板默认背光亮度百分比C135", '07 01 01 01')
     elif config["被测设备按键数"] == 2:
         engine.send_did("READ", "读写面板默认背光亮度百分比C135", "03")
-        engine.expect_did("READ", "读写面板默认背光亮度百分比C135", '03 32 32')
-    else:
+        engine.expect_did("READ", "读写面板默认背光亮度百分比C135", '03 01 01')
+    else:   # config["被测设备按键数"] == 1
         engine.send_did("READ", "读写面板默认背光亮度百分比C135", "01")
-        engine.expect_did("READ", "读写面板默认背光亮度百分比C135", '01 32')
+        engine.expect_did("READ", "读写面板默认背光亮度百分比C135", '01 01')
 
     if config["被测设备硬件版本"] == "继电器版本":
         engine.send_did("READ", "读取继电器操作次数C132", "07")
@@ -140,15 +140,12 @@ def test_读写面板默认背光亮度百分比C135():
         >50：错误配置""")
     engine.add_doc_info("1、查询默认的背光亮度百分比为1%")
 
-    if config["被测设备按键数"] == 3:
-        engine.send_did("READ", "读写面板默认背光亮度百分比C135", "07")
-        engine.expect_did("READ", "读写面板默认背光亮度百分比C135", '07 32 32 32')
-    elif config["被测设备按键数"] == 2:
+    if config["被测设备按键数"] == 2:
         engine.send_did("READ", "读写面板默认背光亮度百分比C135", "03")
-        engine.expect_did("READ", "读写面板默认背光亮度百分比C135", '03 32 32')
-    else:
+        engine.expect_did("READ", "读写面板默认背光亮度百分比C135", '03 01 01')
+    else:   # config["被测设备按键数"] == 1
         engine.send_did("READ", "读写面板默认背光亮度百分比C135", "01")
-        engine.expect_did("READ", "读写面板默认背光亮度百分比C135", '01 32')
+        engine.expect_did("READ", "读写面板默认背光亮度百分比C135", '01 01')
 
     engine.add_doc_info("2、设置背光亮度百分比为其他数值")
     for channel, value in channel_dict.items():
@@ -215,11 +212,11 @@ def test_通断操作C012():
 
     engine.add_doc_info("通道1控制通断测试")
     relay_output_test(did="通断操作C012", relay_channel=1, output_channel=[0])
-
-    engine.add_doc_info("通道2控制通断测试")
-    relay_output_test(did="通断操作C012", relay_channel=2, output_channel=[1])
-    engine.add_doc_info("2个通道同时控制通断测试")
-    relay_output_test(did="通断操作C012", relay_channel=7, output_channel=[0, 1])
+    if config["被测设备按键数"] == 2:
+        engine.add_doc_info("通道2控制通断测试")
+        relay_output_test(did="通断操作C012", relay_channel=2, output_channel=[1])
+        engine.add_doc_info("2个通道同时控制通断测试")
+        relay_output_test(did="通断操作C012", relay_channel=3, output_channel=[0, 1])
 
     if config["被测设备按键数"] == 3:
         engine.add_doc_info("通道3控制通断测试")
@@ -245,15 +242,16 @@ def test_继电器翻转C018():
 
     engine.add_doc_info('通道1控制翻转测试')
     relay_output_test(did="继电器翻转C018", relay_channel=1, output_channel=[0])
-
-    engine.add_doc_info('通道2控制翻转测试')
-    relay_output_test(did="继电器翻转C018", relay_channel=2, output_channel=[1])
-
-    engine.add_doc_info('通道3控制翻转测试')
-    relay_output_test(did="继电器翻转C018", relay_channel=4, output_channel=[2])
-
-    engine.add_doc_info('3个通道同时控制翻转测试')
-    relay_output_test(did="继电器翻转C018", relay_channel=7, output_channel=[0, 1, 2])
+    if config["被测设备按键数"] == 2:
+        engine.add_doc_info('通道2控制翻转测试')
+        relay_output_test(did="继电器翻转C018", relay_channel=2, output_channel=[1])
+        engine.add_doc_info('2个通道同时控制翻转测试')
+        relay_output_test(did="继电器翻转C018", relay_channel=3, output_channel=[0, 1])
+    if config["被测设备按键数"] == 3:
+        engine.add_doc_info('通道3控制翻转测试')
+        relay_output_test(did="继电器翻转C018", relay_channel=4, output_channel=[2])
+        engine.add_doc_info('3个通道同时控制翻转测试')
+        relay_output_test(did="继电器翻转C018", relay_channel=7, output_channel=[0, 1, 2])
 
 
 def test_继电器上电状态C060():
@@ -274,23 +272,24 @@ def test_继电器上电状态C060():
     engine.expect_did("READ", "继电器上电状态C060", "02")
 
     engine.add_doc_info("测试被测设备为开的时候断电，根据配置，断电重启后为开")
-    engine.send_did("WRITE", "通断操作C012", "87")
-    engine.expect_did("WRITE", "通断操作C012", "07")
+    engine.send_did("WRITE", "通断操作C012", "83")
+    engine.expect_did("WRITE", "通断操作C012", "03")
     power_control()
     engine.send_did("READ", "通断操作C012", "")
-    engine.expect_did("READ", "通断操作C012", "07")
+    engine.expect_did("READ", "通断操作C012", "03")
+    
     engine.add_doc_info('监测器检测被测设备的输出端')
-    for channel in [0, 1, 2]:
+    for channel in [0, 1]:
         engine.expect_cross_zero_status(channel, 1)
 
     engine.add_doc_info("测试被测设备为关的时候断电，根据配置，断电重启后为关")
-    engine.send_did("WRITE", "通断操作C012", "07")
+    engine.send_did("WRITE", "通断操作C012", "03")
     engine.expect_did("WRITE", "通断操作C012", "00")
     power_control()
     engine.send_did("READ", "通断操作C012", "")
     engine.expect_did("READ", "通断操作C012", "00")
     engine.add_doc_info('监测器检测被测设备的输出端')
-    for channel in [0, 1, 2]:
+    for channel in [0, 1]:
         engine.expect_cross_zero_status(channel, 0)
 
     # 00上电状态为上电断开
@@ -301,23 +300,23 @@ def test_继电器上电状态C060():
     engine.expect_did("READ", "继电器上电状态C060", "00")
 
     engine.add_doc_info("测试被测设备为开的时候断电，根据配置，断电重启后为关")
-    engine.send_did("WRITE", "通断操作C012", "87")
-    engine.expect_did("WRITE", "通断操作C012", "07")
+    engine.send_did("WRITE", "通断操作C012", "83")
+    engine.expect_did("WRITE", "通断操作C012", "03")
     power_control()
     engine.send_did("READ", "通断操作C012", "")
     engine.expect_did("READ", "通断操作C012", "00")
     engine.add_doc_info('监测器检测被测设备的输出端')
-    for channel in [0, 1, 2]:
+    for channel in [0, 1]:
         engine.expect_cross_zero_status(channel, 0)
 
     engine.add_doc_info("测试被测设备为关的时候断电，根据配置，断电重启后为关")
-    engine.send_did("WRITE", "通断操作C012", "07")
+    engine.send_did("WRITE", "通断操作C012", "03")
     engine.expect_did("WRITE", "通断操作C012", "00")
     power_control()
     engine.send_did("READ", "通断操作C012", "")
     engine.expect_did("READ", "通断操作C012", "00")
     engine.add_doc_info('监测器检测被测设备的输出端')
-    for channel in [0, 1, 2]:
+    for channel in [0, 1]:
         engine.expect_cross_zero_status(channel, 0)
 
     # 01上电状态为上电闭合
@@ -328,23 +327,23 @@ def test_继电器上电状态C060():
     engine.expect_did("READ", "继电器上电状态C060", "01")
 
     engine.add_doc_info("测试被测设备为开的时候断电，根据配置，断电重启后为开")
-    engine.send_did("WRITE", "通断操作C012", "87")
-    engine.expect_did("WRITE", "通断操作C012", "07")
+    engine.send_did("WRITE", "通断操作C012", "83")
+    engine.expect_did("WRITE", "通断操作C012", "03")
     power_control()
     engine.send_did("READ", "通断操作C012", "")
-    engine.expect_did("READ", "通断操作C012", "07")
+    engine.expect_did("READ", "通断操作C012", "03")
     engine.add_doc_info('监测器检测被测设备的输出端')
-    for channel in [0, 1, 2]:
+    for channel in [0, 1]:
         engine.expect_cross_zero_status(channel, 1)
 
     engine.add_doc_info("测试被测设备为关的时候断电，根据配置，断电重启后为开")
-    engine.send_did("WRITE", "通断操作C012", "07")
+    engine.send_did("WRITE", "通断操作C012", "03")
     engine.expect_did("WRITE", "通断操作C012", "00")
     power_control()
     engine.send_did("READ", "通断操作C012", "")
-    engine.expect_did("READ", "通断操作C012", "07")
+    engine.expect_did("READ", "通断操作C012", "03")
     engine.add_doc_info('监测器检测被测设备的输出端')
-    for channel in [0, 1, 2]:
+    for channel in [0, 1]:
         engine.expect_cross_zero_status(channel, 1)
 
     engine.add_doc_info('设置回默认参数，02上电状态为上次断电状态')
@@ -352,7 +351,7 @@ def test_继电器上电状态C060():
     engine.expect_did("WRITE", "继电器上电状态C060", "02")
     engine.send_did("READ", "继电器上电状态C060")
     engine.expect_did("READ", "继电器上电状态C060", "02")
-    engine.send_did("WRITE", "通断操作C012", "07")
+    engine.send_did("WRITE", "通断操作C012", "03")
     engine.expect_did("WRITE", "通断操作C012", "00")
 
 
@@ -417,23 +416,51 @@ def test_继电器过零点动作延迟时间C020():
             engine.expect_did("READ", "继电器过零点动作延迟时间C020", value + " 33 39")
 
         engine.add_doc_info("2、测试设置不同的继电器过零点动作延迟时间C020，要求均可以设置成功")
-        for value in ["01 00 00", "02 00 01", "04 00 02"]:
-            engine.send_did("WRITE", "继电器过零点动作延迟时间C020", value)
-            engine.expect_did("WRITE", "继电器过零点动作延迟时间C020", value)
-        engine.send_did("READ", "继电器过零点动作延迟时间C020", "07")
-        engine.expect_did("READ", "继电器过零点动作延迟时间C020", "07 00 00 00 01 00 02")
+        if config["被测设备按键数"] == 2:
+            for value in ["01 00 00", "02 00 01"]:
+                engine.send_did("WRITE", "继电器过零点动作延迟时间C020", value)
+                engine.expect_did("WRITE", "继电器过零点动作延迟时间C020", value)
+        else:   # config["被测设备按键数"] == 1
+            for value in ["01 00 00"]:
+                engine.send_did("WRITE", "继电器过零点动作延迟时间C020", value)
+                engine.expect_did("WRITE", "继电器过零点动作延迟时间C020", value)
+        if config["被测设备按键数"] == 2:
+            engine.send_did("READ", "继电器过零点动作延迟时间C020", "01")
+            engine.expect_did("READ", "继电器过零点动作延迟时间C020", "01 00 00")
+            engine.send_did("READ", "继电器过零点动作延迟时间C020", "02")
+            engine.expect_did("READ", "继电器过零点动作延迟时间C020", "02 00 01")
+        else:   # config["被测设备按键数"] == 1
+            engine.send_did("READ", "继电器过零点动作延迟时间C020", "01")
+            engine.expect_did("READ", "继电器过零点动作延迟时间C020", "01 00 00")
 
         engine.add_doc_info("3、测试设置不同的继电器过零点动作延迟时间C020，要求均可以设置成功")
-        engine.send_did("WRITE", "继电器过零点动作延迟时间C020", "07 20 20 20 21 20 22")
-        engine.expect_did("WRITE", "继电器过零点动作延迟时间C020", "07 20 20 20 21 20 22")
-        engine.send_did("READ", "继电器过零点动作延迟时间C020", "07")
-        engine.expect_did("READ", "继电器过零点动作延迟时间C020", "07 20 20 20 21 20 22")
+        # 读写第一通道
+        engine.send_did("WRITE", "继电器过零点动作延迟时间C020", "01 20 20")
+        engine.expect_did("WRITE", "继电器过零点动作延迟时间C020", "01 20 20")
+        engine.send_did("READ", "继电器过零点动作延迟时间C020", "01")
+        engine.expect_did("READ", "继电器过零点动作延迟时间C020", "01 20 20")
+        if config["被测设备按键数"] == 2:
+            engine.send_did("WRITE", "继电器过零点动作延迟时间C020", "02 20 20")
+            engine.expect_did("WRITE", "继电器过零点动作延迟时间C020", "02 20 20")
+            engine.send_did("READ", "继电器过零点动作延迟时间C020", "02")
+            engine.expect_did("READ", "继电器过零点动作延迟时间C020", "02 20 20")
+        else:   # config["被测设备按键数"] == 1
+            engine.send_did("WRITE", "继电器过零点动作延迟时间C020", "01 20 20")
+            engine.expect_did("WRITE", "继电器过零点动作延迟时间C020", "01 20 20")
+            engine.send_did("READ", "继电器过零点动作延迟时间C020", "01")
+            engine.expect_did("READ", "继电器过零点动作延迟时间C020", "01 20 20")
 
         engine.add_doc_info("4、为便于后续的测试，将参数设置回默认参数")
-        engine.send_did("WRITE", "继电器过零点动作延迟时间C020", "07 33 39 33 39 33 39")
-        engine.expect_did("WRITE", "继电器过零点动作延迟时间C020", "07 33 39 33 39 33 39")
-        engine.send_did("READ", "继电器过零点动作延迟时间C020", "07")
-        engine.expect_did("READ", "继电器过零点动作延迟时间C020", "07 33 39 33 39 33 39")
+        # 读写第一通道
+        engine.send_did("WRITE", "继电器过零点动作延迟时间C020", "01 33 39")
+        engine.expect_did("WRITE", "继电器过零点动作延迟时间C020", "01 33 39")
+        engine.send_did("READ", "继电器过零点动作延迟时间C020", "01")
+        engine.expect_did("READ", "继电器过零点动作延迟时间C020", "01 33 39")
+        if config["被测设备按键数"] == 2:
+            engine.send_did("WRITE", "继电器过零点动作延迟时间C020", "02 33 39")
+            engine.expect_did("WRITE", "继电器过零点动作延迟时间C020", "02 33 39")
+            engine.send_did("READ", "继电器过零点动作延迟时间C020", "02")
+            engine.expect_did("READ", "继电器过零点动作延迟时间C020", "02 33 39")
     else:
         engine.send_did("READ", "继电器过零点动作延迟时间C020", "07")
         engine.expect_did("READ", "继电器过零点动作延迟时间C020", "82 04 00")
@@ -496,10 +523,10 @@ def test_继电器动作次数C132():
                 hex(int(cnt % 256))[2:]).rjust(2, "0")
             engine.send_did("READ", "读取继电器操作次数C132", value)
             engine.expect_did("READ", "读取继电器操作次数C132", expect)
-
-        engine.add_doc_info("3、同时动作3颗继电器，测试动作次数增加")
-        engine.send_did("WRITE", "继电器翻转C018", "07")
-        engine.expect_did("WRITE", "通断操作C012", "07")
+        if config["被测设备按键数"] == 2:
+            engine.add_doc_info("3、同时动作2颗继电器，测试动作次数增加")
+            engine.send_did("WRITE", "继电器翻转C018", "03")
+            engine.expect_did("WRITE", "通断操作C012", "03")
         engine.wait(seconds=5, tips='保证动作完成')
         for channel, value in channel_dict.items():
             cnt = opt_time[channel - 1] + 3
@@ -584,13 +611,16 @@ def test_复位等待时间CD00():
         engine.send_did("WRITE", "继电器上电状态C060", "00")
         engine.expect_did("WRITE", "继电器上电状态C060", "00")
     else:
-        pass
+        engine.add_doc_info('检测到当前测试设备是面板类设备，不检测-继电器上电状态C060！！！')
 
     if config["被测设备硬件版本"] == "继电器版本":
-        engine.send_did("WRITE", "继电器过零点动作延迟时间C020", "07 20 20 20 21 20 22")
-        engine.expect_did("WRITE", "继电器过零点动作延迟时间C020", "07 20 20 20 21 20 22")
+        engine.send_did("WRITE", "继电器过零点动作延迟时间C020", "01 20 20")
+        engine.expect_did("WRITE", "继电器过零点动作延迟时间C020", "01 20 20")
+        if config["被测设备按键数"] == 2:
+            engine.send_did("WRITE", "继电器过零点动作延迟时间C020", "02 20 21")
+            engine.expect_did("WRITE", "继电器过零点动作延迟时间C020", "02 20 21")
     else:
-        pass
+        engine.add_doc_info('检测到当前测试设备是面板类设备，无-继电器上电状态C060！！！')
 
     if config["被测设备类型"] == "开关":
         engine.send_did("WRITE", "主动上报使能标志D005", 传感器类型="未知", 上报命令="上报网关")
@@ -604,8 +634,12 @@ def test_复位等待时间CD00():
         engine.expect_did("WRITE", "读取或设置被控设备端的控制地址FB20",
                           设备通道=channel, 被控设备AID=config["抄控器默认源地址"], 被控设备通道=value)
 
-    engine.send_did("WRITE", "读写面板默认背光亮度百分比C135", '07 32 32 32')
-    engine.expect_did("WRITE", "读写面板默认背光亮度百分比C135", '07 32 32 32')
+    if config["被测设备按键数"] == 2:
+        engine.send_did("WRITE", "读写面板默认背光亮度百分比C135", '03 01 01')
+        engine.expect_did("WRITE", "读写面板默认背光亮度百分比C135", '03 01 01')
+    else:   # config["被测设备按键数"] == 1
+        engine.send_did("WRITE", "读写面板默认背光亮度百分比C135", '01 01 01')
+        engine.expect_did("WRITE", "读写面板默认背光亮度百分比C135", '01 01 01')
 
     engine.add_doc_info('控制被测设备断电重启，然后查询参数和断电前一致')
     power_control()
@@ -614,10 +648,6 @@ def test_复位等待时间CD00():
         engine.expect_did("READ", "通断操作C012", "00")
         engine.send_did("READ", "继电器上电状态C060")
         engine.expect_did("READ", "继电器上电状态C060", "00")
-
-    if config["被测设备硬件版本"] == "继电器版本":
-        engine.send_did("READ", "继电器过零点动作延迟时间C020", "07")
-        engine.expect_did("READ", "继电器过零点动作延迟时间C020", "07 20 20 20 21 20 22")
 
     if config["被测设备类型"] == "开关":
         engine.send_did("READ", "主动上报使能标志D005")
@@ -629,8 +659,8 @@ def test_复位等待时间CD00():
         engine.send_did("READ", "读取或设置被控设备端的控制地址FB20", 设备通道=channel)
         engine.expect_did("READ", "读取或设置被控设备端的控制地址FB20",
                           设备通道=channel, 被控设备AID=config["抄控器默认源地址"], 被控设备通道=value)
-    engine.send_did("READ", "读写面板默认背光亮度百分比C135", '07')
-    engine.expect_did("READ", "读写面板默认背光亮度百分比C135", '07 32 32 32')
+    engine.send_did("READ", "读写面板默认背光亮度百分比C135", '03')
+    engine.expect_did("READ", "读写面板默认背光亮度百分比C135", '03 01 01')
 
     engine.add_doc_info('3、发送复位等待时间CD00，验证所有的参数均恢复出厂设置'
                         '（其中的继电器上电状态C060、继电器过零点动作延迟时间C020、读写面板默认背光亮度百分比C135需要保持不变，'
@@ -660,10 +690,13 @@ def test_复位等待时间CD00():
         pass
 
     if config["被测设备硬件版本"] == "继电器版本":
-        engine.send_did("READ", "继电器过零点动作延迟时间C020", "07")
-        engine.expect_did("READ", "继电器过零点动作延迟时间C020", "07 20 20 20 21 20 22")
-    engine.send_did("READ", "读写面板默认背光亮度百分比C135", '07')
-    engine.expect_did("READ", "读写面板默认背光亮度百分比C135", '07 32 32 32')
+        engine.send_did("READ", "继电器过零点动作延迟时间C020", "01")
+        engine.expect_did("READ", "继电器过零点动作延迟时间C020", "01 20 20")
+        if config["被测设备按键数"] == 2:
+            engine.send_did("READ", "继电器过零点动作延迟时间C020", "02")
+            engine.expect_did("READ", "继电器过零点动作延迟时间C020", "02 20 21")
+    engine.send_did("READ", "读写面板默认背光亮度百分比C135", '03')
+    engine.expect_did("READ", "读写面板默认背光亮度百分比C135", '03 01 01')
 
     engine.add_doc_info('4、将CD00不能恢复的参数，设置回默认参数，便于后续的测试项目运行')
     if config["被测设备类型"] == "开关":
@@ -673,10 +706,17 @@ def test_复位等待时间CD00():
         pass
 
     if config["被测设备硬件版本"] == "继电器版本":
-        engine.send_did("WRITE", "继电器过零点动作延迟时间C020", "07 33 39 33 39 33 39")
-        engine.expect_did("WRITE", "继电器过零点动作延迟时间C020", "07 33 39 33 39 33 39")
-    engine.send_did("WRITE", "读写面板默认背光亮度百分比C135", '07 01 01 01')
-    engine.expect_did("WRITE", "读写面板默认背光亮度百分比C135", '07 01 01 01')
+        engine.send_did("WRITE", "继电器过零点动作延迟时间C020", "01 33 39")
+        engine.expect_did("WRITE", "继电器过零点动作延迟时间C020", "01 33 39")
+        if config["被测设备按键数"] == 2:
+            engine.send_did("WRITE", "继电器过零点动作延迟时间C020", "02 33 39")
+            engine.expect_did("WRITE", "继电器过零点动作延迟时间C020", "02 33 39")
+
+    engine.send_did("WRITE", "读写面板默认背光亮度百分比C135", '01 01')
+    engine.expect_did("WRITE", "读写面板默认背光亮度百分比C135", '01 01')
+    if config["被测设备按键数"] == 2:
+        engine.send_did("WRITE", "读写面板默认背光亮度百分比C135", '02 01')
+        engine.expect_did("WRITE", "读写面板默认背光亮度百分比C135", '02 01')
 
     engine.add_doc_info('再次进行出厂默认参数的验证，便于后续的测试项目运行')
 

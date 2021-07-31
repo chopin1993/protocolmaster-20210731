@@ -1,11 +1,13 @@
 import struct
 import numpy as np
-from tools.converter import bytearray2str,str2bytearray
-from copy import  deepcopy
+from tools.converter import bytearray2str, str2bytearray
+from copy import deepcopy
+
 
 class Encoder(object):
     def __init__(self):
         self.data = bytes([])
+
 
 class Decoder(object):
     pass
@@ -28,7 +30,7 @@ class BinaryEncoder(Encoder):
         self.encode_u16(nb)
 
     def encode_bcd_u8(self, nb):
-        nb = int(str(nb),base=16)
+        nb = int(str(nb), base=16)
         self.encode_u8(nb)
 
     def encode_u8(self, nb):
@@ -82,37 +84,37 @@ class BinaryDecoder(Decoder):
             return bytes()
         elif length < 0:
             return self.decode_left_bytes()
-        length = min(length,self.left_bytes())
+        length = min(length, self.left_bytes())
         data = self.data[0:length]
         self.data = self.data[length:]
         return data
 
     def decode_numpy_float(self, w, h):
-        data = self.decode_bytes(w*h*4)
+        data = self.decode_bytes(w * h * 4)
         data = np.frombuffer(data, dtype=np.float32)
-        data = data.reshape(h,w)
+        data = data.reshape(h, w)
         return data
 
     def decode_numpy_u16(self, w, h):
-        data = self.decode_bytes(w*h*2)
+        data = self.decode_bytes(w * h * 2)
         data = np.frombuffer(data, dtype=np.uint16)
-        data = data.reshape(h,w)
+        data = data.reshape(h, w)
         return data
 
     def decode_uint(self):
         data = self.decode_bytes(4)
-        return struct.unpack("I",data)[0]
+        return struct.unpack("I", data)[0]
 
     def decode_u32(self):
         return self.decode_uint()
 
     def decode_u16(self):
         data = self.decode_bytes(2)
-        return struct.unpack("H",data)[0]
+        return struct.unpack("H", data)[0]
 
     def decode_bcd_u16(self):
         data = self.decode_u16()
-        data = int("%x" %(data))
+        data = int("%x" % (data))
         return data
 
     def decode_bcd_u8(self):
@@ -122,11 +124,11 @@ class BinaryDecoder(Decoder):
 
     def decode_u8(self):
         data = self.decode_byte()
-        return struct.unpack("B",data)[0]
+        return struct.unpack("B", data)[0]
 
     def decode_s8(self):
         data = self.decode_byte()
-        return struct.unpack("b",data)[0]
+        return struct.unpack("b", data)[0]
 
     def decode_byte(self):
         data = self.decode_bytes(1)
@@ -141,7 +143,7 @@ class BinaryDecoder(Decoder):
         if length == 0:
             return bytes()
         elif length < 0:
-            return  deepcopy(self.data)
+            return deepcopy(self.data)
         length = max(len(self.data), length)
         data = deepcopy(self.data[0:length])
         return data
@@ -151,8 +153,8 @@ class BinaryDecoder(Decoder):
         for i in range(len(self.data)):
             if self.data[i] == 0:
                 break
-        data = self.decode_bytes(i+1)
-        return  bytearray2str(data)
+        data = self.decode_bytes(i + 1)
+        return bytearray2str(data)
 
     def set_data(self, data):
         self.data = data

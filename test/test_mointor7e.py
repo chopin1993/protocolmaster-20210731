@@ -23,4 +23,4 @@ def test_encode_decoder():
     monitor_data = prot.decode(decoder)
     encode_data = BinaryEncoder.object2data(monitor_data)
     helper.assert_equal(encode_data, data, encode_data.hex() + " " + data.hex())
-    print(monitor_data.to_readable_str())
+    print(monitor_data.to_readable_str)

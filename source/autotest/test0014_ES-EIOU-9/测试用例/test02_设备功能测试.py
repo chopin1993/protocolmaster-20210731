@@ -228,7 +228,7 @@ def test_模式与数据测试():
     equ_data = get_rcv_msg_date(msg)
 
     # 比较误差值
-    if abs(equ_data-device_data) < 100:
+    if abs(equ_data-device_data)/equ_data < 1.0/100:
         engine.add_doc_info('设备值：'+str(device_data)+'  '+'工装值：'+str(equ_data) + '   误差值小于100，测试通过')
     else:
         engine.add_doc_info('设备值：'+str(device_data)+'  '+'工装值：'+str(equ_data) + '   误差值大于100，测试不通过')

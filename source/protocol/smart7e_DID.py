@@ -1,4 +1,4 @@
-#encoding:utf-8
+# encoding:utf-8
 from protocol.data_meta_type import *
 from protocol.data_container import *
 from copy import deepcopy
@@ -12,6 +12,7 @@ import importlib
 from tools.filetool import get_file_list
 import os
 
+
 def cmd_filter(suffixs, cmd):
     ids = cmd
     if cmd == CMD.READ:
@@ -22,7 +23,7 @@ def cmd_filter(suffixs, cmd):
 
 
 class DIDRemote(Register):
-    DID=0xff00
+    DID = 0xff00
     MEMBERS = []
     REPLY_MEMBERS = []
     READ_MEMBERS = []
@@ -32,7 +33,7 @@ class DIDRemote(Register):
     _all_did = None
 
     @classmethod
-    def create_did(self, name, value=None,gid_type="U16",gids=None, **kwargs):
+    def create_did(self, name, value=None, gid_type="U16", gids=None, **kwargs):
         gid = None
         if gids is not None:
             gid = GID(gid_type, gids)
@@ -47,7 +48,7 @@ class DIDRemote(Register):
     @classmethod
     def get_all_types(cls):
         all_types = set()
-        for key,value in cls.get_sub_class_dict().items():
+        for key, value in cls.get_sub_class_dict().items():
             all_types.add(value.TYPE_NAME)
         return list(all_types)
 
@@ -178,7 +179,7 @@ class DIDRemote(Register):
                         member.encode(encoder)
                 self.data = encoder.get_data()
         else:
-            self.decode(decoder,**kwargs)
+            self.decode(decoder, **kwargs)
 
     def declare_metadata(self, metadata):
         self.units.append(metadata)
@@ -227,13 +228,13 @@ class DIDRemote(Register):
         if self.gid is not None:
             txt = " " + str(self.gid)
         txt += "did:{}[{}] data:".format(self.__class__.__name__,
-                                             u16tohexstr(self.DID))
+                                         u16tohexstr(self.DID))
         if not self.is_error:
             units = self.decode_units()
             if len(units) == 1:
                 txt += " " + list(units.values())[0].value_str()
             elif len(units) > 1:
-                for key,value in units.items():
+                for key, value in units.items():
                     txt += " " + str(value)
             elif len(self.data) > 0:
                 txt += " " + str2hexstr(self.data)
@@ -246,7 +247,7 @@ class DIDRemote(Register):
         return txt
 
 
-def create_remote_class(name, did, member,type_name=""):
+def create_remote_class(name, did, member, type_name=""):
     from types import new_class
     cls = new_class(name, (DIDRemote,), {})
     cls.DID = did
@@ -267,13 +268,13 @@ def get_user_fun(name):
             if mod_name.startswith("__"):
                 continue
             mod = importlib.import_module("protocol.dids." + os.path.splitext(mod_name)[0])
-            names = getattr(mod,"SUPPORT_NAMES")
+            names = getattr(mod, "SUPPORT_NAMES")
             encode_func = getattr(mod, "encode_value")
             decode_func = getattr(mod, "decode_value")
             to_value_func = getattr(mod, "to_value", None)
             value_str_func = getattr(mod, "value_str", None)
             for key in names:
-                assert key not in user_func_dict,"{} have exist in vs config".format(key)
+                assert key not in user_func_dict, "{} have exist in vs config".format(key)
                 user_func_dict[key] = (encode_func, decode_func, to_value_func, value_str_func)
     assert name in user_func_dict
     return user_func_dict[name]
@@ -286,10 +287,11 @@ def _create_array_type(member_list, content, cnt_name, array_name):
         for unit in member_list:
             if name == unit.name:
                 members.append(unit)
-    for member in  members:
+    for member in members:
         member_list.remove(member)
-    array_member = DataArray(array_name, members,cnt_name)
+    array_member = DataArray(array_name, members, cnt_name)
     return array_member
+
 
 def _create_did_class(did_type, did, member_patterns, did_name):
     member_configs = re.findall(r"[(（]([\w.]*)[,，]([\w]*)[,，]([_\w]*)[)）]", member_patterns)
@@ -315,23 +317,24 @@ def _create_did_class(did_type, did, member_patterns, did_name):
         members.append(array_member)
     create_remote_class(did_name, int(did, base=16), members, did_type)
 
+
 def _parse_dids(sheet):
     did_infos = []
     for row in range(1, sheet.nrows):
         values = sheet.row_values(row, 0, )
         type, did, member_patterns, name = values[1], values[2], values[5], values[11]
         did_infos.append((type, did, member_patterns, name))
-    logging.info("did rows %d, rows %d", sheet.nrows-1, len(did_infos))
-    for idx,(did_type, did, member_patterns, did_name) in enumerate(did_infos):
+    logging.info("did rows %d, rows %d", sheet.nrows - 1, len(did_infos))
+    for idx, (did_type, did, member_patterns, did_name) in enumerate(did_infos):
         for i in range(10):
-           if DIDRemote.find_class_by_name(did_name, refresh=True) is None:
+            if DIDRemote.find_class_by_name(did_name, refresh=True) is None:
                 _create_did_class(did_type, did, member_patterns, did_name)
-                if i >=1:
-                    logging.warning("%s create %d time",did_name, i+1)
-           else:
-               continue
+                if i >= 1:
+                    logging.warning("%s create %d time", did_name, i + 1)
+            else:
+                continue
     did_dict = DIDRemote.get_did_dict(True)
-    all_load =True
+    all_load = True
     for idx, (did_type, did, member_patterns, did_name) in enumerate(did_infos):
         if did_name not in did_dict:
             logging.error("%s class fail", did_name)
@@ -339,7 +342,10 @@ def _parse_dids(sheet):
     if not all_load:
         exit(-1)
 
-enum_dict={}
+
+enum_dict = {}
+
+
 def _parse_enums(sheet):
     global enum_dict
     name_values = {}
@@ -369,7 +375,7 @@ class LocalFBD(DataStruct):
     CMDS = []
 
     @staticmethod
-    def append_cmd(cmd ,units, txt):
+    def append_cmd(cmd, units, txt):
         LocalFBD.CMDS.append(DIDLocal(cmd, units, txt))
 
     @staticmethod
@@ -378,12 +384,12 @@ class LocalFBD(DataStruct):
             if isinstance(data, str):
                 if cmd.name == data:
                     return cmd
-            elif isinstance(data,int):
+            elif isinstance(data, int):
                 if cmd.cmd == data:
                     return cmd
             else:
                 raise ValueError
-        print("no proper cmd",data)
+        print("no proper cmd", data)
         raise NotImplementedError
 
     def __init__(self, cmd=None, data=None, decoder=None, **kwargs):
@@ -424,7 +430,7 @@ class LocalFBD(DataStruct):
         except Exception as e:
             logging.error(e)
             name = "未知"
-        if len(cmd_info.units) == 0 or self.data is None :
+        if len(cmd_info.units) == 0 or self.data is None:
             return name
         else:
             return name + " " + str(self.data)
@@ -436,7 +442,7 @@ def _parse_local_cmd(sheet):
         value, format, cmd_name = int(str(values[0]), base=16), values[1], values[4]
         member_configs = re.findall(r"[(（](\w*)[,，](\w*)[)）]", format)
         units = []
-        for meta_type,  name in member_configs:
+        for meta_type, name in member_configs:
             paras = {}
             paras[name] = meta_type
             data_meta = DataMetaType.create(paras)
@@ -453,12 +459,14 @@ def sync_xls_dids():
     _parse_enums(workbook.sheet_by_name("enums"))
     _parse_dids(workbook.sheet_by_name("dids"))
     _parse_local_cmd(workbook.sheet_by_name("localcmd"))
-    logging.info("load  %d dids ok!!!!!",len(DIDRemote.get_did_dict()))
+    logging.info("load  %d dids ok!!!!!", len(DIDRemote.get_did_dict()))
+
 
 def to_xls_enum_name(enum_key, value):
     value_dict = enum_dict[enum_key]
-    for key,value1 in value_dict.items():
+    for key, value1 in value_dict.items():
         if value1 == value:
-            return  key
+            return key
+
 
 sync_xls_dids()

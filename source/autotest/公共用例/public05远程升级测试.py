@@ -38,6 +38,7 @@ def test_应用层远程升级():
     power_control()
     config["检测版本号和参数保持不变"](version=config["设备描述信息设备制造商0003"])
 
+
 def test_断点续传():
     """
     02_断点续传
@@ -78,7 +79,7 @@ def test_断点续传():
 
     engine.add_doc_info("查询版本及SN、DK、配置参数均正常，然后等待180s再次触发升级")
     config["检测版本号和参数保持不变"](version=config["应用程序同版本号测试版本"])
-    engine.wait(180,tips='等待180s再次触发升级')
+    engine.wait(180, tips='等待180s再次触发升级')
 
     reqs = engine.update(config["设备描述信息设备制造商0003"])
     if reqs[0] != 30:

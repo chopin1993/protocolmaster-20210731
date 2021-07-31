@@ -1,4 +1,5 @@
 # encoding:utf-8
+from tools.checker import checksum
 from .protocol import Protocol, protocol_register
 from .protocol import find_head
 from .codec import BinaryEncoder
